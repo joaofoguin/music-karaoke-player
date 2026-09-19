@@ -910,7 +910,7 @@ class MainWindow(QMainWindow):
         self.karaoke_window.activateWindow()
 
     def atualizar_karaoke_posicao(self, position):
-        """Atualiza a sincronização do karaoke em tempo real conforme a posição da música."""
+        """Atualiza a sincronização e o aviso da próxima faixa no Karaoke."""
         if self.karaoke_window is not None and self.karaoke_window.isVisible():
             self.karaoke_window.atualizar_posicao(position)
 
@@ -979,6 +979,11 @@ class MainWindow(QMainWindow):
 
         if self.karaoke_window is not None:
             self.karaoke_window.atualizar_faixa(track)
+            indice_atual = self.queue_manager.current_index
+            proxima = None
+            if indice_atual >= 0 and indice_atual + 1 < len(self.queue_manager.tracks):
+                proxima = self.queue_manager.tracks[indice_atual + 1]
+            self.karaoke_window.definir_proxima_faixa(proxima)
 
         self.titulo_musica.setText(track.title)
         self.artista_musica.setText(track.artist if track.artist else "Artista desconhecido")

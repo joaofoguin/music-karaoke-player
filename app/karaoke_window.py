@@ -1,14 +1,14 @@
 from html import escape
 from pathlib import Path
 
-from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtCore import QTimer, QSize, Qt, Signal
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
     QMainWindow,
     QPushButton,
-    QSlider,
     QVBoxLayout,
     QWidget,
 )
@@ -16,7 +16,68 @@ from PySide6.QtWidgets import (
 from core.lyrics import current_line_index, load_lrc, render_chord_line_html
 from core.lyrics_storage import resolve_lyrics_path
 from core.icons import get_svg_icon
-from core.clickable_slider import ClickableSlider
+
+
+class MarqueeLabel(QLabel):
+    """Exibe um texto em uma única linha e o desloca quando ele não cabe."""
+
+    def __init__(self, text="", parent=None):
+        super().__init__(text, parent)
+        self._texto_original = text
+        self._offset = 0
+        self._animacao = QTimer(self)
+        self._animacao.setInterval(120)
+        self._animacao.timeout.connect(self._avancar)
+        self.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+        self.setMinimumWidth(0)
+        self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+
+    def setText(self, text):
+        self._texto_original = text or ""
+        self._offset = 0
+        self._atualizar_exibicao()
+        self._reiniciar_animacao()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._atualizar_exibicao()
+        self._reiniciar_animacao()
+
+    def _texto_cabe(self):
+        return self.fontMetrics().horizontalAdvance(self._texto_original) <= max(0, self.width())
+
+    def _reiniciar_animacao(self):
+        self._animacao.stop()
+        if self._texto_original and not self._texto_cabe():
+            self._animacao.start()
+
+    def _avancar(self):
+        if self._texto_cabe():
+            self._animacao.stop()
+            self._offset = 0
+            self._atualizar_exibicao()
+            return
+
+        texto = self._texto_original + "     "
+        self._offset = (self._offset + 1) % len(texto)
+        self._atualizar_exibicao()
+
+    def _atualizar_exibicao(self):
+        if not self._texto_original or self._texto_cabe():
+            super().setText(self._texto_original)
+            return
+
+        texto = self._texto_original + "     "
+        rotacao = texto[self._offset:] + texto[:self._offset]
+        largura = self.width()
+        if largura <= 0:
+            super().setText(self._texto_original)
+            return
+
+        fim = 0
+        while fim < len(rotacao) and self.fontMetrics().horizontalAdvance(rotacao[:fim + 1]) <= largura:
+            fim += 1
+        super().setText(rotacao[:fim])
 
 
 class KaraokeWindow(QMainWindow):
@@ -28,7 +89,7 @@ class KaraokeWindow(QMainWindow):
 
     MENSAGEM_SEM_LETRA = (
         "Nenhum arquivo de letra/karaoke encontrado para esta faixa\n\n"
-        "Clique em '✏️ Editar Letra' acima para criar ou sincronizar\n"
+        "Clique no ícone de edição acima para criar ou sincronizar\n"
         "as letras e cifras diretamente no editor do reprodutor."
     )
 
@@ -51,6 +112,8 @@ class KaraokeWindow(QMainWindow):
 
         self.lines = []
         self.current_index = -1
+        self.proxima_track = None
+        self._aviso_proxima_ms = 30000
 
         self._criar_interface()
         self.carregar_configuracoes()
@@ -60,8 +123,6 @@ class KaraokeWindow(QMainWindow):
 
         if self.audio_engine is not None:
             self.audio_engine.position_changed.connect(self.atualizar_posicao)
-            self.audio_engine.position_changed.connect(self._atualizar_slider_audio)
-            self.audio_engine.duration_changed.connect(self._atualizar_duracao_audio)
             self.audio_engine.playback_started.connect(self._atualizar_botao_play)
             self.audio_engine.playback_paused.connect(self._atualizar_botao_play)
             self.audio_engine.playback_stopped.connect(self._atualizar_botao_play)
@@ -82,47 +143,45 @@ class KaraokeWindow(QMainWindow):
         layout_topo.setContentsMargins(14, 10, 14, 10)
         layout_topo.setSpacing(8)
 
-        # Linha 1: Título e Ferramentas
-        linha1 = QHBoxLayout()
-        linha1.setSpacing(10)
-
-        self.faixa_atual = QLabel("Nenhuma música selecionada")
-        self.faixa_atual.setObjectName("trackTitle")
-        self.faixa_atual.setStyleSheet("font-size: 16px; font-weight: bold;")
-        linha1.addWidget(self.faixa_atual, 1)
-
-        # Controles rápidos de tamanho de letra
-        self.btn_font_dec = QPushButton("A-")
-        self.btn_font_dec.setToolTip("Diminuir tamanho da letra")
-        self.btn_font_dec.setFixedWidth(36)
-        self.btn_font_dec.clicked.connect(self._diminuir_fonte)
-        linha1.addWidget(self.btn_font_dec)
-
-        self.lbl_font_size = QLabel("32px")
-        self.lbl_font_size.setStyleSheet("font-size: 13px; font-weight: bold; color: #a3a3a3;")
-        linha1.addWidget(self.lbl_font_size)
-
-        self.btn_font_inc = QPushButton("A+")
-        self.btn_font_inc.setToolTip("Aumentar tamanho da letra")
-        self.btn_font_inc.setFixedWidth(36)
-        self.btn_font_inc.clicked.connect(self._aumentar_fonte)
-        linha1.addWidget(self.btn_font_inc)
-
-        self.btn_editar = QPushButton("✏️ Editar Letra")
-        self.btn_editar.setToolTip("Abrir o Editor de Karaoke para ajustar tempos e cifras")
-        self.btn_editar.clicked.connect(self.editar_solicitado.emit)
-        linha1.addWidget(self.btn_editar)
-
-        self.botao_tela_cheia = QPushButton("Tela cheia")
-        self.botao_tela_cheia.clicked.connect(self.alternar_tela_cheia)
-        linha1.addWidget(self.botao_tela_cheia)
-
-        layout_topo.addLayout(linha1)
-
-        # Linha 2: MINI PLAYER COMPACTO
+        # Linha única: título em letreiro + controles do player
         linha_player = QHBoxLayout()
         linha_player.setSpacing(10)
 
+        self.faixa_atual = MarqueeLabel("Nenhuma música selecionada")
+        self.faixa_atual.setObjectName("trackTitle")
+        self.faixa_atual.setStyleSheet("font-size: 16px; font-weight: bold;")
+        linha_player.addWidget(self.faixa_atual, 1)
+
+        # Controles rápidos de tamanho de letra
+        self.btn_font_dec = QPushButton()
+        self.btn_font_dec.setToolTip("Diminuir tamanho da letra (Ctrl+-)")
+        self.btn_font_dec.setObjectName("iconBtn")
+        self.btn_font_dec.clicked.connect(self._diminuir_fonte)
+        linha_player.addWidget(self.btn_font_dec)
+
+        self.lbl_font_size = QLabel("32px")
+        self.lbl_font_size.setStyleSheet("font-size: 13px; font-weight: bold; color: #a3a3a3;")
+        linha_player.addWidget(self.lbl_font_size)
+
+        self.btn_font_inc = QPushButton()
+        self.btn_font_inc.setToolTip("Aumentar tamanho da letra (Ctrl+=)")
+        self.btn_font_inc.setObjectName("iconBtn")
+        self.btn_font_inc.clicked.connect(self._aumentar_fonte)
+        linha_player.addWidget(self.btn_font_inc)
+
+        self.btn_editar = QPushButton()
+        self.btn_editar.setObjectName("iconBtn")
+        self.btn_editar.setToolTip("Editar letra (Ctrl+E)")
+        self.btn_editar.clicked.connect(self.editar_solicitado.emit)
+        linha_player.addWidget(self.btn_editar)
+
+        self.botao_tela_cheia = QPushButton()
+        self.botao_tela_cheia.setObjectName("iconBtn")
+        self.botao_tela_cheia.setToolTip("Tela cheia (F11)")
+        self.botao_tela_cheia.clicked.connect(self.alternar_tela_cheia)
+        linha_player.addWidget(self.botao_tela_cheia)
+
+        # Controles do player na mesma linha do nome da faixa.
         self.btn_anterior = QPushButton()
         self.btn_anterior.setObjectName("mediaBtn")
         self.btn_anterior.setToolTip("Faixa anterior / Recomeçar (Ctrl+Left)")
@@ -141,16 +200,6 @@ class KaraokeWindow(QMainWindow):
         self.btn_proximo.clicked.connect(self.faixa_proxima_solicitada.emit)
         linha_player.addWidget(self.btn_proximo)
 
-        self.lbl_tempo = QLabel("00:00 / 00:00")
-        self.lbl_tempo.setStyleSheet("font-size: 12px; font-family: monospace; color: #9ca3af; font-weight: bold;")
-        linha_player.addWidget(self.lbl_tempo)
-
-        self.slider_progresso = ClickableSlider(Qt.Orientation.Horizontal)
-        if self.audio_engine:
-            self.slider_progresso.sliderMoved.connect(self.audio_engine.set_position)
-            self.slider_progresso.clicked_position.connect(self.audio_engine.set_position)
-        linha_player.addWidget(self.slider_progresso, 1)
-
         layout_topo.addLayout(linha_player)
         layout.addWidget(painel_topo)
 
@@ -162,6 +211,83 @@ class KaraokeWindow(QMainWindow):
         self.letra.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.letra.setWordWrap(True)
         layout.addWidget(self.letra, 1)
+
+        # Aviso flutuante da próxima faixa, exibido apenas no fim da música.
+        self.popup_proxima = QFrame(self)
+        self.popup_proxima.setObjectName("nextTrackPopup")
+        popup_layout = QVBoxLayout(self.popup_proxima)
+        popup_layout.setContentsMargins(14, 10, 14, 10)
+        popup_layout.setSpacing(2)
+        self.popup_titulo = QLabel("Próxima música")
+        self.popup_titulo.setObjectName("nextTrackLabel")
+        self.popup_faixa = QLabel()
+        self.popup_faixa.setObjectName("nextTrackTitle")
+        self.popup_artista = QLabel()
+        self.popup_artista.setObjectName("nextTrackArtist")
+        popup_layout.addWidget(self.popup_titulo)
+        popup_layout.addWidget(self.popup_faixa)
+        popup_layout.addWidget(self.popup_artista)
+        self.popup_proxima.hide()
+
+        self._criar_atalhos()
+
+    def _criar_atalhos(self):
+        self._atalho_diminuir = QShortcut(QKeySequence("Ctrl+-"), self)
+        self._atalho_diminuir.activated.connect(self._diminuir_fonte)
+        self._atalho_aumentar = QShortcut(QKeySequence("Ctrl+="), self)
+        self._atalho_aumentar.activated.connect(self._aumentar_fonte)
+        self._atalho_editar = QShortcut(QKeySequence("Ctrl+E"), self)
+        self._atalho_editar.activated.connect(self.editar_solicitado.emit)
+        self._atalho_fullscreen = QShortcut(QKeySequence("F11"), self)
+        self._atalho_fullscreen.activated.connect(self.alternar_tela_cheia)
+        self._atalho_escape = QShortcut(QKeySequence("Escape"), self)
+        self._atalho_escape.activated.connect(self._sair_tela_cheia)
+        self._atalho_anterior = QShortcut(QKeySequence("Ctrl+Left"), self)
+        self._atalho_anterior.activated.connect(self.faixa_anterior_solicitada.emit)
+        self._atalho_play = QShortcut(QKeySequence(Qt.Key.Key_Space), self)
+        self._atalho_play.activated.connect(self._alternar_reproducao)
+        self._atalho_proximo = QShortcut(QKeySequence("Ctrl+Right"), self)
+        self._atalho_proximo.activated.connect(self.faixa_proxima_solicitada.emit)
+
+    def _sair_tela_cheia(self):
+        if self.isFullScreen():
+            self.alternar_tela_cheia()
+
+    def definir_proxima_faixa(self, track):
+        self.proxima_track = track
+        if track is None:
+            self.popup_proxima.hide()
+            return
+        self.popup_faixa.setText(track.title or "Título desconhecido")
+        self.popup_artista.setText(track.artist or "Artista desconhecido")
+        self.popup_proxima.adjustSize()
+        self._posicionar_popup()
+
+    def _posicionar_popup(self):
+        if self.popup_proxima is None:
+            return
+        margem = 20
+        self.popup_proxima.move(
+            max(margem, self.width() - self.popup_proxima.width() - margem),
+            max(margem, self.height() - self.popup_proxima.height() - margem),
+        )
+
+    def _atualizar_popup_proxima(self, position_ms):
+        if self.proxima_track is None or self.audio_engine is None:
+            self.popup_proxima.hide()
+            return
+        duration = self.audio_engine.duration()
+        restante = duration - position_ms
+        if 0 < restante <= self._aviso_proxima_ms:
+            self._posicionar_popup()
+            self.popup_proxima.show()
+            self.popup_proxima.raise_()
+        else:
+            self.popup_proxima.hide()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._posicionar_popup()
 
     def carregar_configuracoes(self):
         if self.config_manager is not None:
@@ -215,13 +341,29 @@ class KaraokeWindow(QMainWindow):
             QPushButton:hover {{ opacity: 0.85; }}
             QPushButton#mediaBtn {{ background: transparent; border: 0; min-width: 32px; max-width: 32px; min-height: 32px; max-height: 32px; border-radius: 16px; padding: 2px; }}
             QPushButton#mediaBtn:hover {{ background: rgba(255, 255, 255, 0.12); }}
+            QPushButton#iconBtn {{ background: transparent; border: 0; min-width: 32px; max-width: 32px; min-height: 32px; max-height: 32px; border-radius: 6px; padding: 2px; }}
+            QPushButton#iconBtn:hover {{ background: rgba(255, 255, 255, 0.10); }}
+            QPushButton#iconBtn:pressed {{ background: rgba(255, 255, 255, 0.16); }}
             QPushButton#playBtn {{ background: #2563eb; color: #ffffff; border: 0; border-radius: 17px; min-width: 34px; max-width: 34px; min-height: 34px; max-height: 34px; padding: 0; }}
             QPushButton#playBtn:hover {{ background: #3b82f6; }}
+            QFrame#nextTrackPopup {{ background: rgba(24, 24, 27, 0.96); border: 1px solid #f59e0b; border-radius: 10px; }}
+            QLabel#nextTrackLabel {{ color: #f59e0b; font-size: 11px; font-weight: 700; }}
+            QLabel#nextTrackTitle {{ color: #ffffff; font-size: 14px; font-weight: 700; }}
+            QLabel#nextTrackArtist {{ color: #a1a1aa; font-size: 11px; }}
+
             QSlider::groove:horizontal {{ height: 5px; background: #3a3a3a; border-radius: 2px; }}
             QSlider::handle:horizontal {{ width: 12px; margin: -4px 0; background: #3b82f6; border-radius: 6px; }}
             """
         )
 
+        self.btn_font_dec.setIcon(get_svg_icon("font_decrease", color=cor_icone, size=48))
+        self.btn_font_dec.setIconSize(QSize(18, 18))
+        self.btn_font_inc.setIcon(get_svg_icon("font_increase", color=cor_icone, size=48))
+        self.btn_font_inc.setIconSize(QSize(18, 18))
+        self.btn_editar.setIcon(get_svg_icon("edit", color=cor_icone, size=48))
+        self.btn_editar.setIconSize(QSize(18, 18))
+        self.botao_tela_cheia.setIcon(get_svg_icon("fullscreen", color=cor_icone, size=48))
+        self.botao_tela_cheia.setIconSize(QSize(18, 18))
         self.btn_anterior.setIcon(get_svg_icon("previous", color=cor_icone, size=48))
         self.btn_anterior.setIconSize(QSize(16, 16))
         self.btn_proximo.setIcon(get_svg_icon("next", color=cor_icone, size=48))
@@ -244,19 +386,6 @@ class KaraokeWindow(QMainWindow):
             self.btn_play.setIcon(get_svg_icon("play", color=cor_play, size=48))
             self.btn_play.setToolTip("Reproduzir (Espaço)")
         self.btn_play.setIconSize(QSize(16, 16))
-
-    def _atualizar_slider_audio(self, pos_ms: int):
-        duracao = self.audio_engine.duration() if self.audio_engine else 0
-        self.slider_progresso.setValue(pos_ms)
-
-        seg_pos = pos_ms // 1000
-        seg_dur = duracao // 1000
-        self.lbl_tempo.setText(
-            f"{seg_pos // 60:02d}:{seg_pos % 60:02d} / {seg_dur // 60:02d}:{seg_dur % 60:02d}"
-        )
-
-    def _atualizar_duracao_audio(self, duracao_ms: int):
-        self.slider_progresso.setRange(0, duracao_ms)
 
     def atualizar_faixa(self, track):
         self.current_track = track
@@ -287,6 +416,7 @@ class KaraokeWindow(QMainWindow):
             self.carregar_letra(self.current_track)
 
     def atualizar_posicao(self, position_ms):
+        self._atualizar_popup_proxima(position_ms)
         if not self.lines:
             return
 
@@ -343,15 +473,18 @@ class KaraokeWindow(QMainWindow):
         self.lines = []
         self.current_index = -1
         self.current_track = None
+        self.definir_proxima_faixa(None)
         self.faixa_atual.setText("Nenhuma música selecionada")
         self.letra.setText(self.MENSAGEM_SEM_LETRA)
-        self.slider_progresso.setRange(0, 0)
-        self.lbl_tempo.setText("00:00 / 00:00")
 
     def alternar_tela_cheia(self):
         if self.isFullScreen():
             self.showNormal()
-            self.botao_tela_cheia.setText("Tela cheia")
+            self.botao_tela_cheia.setIcon(get_svg_icon("fullscreen", color="#e5e7eb", size=48))
+            self.botao_tela_cheia.setIconSize(QSize(18, 18))
+            self.botao_tela_cheia.setToolTip("Tela cheia")
         else:
             self.showFullScreen()
-            self.botao_tela_cheia.setText("Sair da tela cheia")
+            self.botao_tela_cheia.setIcon(get_svg_icon("fullscreen_exit", color="#e5e7eb", size=48))
+            self.botao_tela_cheia.setIconSize(QSize(18, 18))
+            self.botao_tela_cheia.setToolTip("Sair da tela cheia")

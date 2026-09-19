@@ -43,6 +43,16 @@ SVG_ICONS = {
         <path fill="{color}" d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
     </svg>""",
 
+    "edit": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm14.71-9.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0l-1.17 1.17 3.75 3.75 1.33-1.01z"/></svg>""",
+
+    "font_decrease": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M5 11h14v2H5zM7 20h2l1.2-4h3.6l1.2 4h2L13 4h-2L7 20zm3.7-6 1.3-5 1.3 5h-2.6z"/></svg>""",
+
+    "font_increase": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M5 11h14v2H5zM11 5h2v14h-2zM7 20h2l1.2-4h3.6l1.2 4h2L13 4h-2L7 20zm3.7-6 1.3-5 1.3 5h-2.6z"/></svg>""",
+
+    "fullscreen": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/></svg>""",
+
+    "fullscreen_exit": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M8 4h2v4h4v2H8V4zm6 16v-4h-4v-2h6v6h-2zM4 8h4v2H4V8zm12 6h4v2h-4v-2z"/></svg>""",
+
     "music": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
         <path fill="{color}" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
     </svg>""",
