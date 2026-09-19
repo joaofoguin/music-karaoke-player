@@ -8,7 +8,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QMainWindow,
     QPushButton,
-    QSlider,
     QVBoxLayout,
     QWidget,
 )
@@ -16,7 +15,6 @@ from PySide6.QtWidgets import (
 from core.lyrics import current_line_index, load_lrc, render_chord_line_html
 from core.lyrics_storage import resolve_lyrics_path
 from core.icons import get_svg_icon
-from core.clickable_slider import ClickableSlider
 
 
 class KaraokeWindow(QMainWindow):
@@ -60,8 +58,6 @@ class KaraokeWindow(QMainWindow):
 
         if self.audio_engine is not None:
             self.audio_engine.position_changed.connect(self.atualizar_posicao)
-            self.audio_engine.position_changed.connect(self._atualizar_slider_audio)
-            self.audio_engine.duration_changed.connect(self._atualizar_duracao_audio)
             self.audio_engine.playback_started.connect(self._atualizar_botao_play)
             self.audio_engine.playback_paused.connect(self._atualizar_botao_play)
             self.audio_engine.playback_stopped.connect(self._atualizar_botao_play)
@@ -140,16 +136,6 @@ class KaraokeWindow(QMainWindow):
         self.btn_proximo.setToolTip("Próxima faixa (Ctrl+Right)")
         self.btn_proximo.clicked.connect(self.faixa_proxima_solicitada.emit)
         linha_player.addWidget(self.btn_proximo)
-
-        self.lbl_tempo = QLabel("00:00 / 00:00")
-        self.lbl_tempo.setStyleSheet("font-size: 12px; font-family: monospace; color: #9ca3af; font-weight: bold;")
-        linha_player.addWidget(self.lbl_tempo)
-
-        self.slider_progresso = ClickableSlider(Qt.Orientation.Horizontal)
-        if self.audio_engine:
-            self.slider_progresso.sliderMoved.connect(self.audio_engine.set_position)
-            self.slider_progresso.clicked_position.connect(self.audio_engine.set_position)
-        linha_player.addWidget(self.slider_progresso, 1)
 
         layout_topo.addLayout(linha_player)
         layout.addWidget(painel_topo)
@@ -245,19 +231,6 @@ class KaraokeWindow(QMainWindow):
             self.btn_play.setToolTip("Reproduzir (Espaço)")
         self.btn_play.setIconSize(QSize(16, 16))
 
-    def _atualizar_slider_audio(self, pos_ms: int):
-        duracao = self.audio_engine.duration() if self.audio_engine else 0
-        self.slider_progresso.setValue(pos_ms)
-
-        seg_pos = pos_ms // 1000
-        seg_dur = duracao // 1000
-        self.lbl_tempo.setText(
-            f"{seg_pos // 60:02d}:{seg_pos % 60:02d} / {seg_dur // 60:02d}:{seg_dur % 60:02d}"
-        )
-
-    def _atualizar_duracao_audio(self, duracao_ms: int):
-        self.slider_progresso.setRange(0, duracao_ms)
-
     def atualizar_faixa(self, track):
         self.current_track = track
         if track is None:
@@ -345,8 +318,6 @@ class KaraokeWindow(QMainWindow):
         self.current_track = None
         self.faixa_atual.setText("Nenhuma música selecionada")
         self.letra.setText(self.MENSAGEM_SEM_LETRA)
-        self.slider_progresso.setRange(0, 0)
-        self.lbl_tempo.setText("00:00 / 00:00")
 
     def alternar_tela_cheia(self):
         if self.isFullScreen():
