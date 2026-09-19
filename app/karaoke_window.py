@@ -2,6 +2,7 @@ from html import escape
 from pathlib import Path
 
 from PySide6.QtCore import QTimer, QSize, Qt, Signal
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -111,6 +112,8 @@ class KaraokeWindow(QMainWindow):
 
         self.lines = []
         self.current_index = -1
+        self.proxima_track = None
+        self._aviso_proxima_ms = 30000
 
         self._criar_interface()
         self.carregar_configuracoes()
@@ -209,6 +212,83 @@ class KaraokeWindow(QMainWindow):
         self.letra.setWordWrap(True)
         layout.addWidget(self.letra, 1)
 
+        # Aviso flutuante da próxima faixa, exibido apenas no fim da música.
+        self.popup_proxima = QFrame(self)
+        self.popup_proxima.setObjectName("nextTrackPopup")
+        popup_layout = QVBoxLayout(self.popup_proxima)
+        popup_layout.setContentsMargins(14, 10, 14, 10)
+        popup_layout.setSpacing(2)
+        self.popup_titulo = QLabel("Próxima música")
+        self.popup_titulo.setObjectName("nextTrackLabel")
+        self.popup_faixa = QLabel()
+        self.popup_faixa.setObjectName("nextTrackTitle")
+        self.popup_artista = QLabel()
+        self.popup_artista.setObjectName("nextTrackArtist")
+        popup_layout.addWidget(self.popup_titulo)
+        popup_layout.addWidget(self.popup_faixa)
+        popup_layout.addWidget(self.popup_artista)
+        self.popup_proxima.hide()
+
+        self._criar_atalhos()
+
+    def _criar_atalhos(self):
+        self._atalho_diminuir = QShortcut(QKeySequence("Ctrl+-"), self)
+        self._atalho_diminuir.activated.connect(self._diminuir_fonte)
+        self._atalho_aumentar = QShortcut(QKeySequence("Ctrl+="), self)
+        self._atalho_aumentar.activated.connect(self._aumentar_fonte)
+        self._atalho_editar = QShortcut(QKeySequence("Ctrl+E"), self)
+        self._atalho_editar.activated.connect(self.editar_solicitado.emit)
+        self._atalho_fullscreen = QShortcut(QKeySequence("F11"), self)
+        self._atalho_fullscreen.activated.connect(self.alternar_tela_cheia)
+        self._atalho_escape = QShortcut(QKeySequence("Escape"), self)
+        self._atalho_escape.activated.connect(self._sair_tela_cheia)
+        self._atalho_anterior = QShortcut(QKeySequence("Ctrl+Left"), self)
+        self._atalho_anterior.activated.connect(self.faixa_anterior_solicitada.emit)
+        self._atalho_play = QShortcut(QKeySequence(Qt.Key.Key_Space), self)
+        self._atalho_play.activated.connect(self._alternar_reproducao)
+        self._atalho_proximo = QShortcut(QKeySequence("Ctrl+Right"), self)
+        self._atalho_proximo.activated.connect(self.faixa_proxima_solicitada.emit)
+
+    def _sair_tela_cheia(self):
+        if self.isFullScreen():
+            self.alternar_tela_cheia()
+
+    def definir_proxima_faixa(self, track):
+        self.proxima_track = track
+        if track is None:
+            self.popup_proxima.hide()
+            return
+        self.popup_faixa.setText(track.title or "Título desconhecido")
+        self.popup_artista.setText(track.artist or "Artista desconhecido")
+        self.popup_proxima.adjustSize()
+        self._posicionar_popup()
+
+    def _posicionar_popup(self):
+        if self.popup_proxima is None:
+            return
+        margem = 20
+        self.popup_proxima.move(
+            max(margem, self.width() - self.popup_proxima.width() - margem),
+            max(margem, self.height() - self.popup_proxima.height() - margem),
+        )
+
+    def _atualizar_popup_proxima(self, position_ms):
+        if self.proxima_track is None or self.audio_engine is None:
+            self.popup_proxima.hide()
+            return
+        duration = self.audio_engine.duration()
+        restante = duration - position_ms
+        if 0 < restante <= self._aviso_proxima_ms:
+            self._posicionar_popup()
+            self.popup_proxima.show()
+            self.popup_proxima.raise_()
+        else:
+            self.popup_proxima.hide()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._posicionar_popup()
+
     def carregar_configuracoes(self):
         if self.config_manager is not None:
             self.font_size = self.config_manager.get("karaoke/font_size", 32)
@@ -266,6 +346,11 @@ class KaraokeWindow(QMainWindow):
             QPushButton#iconBtn:pressed {{ background: rgba(255, 255, 255, 0.16); }}
             QPushButton#playBtn {{ background: #2563eb; color: #ffffff; border: 0; border-radius: 17px; min-width: 34px; max-width: 34px; min-height: 34px; max-height: 34px; padding: 0; }}
             QPushButton#playBtn:hover {{ background: #3b82f6; }}
+            QFrame#nextTrackPopup {{ background: rgba(24, 24, 27, 0.96); border: 1px solid #f59e0b; border-radius: 10px; }}
+            QLabel#nextTrackLabel {{ color: #f59e0b; font-size: 11px; font-weight: 700; }}
+            QLabel#nextTrackTitle {{ color: #ffffff; font-size: 14px; font-weight: 700; }}
+            QLabel#nextTrackArtist {{ color: #a1a1aa; font-size: 11px; }}
+
             QSlider::groove:horizontal {{ height: 5px; background: #3a3a3a; border-radius: 2px; }}
             QSlider::handle:horizontal {{ width: 12px; margin: -4px 0; background: #3b82f6; border-radius: 6px; }}
             """
@@ -331,6 +416,7 @@ class KaraokeWindow(QMainWindow):
             self.carregar_letra(self.current_track)
 
     def atualizar_posicao(self, position_ms):
+        self._atualizar_popup_proxima(position_ms)
         if not self.lines:
             return
 
@@ -387,6 +473,7 @@ class KaraokeWindow(QMainWindow):
         self.lines = []
         self.current_index = -1
         self.current_track = None
+        self.definir_proxima_faixa(None)
         self.faixa_atual.setText("Nenhuma música selecionada")
         self.letra.setText(self.MENSAGEM_SEM_LETRA)
 
