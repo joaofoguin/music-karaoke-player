@@ -76,8 +76,8 @@ class KaraokeEditorWindow(QMainWindow):
                 QPushButton:hover { background: #374151; }
                 QPushButton#btnSync { background: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
                 QPushButton#btnSync:hover { background: #3b82f6; }
-                QPushButton#btnPaste { background: #047857; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
-                QPushButton#btnPaste:hover { background: #059669; }
+                QPushButton#btnTopAction { background: #047857; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
+                QPushButton#btnTopAction:hover { background: #059669; }
                 QPushButton#btnPlay { background: #2563eb; border-radius: 18px; min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px; }
                 QSlider::groove:horizontal { height: 6px; background: #1f2937; border-radius: 3px; }
                 QSlider::handle:horizontal { width: 14px; margin: -4px 0; background: #60a5fa; border-radius: 7px; }
@@ -93,8 +93,8 @@ class KaraokeEditorWindow(QMainWindow):
                 QPushButton:hover { background: #e5e7eb; }
                 QPushButton#btnSync { background: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
                 QPushButton#btnSync:hover { background: #1d4ed8; }
-                QPushButton#btnPaste { background: #059669; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
-                QPushButton#btnPaste:hover { background: #047857; }
+                QPushButton#btnTopAction { background: #059669; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
+                QPushButton#btnTopAction:hover { background: #047857; }
                 QPushButton#btnPlay { background: #2563eb; border-radius: 18px; min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px; }
                 QSlider::groove:horizontal { height: 6px; background: #e5e7eb; border-radius: 3px; }
                 QSlider::handle:horizontal { width: 14px; margin: -4px 0; background: #2563eb; border-radius: 7px; }
@@ -110,8 +110,8 @@ class KaraokeEditorWindow(QMainWindow):
                 QPushButton:hover { background: #4a4a4a; }
                 QPushButton#btnSync { background: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
                 QPushButton#btnSync:hover { background: #3b82f6; }
-                QPushButton#btnPaste { background: #059669; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
-                QPushButton#btnPaste:hover { background: #10b981; }
+                QPushButton#btnTopAction { background: #059669; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
+                QPushButton#btnTopAction:hover { background: #10b981; }
                 QPushButton#btnPlay { background: #ffffff; border-radius: 18px; min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px; }
                 QSlider::groove:horizontal { height: 6px; background: #4a4a4a; border-radius: 3px; }
                 QSlider::handle:horizontal { width: 14px; margin: -4px 0; background: #e0e0e0; border-radius: 7px; }
@@ -142,9 +142,7 @@ class KaraokeEditorWindow(QMainWindow):
         self.btn_colar_musica.setObjectName("btnTopAction")
         self.btn_colar_musica.setIcon(get_svg_icon("paste", color="#ffffff"))
         self.btn_colar_musica.setIconSize(QSize(18, 18))
-        self.btn_colar_musica.setToolTip(
-            "Cole a música com cifras. O sistema separa as frases e os acordes para máxima legibilidade!"
-        )
+        self.btn_colar_musica.setToolTip("Importar letra e cifras")
         self.btn_colar_musica.clicked.connect(self._abrir_dialogo_colar_cifra_completa)
         linha1.addWidget(self.btn_colar_musica)
 
@@ -154,7 +152,10 @@ class KaraokeEditorWindow(QMainWindow):
         linha2 = QHBoxLayout()
         linha2.setSpacing(10)
 
-        self.btn_voltar5 = QPushButton()\n        self.btn_voltar5.setIcon(get_svg_icon("rewind_5", color="#e5e7eb"))\n        self.btn_voltar5.setIconSize(QSize(18, 18))\n        self.btn_voltar5.setFixedSize(38, 36)
+        self.btn_voltar5 = QPushButton()
+        self.btn_voltar5.setIcon(get_svg_icon("rewind_5", color="#e5e7eb"))
+        self.btn_voltar5.setIconSize(QSize(18, 18))
+        self.btn_voltar5.setFixedSize(38, 36)
         self.btn_voltar5.setToolTip("Voltar 5 segundos")
         self.btn_voltar5.clicked.connect(lambda: self._avancar_tempo(-5000))
         linha2.addWidget(self.btn_voltar5)
@@ -165,7 +166,10 @@ class KaraokeEditorWindow(QMainWindow):
         self._atualizar_botao_play()
         linha2.addWidget(self.btn_play)
 
-        self.btn_avancar5 = QPushButton()\n        self.btn_avancar5.setIcon(get_svg_icon("forward_5", color="#e5e7eb"))\n        self.btn_avancar5.setIconSize(QSize(18, 18))\n        self.btn_avancar5.setFixedSize(38, 36)
+        self.btn_avancar5 = QPushButton()
+        self.btn_avancar5.setIcon(get_svg_icon("forward_5", color="#e5e7eb"))
+        self.btn_avancar5.setIconSize(QSize(18, 18))
+        self.btn_avancar5.setFixedSize(38, 36)
         self.btn_avancar5.setToolTip("Avançar 5 segundos")
         self.btn_avancar5.clicked.connect(lambda: self._avancar_tempo(5000))
         linha2.addWidget(self.btn_avancar5)
@@ -180,7 +184,9 @@ class KaraokeEditorWindow(QMainWindow):
         self.slider_posicao.clicked_position.connect(self.audio_engine.set_position)
         linha2.addWidget(self.slider_posicao, 1)
 
-        self.btn_sync = QPushButton("Marcar")\n        self.btn_sync.setIcon(get_svg_icon("timer", color="#ffffff"))\n        self.btn_sync.setIconSize(QSize(18, 18))
+        self.btn_sync = QPushButton("Marcar")
+        self.btn_sync.setIcon(get_svg_icon("timer", color="#ffffff"))
+        self.btn_sync.setIconSize(QSize(18, 18))
         self.btn_sync.setObjectName("btnSync")
         self.btn_sync.setFixedHeight(36)
         self.btn_sync.setToolTip("Marcar tempo da linha selecionada (F5)")
@@ -231,25 +237,44 @@ class KaraokeEditorWindow(QMainWindow):
         painel_linhas = QHBoxLayout()
         painel_linhas.setSpacing(8)
 
-        btn_add_linha = QPushButton()\n        btn_add_linha.setIcon(get_svg_icon("plus"))\n        btn_add_linha.setIconSize(QSize(18, 18))\n        btn_add_linha.setFixedSize(38, 34)\n        btn_add_linha.setToolTip("Adicionar verso")
+        btn_add_linha = QPushButton()
+        btn_add_linha.setIcon(get_svg_icon("plus"))
+        btn_add_linha.setIconSize(QSize(18, 18))
+        btn_add_linha.setFixedSize(38, 34)
+        btn_add_linha.setToolTip("Adicionar verso")
         btn_add_linha.clicked.connect(self._adicionar_linha)
         painel_linhas.addWidget(btn_add_linha)
 
-        btn_remover_linha = QPushButton()\n        btn_remover_linha.setIcon(get_svg_icon("minus"))\n        btn_remover_linha.setIconSize(QSize(18, 18))\n        btn_remover_linha.setFixedSize(38, 34)\n        btn_remover_linha.setToolTip("Remover verso")
+        btn_remover_linha = QPushButton()
+        btn_remover_linha.setIcon(get_svg_icon("minus"))
+        btn_remover_linha.setIconSize(QSize(18, 18))
+        btn_remover_linha.setFixedSize(38, 34)
+        btn_remover_linha.setToolTip("Remover verso")
         btn_remover_linha.clicked.connect(self._remover_linha)
         painel_linhas.addWidget(btn_remover_linha)
 
-        btn_subir = QPushButton()\n        btn_subir.setIcon(get_svg_icon("arrow_up"))\n        btn_subir.setIconSize(QSize(18, 18))\n        btn_subir.setFixedSize(38, 34)\n        btn_subir.setToolTip("Mover verso para cima")
+        btn_subir = QPushButton()
+        btn_subir.setIcon(get_svg_icon("arrow_up"))
+        btn_subir.setIconSize(QSize(18, 18))
+        btn_subir.setFixedSize(38, 34)
+        btn_subir.setToolTip("Mover verso para cima")
         btn_subir.clicked.connect(lambda: self._mover_linha(-1))
         painel_linhas.addWidget(btn_subir)
 
-        btn_descer = QPushButton()\n        btn_descer.setIcon(get_svg_icon("arrow_down"))\n        btn_descer.setIconSize(QSize(18, 18))\n        btn_descer.setFixedSize(38, 34)\n        btn_descer.setToolTip("Mover verso para baixo")
+        btn_descer = QPushButton()
+        btn_descer.setIcon(get_svg_icon("arrow_down"))
+        btn_descer.setIconSize(QSize(18, 18))
+        btn_descer.setFixedSize(38, 34)
+        btn_descer.setToolTip("Mover verso para baixo")
         btn_descer.clicked.connect(lambda: self._mover_linha(1))
         painel_linhas.addWidget(btn_descer)
 
         painel_linhas.addStretch()
 
-        btn_ajustar_offset = QPushButton()\n        btn_ajustar_offset.setIcon(get_svg_icon("settings"))\n        btn_ajustar_offset.setIconSize(QSize(18, 18))\n        btn_ajustar_offset.setFixedSize(38, 34)
+        btn_ajustar_offset = QPushButton()
+        btn_ajustar_offset.setIcon(get_svg_icon("settings"))
+        btn_ajustar_offset.setIconSize(QSize(18, 18))
+        btn_ajustar_offset.setFixedSize(38, 34)
         btn_ajustar_offset.setToolTip("Ajustar offset geral")
         btn_ajustar_offset.clicked.connect(self._ajustar_offset_geral)
         painel_linhas.addWidget(btn_ajustar_offset)
@@ -269,8 +294,12 @@ class KaraokeEditorWindow(QMainWindow):
         self.lbl_destino.setStyleSheet("color: #9ca3af; font-size: 12px;")
         layout_rodape.addWidget(self.lbl_destino, 1)
 
-        self.btn_salvar = QPushButton()\n        self.btn_salvar.setIcon(get_svg_icon("save"))\n        self.btn_salvar.setIconSize(QSize(20, 20))\n        self.btn_salvar.setFixedSize(42, 36)
-        self.btn_salvar.setToolTip("Salvar letra e cifras (Ctrl+S)")\n        self.btn_salvar.setStyleSheet("font-weight: bold;")
+        self.btn_salvar = QPushButton()
+        self.btn_salvar.setIcon(get_svg_icon("save"))
+        self.btn_salvar.setIconSize(QSize(20, 20))
+        self.btn_salvar.setFixedSize(42, 36)
+        self.btn_salvar.setToolTip("Salvar letra e cifras (Ctrl+S)")
+        self.btn_salvar.setStyleSheet("font-weight: bold;")
         self.btn_salvar.clicked.connect(self.salvar_letra)
         layout_rodape.addWidget(self.btn_salvar)
 
@@ -344,12 +373,18 @@ class KaraokeEditorWindow(QMainWindow):
         layout_acoes.setContentsMargins(4, 2, 4, 2)
         layout_acoes.setSpacing(6)
 
-        btn_marcar = QPushButton()\n        btn_marcar.setIcon(get_svg_icon("timer"))\n        btn_marcar.setIconSize(QSize(17, 17))\n        btn_marcar.setFixedSize(34, 30)
+        btn_marcar = QPushButton()
+        btn_marcar.setIcon(get_svg_icon("timer"))
+        btn_marcar.setIconSize(QSize(17, 17))
+        btn_marcar.setFixedSize(34, 30)
         btn_marcar.setToolTip("Marcar tempo")
         btn_marcar.clicked.connect(lambda checked=False, r=row: self._gravar_tempo_linha(r))
         layout_acoes.addWidget(btn_marcar)
 
-        btn_ouvir = QPushButton()\n        btn_ouvir.setIcon(get_svg_icon("play"))\n        btn_ouvir.setIconSize(QSize(16, 16))\n        btn_ouvir.setFixedSize(34, 30)
+        btn_ouvir = QPushButton()
+        btn_ouvir.setIcon(get_svg_icon("play"))
+        btn_ouvir.setIconSize(QSize(16, 16))
+        btn_ouvir.setFixedSize(34, 30)
         btn_ouvir.setToolTip("Ouvir a partir desta linha")
         btn_ouvir.clicked.connect(lambda checked=False, r=row: self._ouvir_linha(r))
         layout_acoes.addWidget(btn_ouvir)
@@ -458,12 +493,20 @@ class KaraokeEditorWindow(QMainWindow):
             layout_acoes.setContentsMargins(4, 2, 4, 2)
             layout_acoes.setSpacing(6)
 
-            btn_marcar = QPushButton()\n            btn_marcar.setIcon(get_svg_icon("timer"))\n            btn_marcar.setIconSize(QSize(17, 17))\n            btn_marcar.setFixedSize(34, 30)
-            btn_marcar.setToolTip("Marcar tempo")\n            btn_marcar.clicked.connect(lambda checked=False, row_idx=r: self._gravar_tempo_linha(row_idx))
+            btn_marcar = QPushButton()
+            btn_marcar.setIcon(get_svg_icon("timer"))
+            btn_marcar.setIconSize(QSize(17, 17))
+            btn_marcar.setFixedSize(34, 30)
+            btn_marcar.setToolTip("Marcar tempo")
+            btn_marcar.clicked.connect(lambda checked=False, row_idx=r: self._gravar_tempo_linha(row_idx))
             layout_acoes.addWidget(btn_marcar)
 
-            btn_ouvir = QPushButton()\n            btn_ouvir.setIcon(get_svg_icon("play"))\n            btn_ouvir.setIconSize(QSize(16, 16))\n            btn_ouvir.setFixedSize(34, 30)
-            btn_ouvir.setToolTip("Ouvir a partir desta linha")\n            btn_ouvir.clicked.connect(lambda checked=False, row_idx=r: self._ouvir_linha(row_idx))
+            btn_ouvir = QPushButton()
+            btn_ouvir.setIcon(get_svg_icon("play"))
+            btn_ouvir.setIconSize(QSize(16, 16))
+            btn_ouvir.setFixedSize(34, 30)
+            btn_ouvir.setToolTip("Ouvir a partir desta linha")
+            btn_ouvir.clicked.connect(lambda checked=False, row_idx=r: self._ouvir_linha(row_idx))
             layout_acoes.addWidget(btn_ouvir)
 
             self.tabela.setCellWidget(r, 4, widget_acoes)
@@ -483,11 +526,17 @@ class KaraokeEditorWindow(QMainWindow):
 
         txt_edit = QPlainTextEdit()
         txt_edit.setPlaceholderText(
-            "[Intro] C  Am  F  G\n\n"
-            "C                  Am\n"
-            "A letra da música aparecerá aqui\n"
-            "G                  F\n"
-            "quando houver um arquivo de karaoke\n"
+            "[Intro] C  Am  F  G
+
+"
+            "C                  Am
+"
+            "A letra da música aparecerá aqui
+"
+            "G                  F
+"
+            "quando houver um arquivo de karaoke
+"
         )
         txt_edit.setFont(QFont("Monospace", 10))
         layout.addWidget(txt_edit, 1)
@@ -496,7 +545,9 @@ class KaraokeEditorWindow(QMainWindow):
         btn_cancel = QPushButton("Cancelar")
         btn_cancel.clicked.connect(dialog.reject)
 
-        btn_aplicar = QPushButton("Importar")\n        btn_aplicar.setIcon(get_svg_icon("paste", color="#ffffff"))\n        btn_aplicar.setIconSize(QSize(18, 18))
+        btn_aplicar = QPushButton("Importar")
+        btn_aplicar.setIcon(get_svg_icon("paste", color="#ffffff"))
+        btn_aplicar.setIconSize(QSize(18, 18))
         btn_aplicar.setStyleSheet("background: #059669; color: white; font-weight: bold; padding: 6px 16px;")
         btn_aplicar.setDefault(True)
 
@@ -513,7 +564,9 @@ class KaraokeEditorWindow(QMainWindow):
                 QMessageBox.information(
                     self,
                     "Cifra Processada!",
-                    f"Foram importados {len(linhas_convertidas)} versos com frases limpas e cifras organizadas.\n\n"
+                    f"Foram importados {len(linhas_convertidas)} versos com frases limpas e cifras organizadas.
+
+"
                     "Agora dê Play na música e clique nas linhas para carimbar o tempo de cada uma!",
                 )
             dialog.accept()
@@ -571,13 +624,16 @@ class KaraokeEditorWindow(QMainWindow):
             QMessageBox.information(
                 self,
                 "Karaoke Salvo!",
-                f"Letra sincronizada gravada com sucesso na pasta central:\n\n{destino}",
+                f"Letra sincronizada gravada com sucesso na pasta central:
+
+{destino}",
             )
         else:
             QMessageBox.critical(
                 self,
                 "Erro",
-                f"Falha ao gravar o arquivo de letra em:\n{destino}",
+                f"Falha ao gravar o arquivo de letra em:
+{destino}",
             )
 
     def _avancar_tempo(self, delta_ms: int):
