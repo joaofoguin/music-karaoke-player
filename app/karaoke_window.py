@@ -88,7 +88,7 @@ class KaraokeWindow(QMainWindow):
 
     MENSAGEM_SEM_LETRA = (
         "Nenhum arquivo de letra/karaoke encontrado para esta faixa\n\n"
-        "Clique em '✏️ Editar Letra' acima para criar ou sincronizar\n"
+        "Clique no ícone de edição acima para criar ou sincronizar\n"
         "as letras e cifras diretamente no editor do reprodutor."
     )
 
