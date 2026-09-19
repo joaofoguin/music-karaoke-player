@@ -150,9 +150,9 @@ class KaraokeWindow(QMainWindow):
         linha_player.addWidget(self.faixa_atual, 1)
 
         # Controles rápidos de tamanho de letra
-        self.btn_font_dec = QPushButton("A-")
+        self.btn_font_dec = QPushButton()
         self.btn_font_dec.setToolTip("Diminuir tamanho da letra")
-        self.btn_font_dec.setFixedWidth(36)
+        self.btn_font_dec.setObjectName("iconBtn")
         self.btn_font_dec.clicked.connect(self._diminuir_fonte)
         linha_player.addWidget(self.btn_font_dec)
 
@@ -160,18 +160,21 @@ class KaraokeWindow(QMainWindow):
         self.lbl_font_size.setStyleSheet("font-size: 13px; font-weight: bold; color: #a3a3a3;")
         linha_player.addWidget(self.lbl_font_size)
 
-        self.btn_font_inc = QPushButton("A+")
+        self.btn_font_inc = QPushButton()
         self.btn_font_inc.setToolTip("Aumentar tamanho da letra")
-        self.btn_font_inc.setFixedWidth(36)
+        self.btn_font_inc.setObjectName("iconBtn")
         self.btn_font_inc.clicked.connect(self._aumentar_fonte)
         linha_player.addWidget(self.btn_font_inc)
 
-        self.btn_editar = QPushButton("✏️ Editar Letra")
-        self.btn_editar.setToolTip("Abrir o Editor de Karaoke para ajustar tempos e cifras")
+        self.btn_editar = QPushButton()
+        self.btn_editar.setObjectName("iconBtn")
+        self.btn_editar.setToolTip("Editar letra")
         self.btn_editar.clicked.connect(self.editar_solicitado.emit)
         linha_player.addWidget(self.btn_editar)
 
-        self.botao_tela_cheia = QPushButton("Tela cheia")
+        self.botao_tela_cheia = QPushButton()
+        self.botao_tela_cheia.setObjectName("iconBtn")
+        self.botao_tela_cheia.setToolTip("Tela cheia")
         self.botao_tela_cheia.clicked.connect(self.alternar_tela_cheia)
         linha_player.addWidget(self.botao_tela_cheia)
 
@@ -258,6 +261,9 @@ class KaraokeWindow(QMainWindow):
             QPushButton:hover {{ opacity: 0.85; }}
             QPushButton#mediaBtn {{ background: transparent; border: 0; min-width: 32px; max-width: 32px; min-height: 32px; max-height: 32px; border-radius: 16px; padding: 2px; }}
             QPushButton#mediaBtn:hover {{ background: rgba(255, 255, 255, 0.12); }}
+            QPushButton#iconBtn {{ background: transparent; border: 0; min-width: 32px; max-width: 32px; min-height: 32px; max-height: 32px; border-radius: 6px; padding: 2px; }}
+            QPushButton#iconBtn:hover {{ background: rgba(255, 255, 255, 0.10); }}
+            QPushButton#iconBtn:pressed {{ background: rgba(255, 255, 255, 0.16); }}
             QPushButton#playBtn {{ background: #2563eb; color: #ffffff; border: 0; border-radius: 17px; min-width: 34px; max-width: 34px; min-height: 34px; max-height: 34px; padding: 0; }}
             QPushButton#playBtn:hover {{ background: #3b82f6; }}
             QSlider::groove:horizontal {{ height: 5px; background: #3a3a3a; border-radius: 2px; }}
@@ -265,6 +271,14 @@ class KaraokeWindow(QMainWindow):
             """
         )
 
+        self.btn_font_dec.setIcon(get_svg_icon("font_decrease", color=cor_icone, size=48))
+        self.btn_font_dec.setIconSize(QSize(18, 18))
+        self.btn_font_inc.setIcon(get_svg_icon("font_increase", color=cor_icone, size=48))
+        self.btn_font_inc.setIconSize(QSize(18, 18))
+        self.btn_editar.setIcon(get_svg_icon("edit", color=cor_icone, size=48))
+        self.btn_editar.setIconSize(QSize(18, 18))
+        self.botao_tela_cheia.setIcon(get_svg_icon("fullscreen", color=cor_icone, size=48))
+        self.botao_tela_cheia.setIconSize(QSize(18, 18))
         self.btn_anterior.setIcon(get_svg_icon("previous", color=cor_icone, size=48))
         self.btn_anterior.setIconSize(QSize(16, 16))
         self.btn_proximo.setIcon(get_svg_icon("next", color=cor_icone, size=48))
@@ -379,7 +393,11 @@ class KaraokeWindow(QMainWindow):
     def alternar_tela_cheia(self):
         if self.isFullScreen():
             self.showNormal()
-            self.botao_tela_cheia.setText("Tela cheia")
+            self.botao_tela_cheia.setIcon(get_svg_icon("fullscreen", color="#e5e7eb", size=48))
+            self.botao_tela_cheia.setIconSize(QSize(18, 18))
+            self.botao_tela_cheia.setToolTip("Tela cheia")
         else:
             self.showFullScreen()
-            self.botao_tela_cheia.setText("Sair da tela cheia")
+            self.botao_tela_cheia.setIcon(get_svg_icon("fullscreen_exit", color="#e5e7eb", size=48))
+            self.botao_tela_cheia.setIconSize(QSize(18, 18))
+            self.botao_tela_cheia.setToolTip("Sair da tela cheia")
