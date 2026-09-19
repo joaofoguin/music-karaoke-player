@@ -154,7 +154,7 @@ class KaraokeWindow(QMainWindow):
 
         # Controles rápidos de tamanho de letra
         self.btn_font_dec = QPushButton()
-        self.btn_font_dec.setToolTip("Diminuir tamanho da letra")
+        self.btn_font_dec.setToolTip("Diminuir tamanho da letra (Ctrl+-)")
         self.btn_font_dec.setObjectName("iconBtn")
         self.btn_font_dec.clicked.connect(self._diminuir_fonte)
         linha_player.addWidget(self.btn_font_dec)
@@ -164,20 +164,20 @@ class KaraokeWindow(QMainWindow):
         linha_player.addWidget(self.lbl_font_size)
 
         self.btn_font_inc = QPushButton()
-        self.btn_font_inc.setToolTip("Aumentar tamanho da letra")
+        self.btn_font_inc.setToolTip("Aumentar tamanho da letra (Ctrl+=)")
         self.btn_font_inc.setObjectName("iconBtn")
         self.btn_font_inc.clicked.connect(self._aumentar_fonte)
         linha_player.addWidget(self.btn_font_inc)
 
         self.btn_editar = QPushButton()
         self.btn_editar.setObjectName("iconBtn")
-        self.btn_editar.setToolTip("Editar letra")
+        self.btn_editar.setToolTip("Editar letra (Ctrl+E)")
         self.btn_editar.clicked.connect(self.editar_solicitado.emit)
         linha_player.addWidget(self.btn_editar)
 
         self.botao_tela_cheia = QPushButton()
         self.botao_tela_cheia.setObjectName("iconBtn")
-        self.botao_tela_cheia.setToolTip("Tela cheia")
+        self.botao_tela_cheia.setToolTip("Tela cheia (F11)")
         self.botao_tela_cheia.clicked.connect(self.alternar_tela_cheia)
         linha_player.addWidget(self.botao_tela_cheia)
 
