@@ -141,44 +141,41 @@ class KaraokeWindow(QMainWindow):
         layout_topo.setSpacing(8)
 
         # Linha única: título em letreiro + controles do player
-        linha1 = QHBoxLayout()
-        linha1.setSpacing(10)
+        linha_player = QHBoxLayout()
+        linha_player.setSpacing(10)
 
         self.faixa_atual = MarqueeLabel("Nenhuma música selecionada")
         self.faixa_atual.setObjectName("trackTitle")
         self.faixa_atual.setStyleSheet("font-size: 16px; font-weight: bold;")
-        linha1.addWidget(self.faixa_atual, 1)
+        linha_player.addWidget(self.faixa_atual, 1)
 
         # Controles rápidos de tamanho de letra
         self.btn_font_dec = QPushButton("A-")
         self.btn_font_dec.setToolTip("Diminuir tamanho da letra")
         self.btn_font_dec.setFixedWidth(36)
         self.btn_font_dec.clicked.connect(self._diminuir_fonte)
-        linha1.addWidget(self.btn_font_dec)
+        linha_player.addWidget(self.btn_font_dec)
 
         self.lbl_font_size = QLabel("32px")
         self.lbl_font_size.setStyleSheet("font-size: 13px; font-weight: bold; color: #a3a3a3;")
-        linha1.addWidget(self.lbl_font_size)
+        linha_player.addWidget(self.lbl_font_size)
 
         self.btn_font_inc = QPushButton("A+")
         self.btn_font_inc.setToolTip("Aumentar tamanho da letra")
         self.btn_font_inc.setFixedWidth(36)
         self.btn_font_inc.clicked.connect(self._aumentar_fonte)
-        linha1.addWidget(self.btn_font_inc)
+        linha_player.addWidget(self.btn_font_inc)
 
         self.btn_editar = QPushButton("✏️ Editar Letra")
         self.btn_editar.setToolTip("Abrir o Editor de Karaoke para ajustar tempos e cifras")
         self.btn_editar.clicked.connect(self.editar_solicitado.emit)
-        linha1.addWidget(self.btn_editar)
+        linha_player.addWidget(self.btn_editar)
 
         self.botao_tela_cheia = QPushButton("Tela cheia")
         self.botao_tela_cheia.clicked.connect(self.alternar_tela_cheia)
-        linha1.addWidget(self.botao_tela_cheia)
+        linha_player.addWidget(self.botao_tela_cheia)
 
-        # Os controles ficam na mesma linha do nome da faixa.
-        linha_player = QHBoxLayout()
-        linha_player.setSpacing(10)
-
+        # Controles do player na mesma linha do nome da faixa.
         self.btn_anterior = QPushButton()
         self.btn_anterior.setObjectName("mediaBtn")
         self.btn_anterior.setToolTip("Faixa anterior / Recomeçar (Ctrl+Left)")
