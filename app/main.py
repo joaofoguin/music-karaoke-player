@@ -185,6 +185,7 @@ class MainWindow(QMainWindow):
         self.karaoke_window = None
         self.karaoke_editor = None
         self._volume_anterior_mudo = None
+        self._anterior_ja_reiniciou = False
 
         self.audio_engine.playback_finished.connect(self.faixa_terminou)
         self.config_manager.settings_changed.connect(self.aplicar_configuracoes)
@@ -918,6 +919,9 @@ class MainWindow(QMainWindow):
         if track is None:
             return
 
+        # Uma nova música começa um novo ciclo do botão "voltar".
+        self._anterior_ja_reiniciou = False
+
         self.audio_engine.load(track.path)
         self.atualizar_fila()
         self.atualizar_player(track)
@@ -1070,16 +1074,20 @@ class MainWindow(QMainWindow):
         self.tempo_total.setText("00:00")
 
     def faixa_anterior(self):
-        """Se a música atual já tocou mais de 3s, recomeça a música atual. Caso contrário, volta para a anterior."""
-        posicao_ms = self.audio_engine.position()
-        if posicao_ms > 3000:
+        """Primeiro clique reinicia a faixa atual; o segundo volta para a anterior."""
+        if not self._anterior_ja_reiniciou:
             self.audio_engine.set_position(0)
+            self._anterior_ja_reiniciou = True
             return
 
         track = self.queue_manager.previous()
+
         if track is None:
             self.audio_engine.set_position(0)
+            self._anterior_ja_reiniciou = False
             return
+
+        self._anterior_ja_reiniciou = False
 
         self.audio_engine.load(track.path)
         self.atualizar_fila()
@@ -1087,6 +1095,8 @@ class MainWindow(QMainWindow):
         self.audio_engine.play()
 
     def faixa_proxima(self):
+        self._anterior_ja_reiniciou = False
+
         track = self.queue_manager.next()
         if track is None:
             return
