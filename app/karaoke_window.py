@@ -1,7 +1,7 @@
 from html import escape
 from pathlib import Path
 
-from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtCore import QTimer, QSize, Qt, Signal
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -15,6 +15,68 @@ from PySide6.QtWidgets import (
 from core.lyrics import current_line_index, load_lrc, render_chord_line_html
 from core.lyrics_storage import resolve_lyrics_path
 from core.icons import get_svg_icon
+
+
+class MarqueeLabel(QLabel):
+    """Exibe um texto em uma única linha e o desloca quando ele não cabe."""
+
+    def __init__(self, text="", parent=None):
+        super().__init__(text, parent)
+        self._texto_original = text
+        self._offset = 0
+        self._animacao = QTimer(self)
+        self._animacao.setInterval(120)
+        self._animacao.timeout.connect(self._avancar)
+        self.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+        self.setMinimumWidth(0)
+        self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+
+    def setText(self, text):
+        self._texto_original = text or ""
+        self._offset = 0
+        self._atualizar_exibicao()
+        self._reiniciar_animacao()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._atualizar_exibicao()
+        self._reiniciar_animacao()
+
+    def _texto_cabe(self):
+        return self.fontMetrics().horizontalAdvance(self._texto_original) <= max(0, self.width())
+
+    def _reiniciar_animacao(self):
+        self._animacao.stop()
+        if self._texto_original and not self._texto_cabe():
+            self._animacao.start()
+
+    def _avancar(self):
+        if self._texto_cabe():
+            self._animacao.stop()
+            self._offset = 0
+            self._atualizar_exibicao()
+            return
+
+        texto = self._texto_original + "     "
+        self._offset = (self._offset + 1) % len(texto)
+        self._atualizar_exibicao()
+
+    def _atualizar_exibicao(self):
+        if not self._texto_original or self._texto_cabe():
+            super().setText(self._texto_original)
+            return
+
+        texto = self._texto_original + "     "
+        rotacao = texto[self._offset:] + texto[:self._offset]
+        largura = self.width()
+        if largura <= 0:
+            super().setText(self._texto_original)
+            return
+
+        fim = 0
+        while fim < len(rotacao) and self.fontMetrics().horizontalAdvance(rotacao[:fim + 1]) <= largura:
+            fim += 1
+        super().setText(rotacao[:fim])
 
 
 class KaraokeWindow(QMainWindow):
@@ -78,11 +140,11 @@ class KaraokeWindow(QMainWindow):
         layout_topo.setContentsMargins(14, 10, 14, 10)
         layout_topo.setSpacing(8)
 
-        # Linha 1: Título e Ferramentas
+        # Linha única: título em letreiro + controles do player
         linha1 = QHBoxLayout()
         linha1.setSpacing(10)
 
-        self.faixa_atual = QLabel("Nenhuma música selecionada")
+        self.faixa_atual = MarqueeLabel("Nenhuma música selecionada")
         self.faixa_atual.setObjectName("trackTitle")
         self.faixa_atual.setStyleSheet("font-size: 16px; font-weight: bold;")
         linha1.addWidget(self.faixa_atual, 1)
@@ -113,9 +175,7 @@ class KaraokeWindow(QMainWindow):
         self.botao_tela_cheia.clicked.connect(self.alternar_tela_cheia)
         linha1.addWidget(self.botao_tela_cheia)
 
-        layout_topo.addLayout(linha1)
-
-        # Linha 2: MINI PLAYER COMPACTO
+        # Os controles ficam na mesma linha do nome da faixa.
         linha_player = QHBoxLayout()
         linha_player.setSpacing(10)
 
