@@ -84,7 +84,7 @@ class PlaybackCoordinator(QObject):
         return track
 
     def next(self):
-        self._previous_restarted = False
+        self._previous_restarted = True
         track = self.queue.next()
         if track is None:
             return None
