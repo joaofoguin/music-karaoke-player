@@ -55,7 +55,12 @@ class QueueItemWidget(QFrame):
 
         self._montar_layout()
 
-\n    def _limitar_texto(self, texto: str, widget: QLabel, sufixo: str = "...") -> str:\n        if not texto:\n            return ""\n        largura = max(1, widget.maximumWidth() if widget.maximumWidth() > 0 else widget.width())\n        if widget.fontMetrics().horizontalAdvance(texto) <= largura:\n            return texto\n        while len(texto) > 1 and widget.fontMetrics().horizontalAdvance(texto + sufixo) > largura:\n            texto = texto[:-1]\n        return texto + sufixo\n\n    def _montar_layout(self):
+    def _limitar_texto(self, texto: str, limite: int) -> str:
+        if len(texto) <= limite:
+            return texto
+        return texto[:max(1, limite - 3)].rstrip() + "..."
+
+    def _montar_layout(self):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(6, 3, 6, 3)
         layout.setSpacing(6)
@@ -75,10 +80,10 @@ class QueueItemWidget(QFrame):
         else:
             tag = ""
 
-        lbl_titulo = QLabel(self._limitar_texto(f"{self.index + 1:02d}. {titulo}{tag}", QLabel()))
+        lbl_titulo = QLabel(self._limitar_texto(f"{self.index + 1:02d}. {titulo}{tag}", 42))
         lbl_titulo.setStyleSheet("font-weight: bold; font-size: 13px;")
 
-        lbl_sub = QLabel(f"{artista}  •  {duracao}")
+        lbl_sub = QLabel(self._limitar_texto(f"{artista}  •  {duracao}", 42))
         lbl_sub.setStyleSheet("font-size: 11px; opacity: 0.85;")
 
         info_layout.addWidget(lbl_titulo)
@@ -1103,6 +1108,11 @@ class MainWindow(QMainWindow):
             if self.config_manager.get("playback/auto_play_on_add", False):
                 self.audio_engine.play()
 
+    def _limitar_texto_player(self, texto: str, limite: int) -> str:
+        if len(texto) <= limite:
+            return texto
+        return texto[:max(1, limite - 3)].rstrip() + "..."
+
     def atualizar_player(self, track):
         if track is None:
             return
@@ -1115,9 +1125,9 @@ class MainWindow(QMainWindow):
                 proxima = self.queue_manager.tracks[indice_atual + 1]
             self.karaoke_window.definir_proxima_faixa(proxima)
 
-        self.titulo_musica.setText(track.title)
-        self.artista_musica.setText(track.artist if track.artist else "Artista desconhecido")
-        self.album_musica.setText(track.album if track.album else "Álbum desconhecido")
+        self.titulo_musica.setText(self._limitar_texto_player(track.title, 34))
+        self.artista_musica.setText(self._limitar_texto_player(track.artist if track.artist else "Artista desconhecido", 30))
+        self.album_musica.setText(self._limitar_texto_player(track.album if track.album else "Álbum desconhecido", 30))
 
         if track.cover:
             pixmap = QPixmap()
