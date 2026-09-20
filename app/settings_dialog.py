@@ -393,7 +393,9 @@ class SettingsDialog(QDialog):
                 self.config_manager.set("audio/output_device_id", "")
                 self.audio_engine.set_configured_output_device_id("")
                 self.audio_engine.set_output_device("")
-        self.accept()
+        # O botão Salvar aplica as alterações sem fechar esta janela.
+        # O usuário pode continuar ajustando as configurações ou fechá-la
+        # explicitamente pelo botão Cancelar ou pelo X da janela.
 
     def _restaurar_padroes(self):
         self.config_manager.reset_to_defaults()
