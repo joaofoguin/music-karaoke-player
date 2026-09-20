@@ -27,9 +27,10 @@ from PySide6.QtWidgets import (
 class SettingsDialog(QDialog):
     """Diálogo completo de Preferências e Configurações do Music Player."""
 
-    def __init__(self, config_manager, parent=None):
+    def __init__(self, config_manager, audio_engine=None, parent=None):
         super().__init__(parent)
         self.config_manager = config_manager
+        self.audio_engine = audio_engine
         self.setWindowTitle("Configurações — Music Player")
         self.resize(600, 520)
         self.setModal(True)
@@ -93,6 +94,10 @@ class SettingsDialog(QDialog):
         layout_vol.addWidget(self.slider_volume, 1)
         layout_vol.addWidget(self.lbl_volume_val)
         form_audio.addRow("Volume padrão inicial:", layout_vol)
+
+        self.combo_output_device = QComboBox()
+        self.combo_output_device.setToolTip("Dispositivo usado para reproduzir o áudio.")
+        form_audio.addRow("Dispositivo de saída:", self.combo_output_device)
 
         self.chk_remember_volume = QCheckBox("Lembrar o último volume ao fechar")
         form_audio.addRow("", self.chk_remember_volume)
@@ -291,11 +296,34 @@ class SettingsDialog(QDialog):
             self.chords_color = cor.name()
             self._atualizar_botoes_cores()
 
+    def _carregar_dispositivos_audio(self):
+        self.combo_output_device.clear()
+        self.combo_output_device.addItem("Automático (dispositivo padrão do Windows)", "")
+        if self.audio_engine is None:
+            self.combo_output_device.setEnabled(False)
+            return
+
+        configurado = self.config_manager.get("audio/output_device_id", "")
+        self.audio_engine.set_configured_output_device_id(configurado)
+        dispositivos = self.audio_engine.output_devices()
+        selecionado = -1
+        for device in dispositivos:
+            device_id = bytes(device.id()).hex()
+            self.combo_output_device.addItem(device.description(), device_id)
+            if device_id == configurado:
+                selecionado = self.combo_output_device.count() - 1
+
+        if selecionado >= 0:
+            self.combo_output_device.setCurrentIndex(selecionado)
+        else:
+            self.combo_output_device.setCurrentIndex(0)
+
     def _carregar_valores(self):
         self.edit_default_dir.setText(self.config_manager.get("general/default_music_dir", ""))
         self.chk_restore_last_folder.setChecked(self.config_manager.get("general/restore_last_folder", True))
 
         vol = self.config_manager.get("playback/default_volume", 80)
+        self._carregar_dispositivos_audio()
         self.slider_volume.setValue(vol)
         self.lbl_volume_val.setText(f"{vol}%")
 
@@ -344,6 +372,7 @@ class SettingsDialog(QDialog):
             "playback/repeat_enabled": self.chk_repeat_default.isChecked(),
             "playback/auto_play_on_add": self.chk_autoplay.isChecked(),
             "playback/audio_extensions": exts,
+            "audio/output_device_id": self.combo_output_device.currentData() or "",
             "karaoke/lyrics_directory": self.edit_lyrics_dir.text().strip(),
             "karaoke/save_to_central_dir": self.chk_save_central.isChecked(),
             "karaoke/show_chords": self.chk_show_chords.isChecked(),
@@ -356,6 +385,14 @@ class SettingsDialog(QDialog):
         }
 
         self.config_manager.update_multiple(novas_configuracoes)
+        if self.audio_engine is not None:
+            device_id = novas_configuracoes["audio/output_device_id"]
+            self.audio_engine.set_configured_output_device_id(device_id)
+            if not self.audio_engine.set_output_device(device_id):
+                # Se o dispositivo deixou de existir, volta ao modo automático.
+                self.config_manager.set("audio/output_device_id", "")
+                self.audio_engine.set_configured_output_device_id("")
+                self.audio_engine.set_output_device("")
         self.accept()
 
     def _restaurar_padroes(self):
