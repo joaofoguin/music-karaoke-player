@@ -34,7 +34,7 @@ from core.lyrics import (
     save_lrc,
 )
 from core.lyrics_storage import get_save_lyrics_path, resolve_lyrics_path
-from core.icons import get_svg_icon
+from core.icons import get_stateful_icon, get_svg_icon
 from core.clickable_slider import ClickableSlider
 
 
@@ -76,7 +76,8 @@ class KaraokeEditorWindow(QMainWindow):
                 QPushButton:hover { background: #374151; }
                 QPushButton#btnSync { background: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
                 QPushButton#btnSync:hover { background: #3b82f6; }
-                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 0; }\n                QPushButton#btnRowAction:hover { background: transparent; border: none; }\n                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 0; }\n                QPushButton#btnRowAction:hover { background: transparent; border: none; }\n                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 0; }\n                QPushButton#btnRowAction:hover { background: transparent; border: none; }\n                QPushButton#btnTopAction { background: #047857; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
+                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 4px; }
+                QPushButton#btnRowAction:hover { background: #1e3a8a; border: none; }\n                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 0; }\n                QPushButton#btnRowAction:hover { background: transparent; border: none; }\n                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 0; }\n                QPushButton#btnRowAction:hover { background: transparent; border: none; }\n                QPushButton#btnTopAction { background: #047857; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
                 QPushButton#btnTopAction:hover { background: #059669; }
                 QPushButton#btnPlay { background: #2563eb; border-radius: 18px; min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px; }
                 QSlider::groove:horizontal { height: 6px; background: #1f2937; border-radius: 3px; }
@@ -138,13 +139,26 @@ class KaraokeEditorWindow(QMainWindow):
         self.lbl_faixa.setStyleSheet("font-size: 16px; font-weight: bold;")
         linha1.addWidget(self.lbl_faixa, 1)
 
+        linha1.addStretch()
+
         self.btn_colar_musica = QPushButton("Importar")
         self.btn_colar_musica.setObjectName("btnTopAction")
-        self.btn_colar_musica.setIcon(get_svg_icon("paste", color="#ffffff"))
+        self.btn_colar_musica.setIcon(get_stateful_icon("paste", normal_color="#ffffff", hover_color="#ffffff"))
         self.btn_colar_musica.setIconSize(QSize(18, 18))
+        self.btn_colar_musica.setFixedHeight(36)
         self.btn_colar_musica.setToolTip("Importar letra e cifras")
         self.btn_colar_musica.clicked.connect(self._abrir_dialogo_colar_cifra_completa)
         linha1.addWidget(self.btn_colar_musica)
+
+        self.btn_sync = QPushButton("Marcar")
+        self.btn_sync.setIcon(get_stateful_icon("timer", normal_color="#ffffff", hover_color="#ffffff"))
+        self.btn_sync.setIconSize(QSize(18, 18))
+        self.btn_sync.setObjectName("btnSync")
+        self.btn_sync.setFixedHeight(36)
+        self.btn_sync.setMinimumWidth(104)
+        self.btn_sync.setToolTip("Marcar tempo da linha selecionada (F5)")
+        self.btn_sync.clicked.connect(self._gravar_tempo_linha_selecionada)
+        linha1.addWidget(self.btn_sync)
 
         layout_topo.addLayout(linha1)
 
@@ -184,21 +198,12 @@ class KaraokeEditorWindow(QMainWindow):
         self.slider_posicao.clicked_position.connect(self.audio_engine.set_position)
         linha2.addWidget(self.slider_posicao, 1)
 
-        self.btn_sync = QPushButton("Marcar")
-        self.btn_sync.setIcon(get_svg_icon("timer", color="#ffffff"))
-        self.btn_sync.setIconSize(QSize(18, 18))
-        self.btn_sync.setObjectName("btnSync")
-        self.btn_sync.setFixedHeight(36)
-        self.btn_sync.setToolTip("Marcar tempo da linha selecionada (F5)")
-        self.btn_sync.clicked.connect(self._gravar_tempo_linha_selecionada)
-        linha2.addWidget(self.btn_sync)
-
         layout_topo.addLayout(linha2)
 
         # Dica / Opção de clique na linha
         linha_dica = QHBoxLayout()
         self.chk_click_to_sync = QCheckBox("Modo de Marcação Rápida: clicar em qualquer linha grava o tempo atual do áudio nela")
-        self.chk_click_to_sync.setChecked(True)
+        self.chk_click_to_sync.setChecked(False)
         self.chk_click_to_sync.setStyleSheet("color: #60a5fa; font-weight: bold;")
         linha_dica.addWidget(self.chk_click_to_sync)
         linha_dica.addStretch()
@@ -389,7 +394,7 @@ class KaraokeEditorWindow(QMainWindow):
 
         btn_marcar = QPushButton()
         btn_marcar.setObjectName("btnRowAction")
-        btn_marcar.setIcon(get_svg_icon("timer"))
+        btn_marcar.setIcon(get_stateful_icon("timer", normal_color="#bdbdbd", hover_color="#60a5fa", active_color="#60a5fa"))
         btn_marcar.setIconSize(QSize(17, 17))
         btn_marcar.setFixedSize(28, 28)
         btn_marcar.setFlat(True)
@@ -399,7 +404,7 @@ class KaraokeEditorWindow(QMainWindow):
 
         btn_ouvir = QPushButton()
         btn_ouvir.setObjectName("btnRowAction")
-        btn_ouvir.setIcon(get_svg_icon("play"))
+        btn_ouvir.setIcon(get_stateful_icon("play", normal_color="#bdbdbd", hover_color="#60a5fa", active_color="#60a5fa"))
         btn_ouvir.setIconSize(QSize(16, 16))
         btn_ouvir.setFixedSize(28, 28)
         btn_ouvir.setFlat(True)
