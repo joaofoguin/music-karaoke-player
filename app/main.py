@@ -1,12 +1,11 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
     QFrame,
-    QHBoxLayout,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -14,7 +13,6 @@ from PySide6.QtWidgets import (
     QSlider,
     QStyle,
     QToolButton,
-    QVBoxLayout,
     QWidget,
 )
 
