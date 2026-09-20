@@ -76,7 +76,7 @@ class KaraokeEditorWindow(QMainWindow):
                 QPushButton:hover { background: #374151; }
                 QPushButton#btnSync { background: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
                 QPushButton#btnSync:hover { background: #3b82f6; }
-                QPushButton#btnTopAction { background: #047857; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
+                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 0; }\n                QPushButton#btnRowAction:hover { background: transparent; border: none; }\n                QPushButton#btnTopAction { background: #047857; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
                 QPushButton#btnTopAction:hover { background: #059669; }
                 QPushButton#btnPlay { background: #2563eb; border-radius: 18px; min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px; }
                 QSlider::groove:horizontal { height: 6px; background: #1f2937; border-radius: 3px; }
