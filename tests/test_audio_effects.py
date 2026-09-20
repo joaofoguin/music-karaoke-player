@@ -69,3 +69,34 @@ def test_apply_gain_float32():
 def test_apply_gain_zero_keeps_data():
     data = struct.pack("<2h", 100, -200)
     assert AudioEffects.apply_gain(data, "int16", 0) == data
+
+
+
+def test_normalize_peak_float32():
+    data = struct.pack("<3f", 0.25, -0.5, 0.75)
+    result = AudioEffects.normalize_peak(data, "float32")
+    samples = struct.unpack("<3f", result)
+    assert abs(samples[0] - 0.297083646) < 1e-6
+    assert abs(samples[1] + 0.594167292) < 1e-6
+    assert abs(samples[2] - 0.891250938) < 1e-6
+
+
+def test_normalize_peak_int16():
+    data = struct.pack("<3h", 1000, -2000, 16000)
+    result = AudioEffects.normalize_peak(data, "int16")
+    samples = struct.unpack("<3h", result)
+    assert samples[2] in range(29198, 29202)
+
+
+def test_normalize_peak_silence_keeps_data():
+    data = struct.pack("<3h", 0, 0, 0)
+    assert AudioEffects.normalize_peak(data, "int16") == data
+
+
+def test_normalize_peak_rejects_invalid_target():
+    try:
+        AudioEffects.normalize_peak(b"\x00\x00", "int16", 0)
+    except ValueError as exc:
+        assert "Pico-alvo inválido" in str(exc)
+    else:
+        raise AssertionError("Era esperado ValueError")
