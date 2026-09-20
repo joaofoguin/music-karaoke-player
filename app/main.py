@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QDir, QTimer, QSize, Qt
+from PySide6.QtCore import QDir, QSize, Qt
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
@@ -16,7 +16,6 @@ from PySide6.QtWidgets import (
     QMenuBar,
     QMessageBox,
     QPushButton,
-    QScrollArea,
     QSlider,
     QStackedWidget,
     QStyle,
@@ -37,7 +36,7 @@ from core.clickable_slider import ClickableSlider
 from karaoke_window import KaraokeWindow
 from karaoke_editor import KaraokeEditorWindow
 from settings_dialog import SettingsDialog
-from widgets.queue_item_widget import QueueItemWidget
+from widgets.queue_widget import QueueWidget
 from widgets.player_widget import PlayerWidget
 
 
@@ -432,51 +431,21 @@ class MainWindow(QMainWindow):
         self.definir_modo_exibicao("details")
 
         # ==================================================
-        # FILA DE REPRODUÇÃO (COM DUPLO CLIQUE E TOCAR A SEGUIR)
+        # FILA DE REPRODUÇÃO
         # ==================================================
-        queue = QFrame()
-        queue.setObjectName("panel")
-        queue.setFrameShape(QFrame.Shape.StyledPanel)
+        self.queue_widget = QueueWidget(self.queue_controller, self)
+        self.queue_widget.set_add_files_callback(self.abrir_arquivos_dialogo)
+        self.queue_widget.play_requested.connect(self.selecionar_e_reproduzir_faixa)
+        self.queue_widget.play_next_requested.connect(self.definir_tocar_a_seguir)
+        self.queue_widget.move_requested.connect(self.mover_faixa)
+        self.queue_widget.remove_requested.connect(self.remover_faixa)
+        self.queue_widget.clear_requested.connect(self.limpar_fila)
 
-        layout_queue = QVBoxLayout(queue)
-
-        titulo_queue = QLabel("FILA DE REPRODUÇÃO")
-        titulo_queue.setObjectName("sectionTitle")
-
-        cabecalho_fila = QHBoxLayout()
-        cabecalho_fila.setSpacing(4)
-        cabecalho_fila.addWidget(titulo_queue, 1)
-
-        self.btn_add_arquivos = QToolButton()
-        self.btn_add_arquivos.setObjectName("panelAction")
-        self.btn_add_arquivos.setIcon(get_svg_icon("plus", color=self._cor_icone_painel(), size=64))
-        self.btn_add_arquivos.setIconSize(QSize(19, 19))
-        self.btn_add_arquivos.setToolTip("Adicionar arquivos à fila (Ctrl+O)")
-        self.btn_add_arquivos.clicked.connect(self.abrir_arquivos_dialogo)
-        cabecalho_fila.addWidget(self.btn_add_arquivos)
-
-        self.botao_limpar_fila = QToolButton()
-        self.botao_limpar_fila.setObjectName("panelAction")
-        self.botao_limpar_fila.setIcon(get_svg_icon("trash", color=self._cor_icone_painel(), size=64))
-        self.botao_limpar_fila.setIconSize(QSize(19, 19))
-        self.botao_limpar_fila.setToolTip("Limpar fila de reprodução (Ctrl+L)")
-        self.botao_limpar_fila.clicked.connect(self.limpar_fila)
-        cabecalho_fila.addWidget(self.botao_limpar_fila)
-        layout_queue.addLayout(cabecalho_fila)
-
-        self.queue_scroll = QScrollArea()
-        self.queue_scroll.setWidgetResizable(True)
-        self.queue_scroll.setFrameShape(QFrame.Shape.NoFrame)
-
-        self.queue_content = QWidget()
-        self.queue_layout = QVBoxLayout(self.queue_content)
-        self.queue_layout.setContentsMargins(0, 0, 0, 0)
-        self.queue_layout.setSpacing(4)
-        self.queue_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        self.queue_scroll.setWidget(self.queue_content)
-        self.queue_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        layout_queue.addWidget(self.queue_scroll)
+        self.btn_add_arquivos = self.queue_widget.btn_add_arquivos
+        self.botao_limpar_fila = self.queue_widget.botao_limpar_fila
+        self.queue_scroll = self.queue_widget.queue_scroll
+        self.queue_content = self.queue_widget.queue_content
+        self.queue_layout = self.queue_widget.queue_layout
 
         # ==================================================
         # PLAYER BAR
@@ -511,7 +480,7 @@ class MainWindow(QMainWindow):
         # MONTAR INTERFACE
         # ==================================================
         layout_superior.addWidget(explorer, 1)
-        layout_superior.addWidget(queue, 1)
+        layout_superior.addWidget(self.queue_widget, 1)
 
         layout_principal.addLayout(layout_superior, 5)
         layout_principal.addWidget(self.player_widget, 1)
@@ -809,60 +778,10 @@ class MainWindow(QMainWindow):
             self.karaoke_window.definir_proxima_faixa(proxima)
 
     def atualizar_fila(self):
-        """Atualiza a lista visual da fila de reprodução."""
-        while self.queue_layout.count():
-            item = self.queue_layout.takeAt(0)
-            widget = item.widget()
-            if widget is not None:
-                widget.deleteLater()
-
-        for index, track in enumerate(self.queue_controller.tracks):
-            is_current = (index == self.queue_controller.current_index)
-            is_next = (index == self.queue_controller.current_index + 1)
-
-            item_widget = QueueItemWidget(
-                index=index,
-                track=track,
-                is_current=is_current,
-                is_next=is_next,
-                icon_color=self._cor_icone_painel(),
-                on_play=self.selecionar_e_reproduzir_faixa,
-                on_play_next=self.definir_tocar_a_seguir,
-                on_move=self.mover_faixa,
-                on_remove=self.remover_faixa,
-                track_count=len(self.queue_controller.tracks),
-            )
-            self.queue_layout.addWidget(item_widget)
-
-        self.botao_limpar_fila.setEnabled(bool(self.queue_controller.tracks))
-        QTimer.singleShot(0, self._manter_faixas_atuais_visiveis)
-
-    def _manter_faixas_atuais_visiveis(self):
-        if not self.queue_controller.tracks or self.queue_controller.current_index < 0:
-            return
-
-        widgets = [self.queue_layout.itemAt(i).widget() for i in range(self.queue_layout.count())]
-        widgets = [w for w in widgets if w is not None]
-        indice = self.queue_controller.current_index
-        atual = widgets[indice] if indice < len(widgets) else None
-        proxima = widgets[indice + 1] if indice + 1 < len(widgets) else None
-        if atual is None:
-            return
-
-        barra = self.queue_scroll.verticalScrollBar()
-        topo = atual.geometry().top()
-        limite_inferior = proxima.geometry().bottom() if proxima is not None else atual.geometry().bottom()
-        viewport = self.queue_scroll.viewport().height()
-        valor = barra.value()
-        if topo < valor:
-            valor = topo
-        elif limite_inferior > valor + viewport:
-            valor = limite_inferior - viewport
-        barra.setValue(max(0, min(valor, barra.maximum())))
+        self.queue_widget.atualizar_fila()
 
     def mover_faixa(self, index, destino):
-        if self.queue_controller.move(index, destino):
-            self.atualizar_fila()
+        self.queue_controller.move(index, destino)
 
     def remover_faixa(self, index):
         faixa_atual = self.queue_controller.current_index
@@ -883,7 +802,7 @@ class MainWindow(QMainWindow):
                 if estava_reproduzindo:
                     self.audio_engine.play()
 
-        self.atualizar_fila()
+        self.queue_widget.atualizar_fila()
 
     def remover_faixa_atual(self):
         if self.queue_controller.current_index >= 0:
@@ -893,7 +812,6 @@ class MainWindow(QMainWindow):
         self.audio_engine.stop()
         self.queue_controller.clear()
         self.limpar_player()
-        self.atualizar_fila()
 
     def limpar_player(self):
         self.player_widget.limpar_faixa()
