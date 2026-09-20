@@ -27,6 +27,7 @@ class AudioEngine(QObject):
     output_device_changed = Signal(str)
     mono_changed = Signal(bool)
     gain_changed = Signal(float)
+    normalize_changed = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -34,6 +35,7 @@ class AudioEngine(QObject):
         self._configured_output_device_id = ""
         self._mono_enabled = False
         self._gain_db = 0.0
+        self._normalize_enabled = False
         self._buffer_callback_count = 0
 
         default_device = self.media_devices.defaultAudioOutput()
@@ -71,7 +73,7 @@ class AudioEngine(QObject):
         self._reset_processed_output()
 
     def set_position(self, position: int) -> None:
-        if self._mono_enabled:
+        if self._processing_enabled():
             self._reset_processed_output()
         self.player.setPosition(position)
 
@@ -112,7 +114,7 @@ class AudioEngine(QObject):
         if was_playing:
             self.player.pause()
 
-        if self._mono_enabled:
+        if self._processing_enabled():
             self._recreate_processed_output(device)
         else:
             self.audio_output.setDevice(device)
@@ -149,8 +151,37 @@ class AudioEngine(QObject):
     def gain_db(self) -> float:
         return self._gain_db
 
+    def set_normalize_enabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled == self._normalize_enabled:
+            return
+
+        was_playing = self.is_playing()
+        current_position = self.player.position()
+        if was_playing:
+            self.player.pause()
+
+        self._normalize_enabled = enabled
+        if self._processing_enabled():
+            self._enable_processed_output()
+        else:
+            self._disable_processed_output()
+
+        if was_playing:
+            self.player.setPosition(current_position)
+            self.player.play()
+
+        self.normalize_changed.emit(enabled)
+
+    def normalize_enabled(self) -> bool:
+        return self._normalize_enabled
+
     def _processing_enabled(self) -> bool:
-        return self._mono_enabled or self._gain_db != 0.0
+        return (
+            self._mono_enabled
+            or self._gain_db != 0.0
+            or self._normalize_enabled
+        )
 
     def set_mono_enabled(self, enabled: bool) -> None:
         enabled = bool(enabled)
@@ -245,7 +276,7 @@ class AudioEngine(QObject):
                 if preferred.isValid():
                     output_format = preferred
                 else:
-                    print("Efeito mono indisponível: dispositivo sem formato de saída válido")
+                    print("Efeito de áudio indisponível: dispositivo sem formato de saída válido")
                     return
 
             self._sink_format = output_format
@@ -266,6 +297,10 @@ class AudioEngine(QObject):
                         sample_format,
                         output_format.channelCount(),
                     )
+            if self._normalize_enabled:
+                processed = AudioEffects.normalize_peak(
+                    processed, sample_format
+                )
             processed = AudioEffects.apply_gain(
                 processed, sample_format, self._gain_db
             )
@@ -279,7 +314,7 @@ class AudioEngine(QObject):
         if self._sink_io is None:
             self._sink_io = self._audio_sink.start()
             if self._sink_io is None:
-                print("Efeito mono indisponível: não foi possível iniciar a saída PCM")
+                print("Efeito de áudio indisponível: não foi possível iniciar a saída PCM")
                 return
 
         written = self._sink_io.write(processed)
