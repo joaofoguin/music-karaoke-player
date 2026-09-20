@@ -1,26 +1,22 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QDir, QSize, Qt
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
     QFrame,
-    QFileSystemModel,
     QHBoxLayout,
     QLabel,
-    QListView,
     QMainWindow,
     QMenu,
     QMenuBar,
     QMessageBox,
     QPushButton,
     QSlider,
-    QStackedWidget,
     QStyle,
     QToolButton,
-    QTreeView,
     QVBoxLayout,
     QWidget,
 )
@@ -38,6 +34,7 @@ from karaoke_editor import KaraokeEditorWindow
 from settings_dialog import SettingsDialog
 from widgets.queue_widget import QueueWidget
 from widgets.player_widget import PlayerWidget
+from widgets.explorer_widget import ExplorerWidget
 
 
 class MainWindow(QMainWindow):
@@ -192,19 +189,6 @@ class MainWindow(QMainWindow):
 
         self.player_widget.atualizar_icones(tema)
 
-        if hasattr(self, "btn_abrir_pasta_exp"):
-            self.btn_abrir_pasta_exp.setIcon(get_svg_icon("folder", color=cor_icone, size=64))
-        if hasattr(self, "btn_modo_explorer"):
-            modo_icones = {
-                "details": "view_details",
-                "list": "view_list",
-                "small": "view_grid",
-                "large": "view_large",
-            }
-            for acao in self.menu_modo_explorer.actions():
-                modo = acao.data()
-                if modo in modo_icones:
-                    acao.setIcon(get_svg_icon(modo_icones[modo], color=cor_icone, size=48))
         if hasattr(self, "btn_add_arquivos"):
             self.btn_add_arquivos.setIcon(get_svg_icon("plus", color=cor_icone, size=64))
         if hasattr(self, "botao_limpar_fila"):
@@ -359,78 +343,13 @@ class MainWindow(QMainWindow):
         # ==================================================
         # EXPLORADOR
         # ==================================================
-        explorer = QFrame()
-        explorer.setObjectName("panel")
-        explorer.setFrameShape(QFrame.Shape.StyledPanel)
+        self.explorer_widget = ExplorerWidget(self.audio_extensions, self)
+        self.explorer_widget.set_open_folder_callback(self.abrir_pasta_dialogo)
+        self.explorer_widget.file_selected.connect(self.arquivo_selecionado)
+        self.explorer_widget.directory_changed.connect(
+            lambda pasta: self.config_manager.set("general/last_opened_folder", pasta)
+        )
 
-        layout_explorer = QVBoxLayout(explorer)
-
-        cabecalho_explorer = QHBoxLayout()
-        cabecalho_explorer.setSpacing(4)
-        titulo_explorer = QLabel("EXPLORADOR DE ARQUIVOS")
-        titulo_explorer.setObjectName("sectionTitle")
-        cabecalho_explorer.addWidget(titulo_explorer, 1)
-
-        self.btn_abrir_pasta_exp = QToolButton()
-        btn_abrir_pasta_exp = self.btn_abrir_pasta_exp
-        btn_abrir_pasta_exp.setObjectName("panelAction")
-        btn_abrir_pasta_exp.setIcon(get_svg_icon("folder", color=self._cor_icone_painel(), size=64))
-        btn_abrir_pasta_exp.setIconSize(QSize(19, 19))
-        btn_abrir_pasta_exp.setToolTip("Alterar pasta do explorador")
-        btn_abrir_pasta_exp.clicked.connect(self.abrir_pasta_dialogo)
-        cabecalho_explorer.addWidget(btn_abrir_pasta_exp)
-
-        self.btn_modo_explorer = QToolButton()
-        self.btn_modo_explorer.setObjectName("panelAction")
-        self.btn_modo_explorer.setIcon(get_svg_icon("view_details", color=self._cor_icone_painel(), size=64))
-        self.btn_modo_explorer.setIconSize(QSize(19, 19))
-        self.btn_modo_explorer.setToolTip("Layout e exibição")
-        self.menu_modo_explorer = QMenu(self)
-        for texto, modo, icone in [
-            ("Detalhes", "details", "view_details"),
-            ("Lista", "list", "view_list"),
-            ("Ícones pequenos", "small", "view_grid"),
-            ("Ícones grandes", "large", "view_large"),
-        ]:
-            acao = QAction(texto, self)
-            acao.setData(modo)
-            acao.setIcon(get_svg_icon(icone, color=self._cor_icone_painel(), size=48))
-            acao.triggered.connect(lambda checked=False, m=modo: self.definir_modo_exibicao(m))
-            self.menu_modo_explorer.addAction(acao)
-        self.btn_modo_explorer.setMenu(self.menu_modo_explorer)
-        self.btn_modo_explorer.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-        cabecalho_explorer.addWidget(self.btn_modo_explorer)
-        layout_explorer.addLayout(cabecalho_explorer)
-
-        self.file_model = QFileSystemModel()
-        self.file_model.setFilter(QDir.Filter.AllDirs | QDir.Filter.Files | QDir.Filter.NoDotAndDotDot)
-        self.file_model.setRootPath("")
-        self.file_stack = QStackedWidget()
-        self.file_tree = QTreeView()
-        self.file_tree.doubleClicked.connect(self.arquivo_selecionado)
-        self.file_tree.setModel(self.file_model)
-        self.file_tree.setRootIndex(self.file_model.index(""))
-        self.file_tree.setAlternatingRowColors(True)
-        self.file_tree.setSortingEnabled(True)
-        self.file_tree.setColumnWidth(0, 300)
-        self.file_tree.setColumnWidth(1, 90)
-        self.file_tree.setColumnWidth(2, 130)
-        self.file_tree.setColumnWidth(3, 165)
-
-        self.file_list = QListView()
-        self.file_list.setModel(self.file_model)
-        self.file_list.setRootIndex(self.file_model.index(""))
-        self.file_list.doubleClicked.connect(self.arquivo_selecionado)
-        self.file_list.setResizeMode(QListView.ResizeMode.Adjust)
-        self.file_list.setSpacing(6)
-        self.file_list.setUniformItemSizes(True)
-
-        self.file_stack.addWidget(self.file_tree)
-        self.file_stack.addWidget(self.file_list)
-        layout_explorer.addWidget(self.file_stack)
-        self.definir_modo_exibicao("details")
-
-        # ==================================================
         # FILA DE REPRODUÇÃO
         # ==================================================
         self.queue_widget = QueueWidget(self.queue_controller, self)
@@ -479,7 +398,7 @@ class MainWindow(QMainWindow):
         # ==================================================
         # MONTAR INTERFACE
         # ==================================================
-        layout_superior.addWidget(explorer, 1)
+        layout_superior.addWidget(self.explorer_widget, 1)
         layout_superior.addWidget(self.queue_widget, 1)
 
         layout_principal.addLayout(layout_superior, 5)
@@ -515,10 +434,7 @@ class MainWindow(QMainWindow):
 
     def definir_diretorio_explorador(self, pasta: str):
         if Path(pasta).is_dir():
-            idx = self.file_model.setRootPath(pasta)
-            self.file_tree.setRootIndex(self.file_model.index(pasta))
-            self.file_list.setRootIndex(self.file_model.index(pasta))
-            self.config_manager.set("general/last_opened_folder", pasta)
+            self.explorer_widget.definir_diretorio(pasta)
 
     def _on_repeat_clicked(self, checked=None):
         ativo = self.botao_repetir.isChecked() if checked is None else checked
@@ -706,57 +622,13 @@ class MainWindow(QMainWindow):
         self.queue_controller.add(track)
 
     def definir_modo_exibicao(self, modo: str):
-        if modo == "details":
-            self.file_stack.setCurrentWidget(self.file_tree)
-            self.btn_modo_explorer.setIcon(get_svg_icon("view_details", color=self._cor_icone_painel(), size=64))            
-            self.file_tree.setColumnHidden(1, False)
-            self.file_tree.setColumnHidden(2, False)
-            self.file_tree.setColumnHidden(3, False)
-            self.file_tree.setColumnWidth(0, max(300, self.file_tree.width() // 2))
-        else:
-            self.file_stack.setCurrentWidget(self.file_list)
-            self.file_tree.setColumnHidden(1, True)
-            self.file_tree.setColumnHidden(2, True)
-            self.file_tree.setColumnHidden(3, True)
-            if modo == "list":
-                self.file_list.setViewMode(QListView.ViewMode.ListMode)
-                self.file_list.setFlow(QListView.Flow.LeftToRight)
-                self.file_list.setWrapping(True)
-                self.file_list.setGridSize(QSize(340, 34))
-                self.file_list.setIconSize(QSize(20, 20))
-                self.btn_modo_explorer.setIcon(get_svg_icon("view_list", color=self._cor_icone_painel(), size=64))
-            elif modo == "small":
-                self.file_list.setViewMode(QListView.ViewMode.IconMode)
-                self.file_list.setFlow(QListView.Flow.LeftToRight)
-                self.file_list.setWrapping(True)
-                self.file_list.setGridSize(QSize(120, 72))
-                self.file_list.setIconSize(QSize(32, 32))
-                self.btn_modo_explorer.setIcon(get_svg_icon("view_grid", color=self._cor_icone_painel(), size=64))
-            else:
-                self.file_list.setViewMode(QListView.ViewMode.IconMode)
-                self.file_list.setFlow(QListView.Flow.LeftToRight)
-                self.file_list.setWrapping(True)
-                self.file_list.setGridSize(QSize(170, 110))
-                self.file_list.setIconSize(QSize(64, 64))
-                self.btn_modo_explorer.setIcon(get_svg_icon("view_large", color=self._cor_icone_painel(), size=64))
+        self.explorer_widget.definir_modo_exibicao(modo)
 
-    def _cor_icone_painel(self):
-        tema = self.config_manager.get("appearance/theme", "dark")
-        return "#374151" if tema == "light" else "#e5e7eb"
-
-    def arquivo_selecionado(self, index):
-        caminho = Path(self.file_model.filePath(index))
-
-        if not caminho.is_file():
-            return
-
-        if caminho.suffix.lower() not in self.audio_extensions:
-            return
-
+    def arquivo_selecionado(self, caminho):
         fila_estava_vazia = not self.queue_controller.tracks
         self._adicionar_caminho_fila(caminho)
 
-        if fila_estava_vazia:
+        if fila_estava_vazia and self.queue_controller.tracks:
             self.selecionar_faixa(0)
             if self.config_manager.get("playback/auto_play_on_add", False):
                 self.audio_engine.play()
