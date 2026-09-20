@@ -205,7 +205,6 @@ class MainWindow(QMainWindow):
         self.karaoke_window = None
         self.karaoke_editor = None
         self._volume_anterior_mudo = None
-        self._anterior_ja_reiniciou = False
 
         self.config_manager.settings_changed.connect(self.aplicar_configuracoes)
 
@@ -1268,9 +1267,6 @@ class MainWindow(QMainWindow):
         minutos = segundos // 60
         segundos = segundos % 60
         return f"{minutos:02d}:{segundos:02d}"
-
-    def faixa_terminou(self):
-        self.playback_coordinator.handle_finished()
 
     def closeEvent(self, event):
         """Salva configurações e encerra recursos ao fechar o player."""
