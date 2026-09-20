@@ -838,6 +838,7 @@ class MainWindow(QMainWindow):
         # Repetir
         repeat_def = self.config_manager.get("playback/repeat_enabled", False)
         self.botao_repetir.setChecked(repeat_def)
+        self.playback_coordinator.repeat = repeat_def
 
         # Diretório do explorador
         restaurar = self.config_manager.get("general/restore_last_folder", True)
@@ -858,6 +859,7 @@ class MainWindow(QMainWindow):
             self.config_manager.set("general/last_opened_folder", pasta)
 
     def _on_repeat_clicked(self):
+        self.playback_coordinator.repeat = self.botao_repetir.isChecked()
         self.config_manager.set("playback/repeat_enabled", self.botao_repetir.isChecked())
 
     def _on_volume_changed(self, valor):
