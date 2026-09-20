@@ -16,7 +16,7 @@ class PlaybackController(QObject):
     def __init__(self, audio_engine=None, parent=None):
         super().__init__(parent)
 
-        self._audio_engine = audio_engine or AudioEngine()
+        self._audio_engine = audio_engine if audio_engine is not None else AudioEngine()
 
         self._audio_engine.position_changed.connect(self.position_changed.emit)
         self._audio_engine.duration_changed.connect(self.duration_changed.emit)
