@@ -161,8 +161,6 @@ class AudioEngine(QObject):
 
     def _enable_processed_output(self, current_position: int) -> None:
         device = self.audio_output.device()
-        self._configure_buffer_output(device)
-        self.player.setAudioBufferOutput(self._buffer_output)
         self.audio_output.setMuted(True)
         self.player.setAudioOutput(self.audio_output)
         self._recreate_processed_output(device)
@@ -197,9 +195,11 @@ class AudioEngine(QObject):
 
     def _recreate_processed_output(self, device) -> None:
         self._reset_processed_output()
-        self._configure_buffer_output(device)
         self._pending_sink_device = device
         self._processed_output_device = device
+        self._configure_buffer_output(device)
+        if self._mono_enabled:
+            self.player.setAudioBufferOutput(self._buffer_output)
 
     def _on_audio_buffer_received(self, buffer) -> None:
         if not self._mono_enabled or not buffer.isValid():
