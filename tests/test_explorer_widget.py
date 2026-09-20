@@ -17,7 +17,7 @@ def test_explorer_widget_initializes_with_details_view():
     widget = ExplorerWidget([".mp3", ".flac"])
 
     assert widget.file_stack.currentWidget() is widget.file_tree
-    assert widget.file_list.viewMode().name == "IconMode" or widget.file_stack.currentWidget() is widget.file_tree
+    assert widget.file_stack.currentWidget() is widget.file_tree
 
 
 def test_explorer_widget_changes_display_modes():
