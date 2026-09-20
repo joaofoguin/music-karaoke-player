@@ -27,6 +27,9 @@ class _AudioBufferDevice(QIODevice):
         self._buffer.extend(data)
         self.readyRead.emit()
 
+    def has_data(self) -> bool:
+        return bool(self._buffer)
+
     def readData(self, maxlen: int) -> bytes:
         if maxlen <= 0 or not self._buffer:
             return b""
@@ -255,7 +258,6 @@ class AudioEngine(QObject):
             self._audio_sink = QAudioSink(device, output_format, self)
             self._audio_sink.setVolume(self.audio_output.volume())
             self._audio_sink.stateChanged.connect(self._on_sink_state_changed)
-            self._audio_sink.start(self._buffer_device)
 
         raw_data = bytes(buffer.constData())
         sample_format = self._sample_format_name(source_format.sampleFormat())
@@ -274,6 +276,17 @@ class AudioEngine(QObject):
             return
 
         self._buffer_device.append(processed)
+
+        # Inicia o sink somente depois que o primeiro bloco PCM está disponível.
+        # Isso evita que ele entre em Idle antes de o decoder entregar o áudio.
+        if self._audio_sink is not None and self._buffer_device.has_data():
+            sink_state = self._audio_sink.state()
+            if sink_state in (
+                QAudioSink.State.StoppedState,
+                QAudioSink.State.SuspendedState,
+                QAudioSink.State.IdleState,
+            ):
+                self._audio_sink.start(self._buffer_device)
 
     def _on_sink_state_changed(self, state) -> None:
         if self._audio_sink is None:
