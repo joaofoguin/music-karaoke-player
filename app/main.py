@@ -76,6 +76,7 @@ class MainWindow(QMainWindow):
                 [".mp3", ".wav", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wma"],
             )
         )
+        self.explorer_widget.set_audio_extensions(self.audio_extensions)
         self.aplicar_estilo()
 
     def obter_tema_qss(self, tema: str) -> str:
