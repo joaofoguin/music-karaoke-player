@@ -68,6 +68,12 @@ class PlaybackController(QObject):
     def gain_db(self) -> float:
         return self._audio_engine.gain_db()
 
+    def set_normalize_enabled(self, enabled: bool) -> None:
+        self._audio_engine.set_normalize_enabled(enabled)
+
+    def normalize_enabled(self) -> bool:
+        return self._audio_engine.normalize_enabled()
+
     def position(self) -> int:
         return self._audio_engine.position()
 
