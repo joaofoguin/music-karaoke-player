@@ -16,11 +16,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from models.track import Track
 from core.queue_controller import QueueController
 from core.playback_controller import PlaybackController
 from core.playback_coordinator import PlaybackCoordinator
-from core.metadata_reader import ler_metadados
+from core.track_loader import TrackLoader
 from core.config_manager import ConfigManager
 from core.theme_manager import ThemeManager
 from core.clickable_slider import ClickableSlider
@@ -59,6 +58,7 @@ class MainWindow(QMainWindow):
                 [".mp3", ".wav", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wma"],
             )
         )
+        self.track_loader = TrackLoader(self.audio_extensions)
 
         self.criar_interface()
         self.aplicar_estilo()
@@ -72,6 +72,7 @@ class MainWindow(QMainWindow):
                 [".mp3", ".wav", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wma"],
             )
         )
+        self.track_loader.set_audio_extensions(self.audio_extensions)
         self.explorer_widget.set_audio_extensions(self.audio_extensions)
         self.aplicar_estilo()
 
@@ -374,20 +375,9 @@ class MainWindow(QMainWindow):
         self.queue_controller.set_play_next(index)
 
     def _adicionar_caminho_fila(self, caminho: Path):
-        if not caminho.is_file() or caminho.suffix.lower() not in self.audio_extensions:
-            return
-
-        metadados = ler_metadados(caminho)
-        track = Track(
-            path=caminho,
-            title=metadados["title"],
-            artist=metadados["artist"],
-            album=metadados["album"],
-            cover=metadados["cover"],
-            format=metadados["format"],
-            duration=metadados["duration"],
-        )
-        self.queue_controller.add(track)
+        track = self.track_loader.carregar(caminho)
+        if track is not None:
+            self.queue_controller.add(track)
 
     def definir_modo_exibicao(self, modo: str):
         self.explorer_widget.definir_modo_exibicao(modo)
