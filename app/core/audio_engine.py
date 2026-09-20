@@ -24,6 +24,7 @@ class AudioEngine(QObject):
         # mudanças de dispositivos e, principalmente, mudanças no
         # dispositivo de saída padrão do Windows.
         self.media_devices = QMediaDevices(self)
+        self._configured_output_device_id = ""
 
         default_device = self.media_devices.defaultAudioOutput()
         self.audio_output = QAudioOutput(default_device, self)
@@ -70,6 +71,54 @@ class AudioEngine(QObject):
         """Define o volume usando a escala pública de 0 a 100."""
         self.audio_output.setVolume(volume / self.VOLUME_MAX)
 
+    def output_devices(self):
+        """Retorna os dispositivos de saída atualmente disponíveis."""
+        return self.media_devices.audioOutputs()
+
+    def set_configured_output_device_id(self, device_id: str) -> None:
+        """Define o dispositivo preferido para futuras mudanças do sistema."""
+        self._configured_output_device_id = device_id or ""
+
+    def output_device_id(self) -> str:
+        """Retorna o ID hexadecimal do dispositivo atualmente selecionado."""
+        device = self.audio_output.device()
+        return bytes(device.id()).hex() if not device.isNull() else ""
+
+    def set_output_device(self, device_id: str) -> bool:
+        """Seleciona manualmente um dispositivo de saída pelo ID hexadecimal."""
+        if not device_id:
+            device = self.media_devices.defaultAudioOutput()
+        else:
+            device = next(
+                (
+                    item
+                    for item in self.media_devices.audioOutputs()
+                    if bytes(item.id()).hex() == device_id
+                ),
+                None,
+            )
+
+        if device is None or device.isNull():
+            return False
+
+        current = self.audio_output.device()
+        if not current.isNull() and bytes(current.id()) == bytes(device.id()):
+            return True
+
+        was_playing = self.is_playing()
+        current_position = self.player.position()
+        if was_playing:
+            self.player.pause()
+
+        self.audio_output.setDevice(device)
+
+        if was_playing:
+            self.player.setPosition(current_position)
+            self.player.play()
+
+        self.output_device_changed.emit(device.description())
+        return True
+
     def position(self) -> int:
         """Retorna a posição atual em milissegundos."""
         return self.player.position()
@@ -87,6 +136,21 @@ class AudioEngine(QObject):
 
     def _on_audio_outputs_changed(self) -> None:
         """Reata o player ao novo dispositivo de saída padrão do sistema."""
+        configured_id = getattr(self, "_configured_output_device_id", "")
+        if configured_id:
+            selected = next(
+                (
+                    item
+                    for item in self.media_devices.audioOutputs()
+                    if bytes(item.id()).hex() == configured_id
+                ),
+                None,
+            )
+            if selected is not None and not selected.isNull():
+                if self.audio_output.device().id() != selected.id():
+                    self._switch_output_device(selected)
+                return
+
         new_device = self.media_devices.defaultAudioOutput()
         if new_device.isNull():
             return
@@ -98,6 +162,9 @@ class AudioEngine(QObject):
         ):
             return
 
+        self._switch_output_device(new_device)
+
+    def _switch_output_device(self, new_device) -> None:
         was_playing = self.is_playing()
         current_position = self.player.position()
 
