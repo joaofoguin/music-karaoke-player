@@ -407,20 +407,15 @@ class MainWindow(QMainWindow):
         self.btn_vol_icon.setText("")
 
     def criar_atalhos(self):
-        QShortcut(QKeySequence(Qt.Key.Key_Space), self, self.alternar_reproducao)
-        QShortcut(QKeySequence("Ctrl+Right"), self, self.faixa_proxima)
-        QShortcut(QKeySequence("Ctrl+Left"), self, self.faixa_anterior)
-        QShortcut(QKeySequence("Ctrl+Up"), self, self.aumentar_volume)
-        QShortcut(QKeySequence("Ctrl+Down"), self, self.diminuir_volume)
-        QShortcut(QKeySequence("Ctrl+M"), self, self.alternar_mudo)
-        QShortcut(QKeySequence("Ctrl+R"), self, self.alternar_repetir)
-        QShortcut(QKeySequence("Ctrl+K"), self, self.abrir_tela_karaoke)
-        QShortcut(QKeySequence("Ctrl+E"), self, self.abrir_editor_karaoke)
-        QShortcut(QKeySequence("Ctrl+O"), self, self.abrir_arquivos_dialogo)
-        QShortcut(QKeySequence("Ctrl+Shift+O"), self, self.abrir_pasta_dialogo)
-        QShortcut(QKeySequence("Ctrl+L"), self, self.limpar_fila)
-        QShortcut(QKeySequence("Ctrl+,"), self, self.abrir_dialogo_configuracoes)
-        QShortcut(QKeySequence("F11"), self, self.alternar_tela_cheia)
+        """Registra os atalhos diretamente nas ações do menu.
+
+        As ações já possuem os mesmos atalhos visíveis no menu Controles,
+        portanto não criamos QShortcuts duplicados. Duplicar a mesma sequência
+        em QAction e QShortcut pode gerar ambiguidade e impedir a ativação.
+        """
+        # Os atalhos são definidos nas QAction correspondentes em
+        # criar_interface(), mantendo uma única origem para cada combinação.
+        return
 
     def criar_interface(self):
         # ==================================================
