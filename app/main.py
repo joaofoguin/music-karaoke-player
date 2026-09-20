@@ -1,8 +1,8 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QDir, QPoint, QTimer, QSize, Qt
-from PySide6.QtGui import QAction, QKeySequence, QPixmap, QShortcut
+from PySide6.QtCore import QDir, QTimer, QSize, Qt
+from PySide6.QtGui import QAction, QKeySequence, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -37,156 +37,7 @@ from core.clickable_slider import ClickableSlider
 from karaoke_window import KaraokeWindow
 from karaoke_editor import KaraokeEditorWindow
 from settings_dialog import SettingsDialog
-
-
-class QueueItemWidget(QFrame):
-    """Widget de item de fila com suporte a duplo clique para reproduzir e menu de contexto."""
-
-    def __init__(self, main_window, index, track, is_current, is_next, parent=None):
-        super().__init__(parent)
-        self.main_window = main_window
-        self.index = index
-        self.track = track
-        self.is_current = is_current
-        self.is_next = is_next
-
-        self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self._mostrar_menu_contexto)
-
-        self._montar_layout()
-
-    def _limitar_texto(self, texto: str, limite: int) -> str:
-        if len(texto) <= limite:
-            return texto
-        return texto[:max(1, limite - 3)].rstrip() + "..."
-
-    def _montar_layout(self):
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(6, 3, 6, 3)
-        layout.setSpacing(6)
-
-        # Informações da faixa
-        info_layout = QVBoxLayout()
-        info_layout.setSpacing(1)
-
-        titulo = self.track.title
-        artista = self.track.artist if self.track.artist else "Artista desconhecido"
-        duracao = self.main_window.formatar_duracao(self.track.duration)
-
-        if self.is_current:
-            tag = " [Tocando Agora]"
-        elif self.is_next:
-            tag = " [A Seguir]"
-        else:
-            tag = ""
-
-        lbl_titulo = QLabel(self._limitar_texto(f"{self.index + 1:02d}. {titulo}{tag}", 42))
-        lbl_titulo.setStyleSheet("font-weight: bold; font-size: 13px;")
-
-        lbl_sub = QLabel(self._limitar_texto(f"{artista}  •  {duracao}", 42))
-        lbl_sub.setStyleSheet("font-size: 11px; opacity: 0.85;")
-
-        info_layout.addWidget(lbl_titulo)
-        info_layout.addWidget(lbl_sub)
-        layout.addLayout(info_layout, 1)
-
-        # Estilização
-        if self.is_current:
-            self.setStyleSheet(
-                "QueueItemWidget { background-color: #1f7300; color: #ffffff; border-radius: 6px; border-left: 5px solid #4ade80; }"
-                "QLabel { color: #ffffff; }"
-            )
-        elif self.is_next:
-            self.setStyleSheet(
-                "QueueItemWidget { background-color: #735600; color: #ffffff; border-radius: 6px; border-left: 5px solid #f59e0b; }"
-                "QLabel { color: #ffffff; }"
-            )
-        else:
-            self.setStyleSheet(
-                "QueueItemWidget { background-color: #242424; color: #d8d8d8; border: 1px solid #383838; border-radius: 6px; }"
-                "QueueItemWidget:hover { background-color: #2e2e2e; border-color: #4b5563; }"
-                "QLabel { color: #e5e7eb; }"
-            )
-
-        # Botão "Tocar a seguir"
-        if not self.is_current:
-            btn_next = QPushButton()
-            btn_next.setToolTip("Tocar a seguir (Definir como próxima na fila)")
-            btn_next.setObjectName("queueActionButton")
-            btn_next.setIcon(get_svg_icon("next", color=self.main_window._cor_icone_painel(), size=48))
-            btn_next.setIconSize(QSize(17, 17))
-            btn_next.setFixedSize(30, 30)
-            btn_next.clicked.connect(lambda: self.main_window.definir_tocar_a_seguir(self.index))
-            layout.addWidget(btn_next)
-
-        # Botão subir
-        btn_subir = QPushButton()
-        btn_subir.setToolTip("Mover para cima")
-        btn_subir.setObjectName("queueActionButton")
-        btn_subir.setIcon(get_svg_icon("arrow_up", color=self.main_window._cor_icone_painel(), size=48))
-        btn_subir.setIconSize(QSize(17, 17))
-        btn_subir.setFixedSize(30, 30)
-        btn_subir.setEnabled(self.index > 0)
-        btn_subir.clicked.connect(lambda: self.main_window.mover_faixa(self.index, self.index - 1))
-        layout.addWidget(btn_subir)
-
-        # Botão descer
-        btn_descer = QPushButton()
-        btn_descer.setToolTip("Mover para baixo")
-        btn_descer.setObjectName("queueActionButton")
-        btn_descer.setIcon(get_svg_icon("arrow_down", color=self.main_window._cor_icone_painel(), size=48))
-        btn_descer.setIconSize(QSize(17, 17))
-        btn_descer.setFixedSize(30, 30)
-        btn_descer.setEnabled(self.index < len(self.main_window.queue_controller.tracks) - 1)
-        btn_descer.clicked.connect(lambda: self.main_window.mover_faixa(self.index, self.index + 1))
-        layout.addWidget(btn_descer)
-
-        # Botão remover
-        btn_remover = QPushButton()
-        btn_remover.setToolTip("Remover da fila")
-        btn_remover.setObjectName("queueActionButton")
-        btn_remover.setIcon(get_svg_icon("trash", color=self.main_window._cor_icone_painel(), size=48))
-        btn_remover.setIconSize(QSize(17, 17))
-        btn_remover.setFixedSize(30, 30)
-        btn_remover.clicked.connect(lambda: self.main_window.remover_faixa(self.index))
-        layout.addWidget(btn_remover)
-
-    def mouseDoubleClickEvent(self, event):
-        """Ao dar duplo clique em qualquer ponto do item, reproduz a música imediatamente."""
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.main_window.selecionar_e_reproduzir_faixa(self.index)
-        super().mouseDoubleClickEvent(event)
-
-    def _mostrar_menu_contexto(self, pos: QPoint):
-        menu = QMenu(self)
-
-        acao_play = QAction("Reproduzir Agora (Duplo Clique)", self)
-        acao_play.triggered.connect(lambda: self.main_window.selecionar_e_reproduzir_faixa(self.index))
-        menu.addAction(acao_play)
-
-        if not self.is_current:
-            acao_next = QAction("Tocar a Seguir (Definir como Próxima)", self)
-            acao_next.triggered.connect(lambda: self.main_window.definir_tocar_a_seguir(self.index))
-            menu.addAction(acao_next)
-
-        menu.addSeparator()
-
-        if self.index > 0:
-            acao_up = QAction("Mover para Cima", self)
-            acao_up.triggered.connect(lambda: self.main_window.mover_faixa(self.index, self.index - 1))
-            menu.addAction(acao_up)
-
-        if self.index < len(self.main_window.queue_controller.tracks) - 1:
-            acao_down = QAction("Mover para Baixo", self)
-            acao_down.triggered.connect(lambda: self.main_window.mover_faixa(self.index, self.index + 1))
-            menu.addAction(acao_down)
-
-        acao_del = QAction("Remover da Fila", self)
-        acao_del.triggered.connect(lambda: self.main_window.remover_faixa(self.index))
-        menu.addAction(acao_del)
-
-        menu.exec(self.mapToGlobal(pos))
+from widgets.queue_item_widget import QueueItemWidget
 
 
 class MainWindow(QMainWindow):
@@ -1148,11 +999,16 @@ class MainWindow(QMainWindow):
             is_next = (index == self.queue_controller.current_index + 1)
 
             item_widget = QueueItemWidget(
-                main_window=self,
                 index=index,
                 track=track,
                 is_current=is_current,
                 is_next=is_next,
+                icon_color=self._cor_icone_painel(),
+                on_play=self.selecionar_e_reproduzir_faixa,
+                on_play_next=self.definir_tocar_a_seguir,
+                on_move=self.mover_faixa,
+                on_remove=self.remover_faixa,
+                track_count=len(self.queue_controller.tracks),
             )
             self.queue_layout.addWidget(item_widget)
 
