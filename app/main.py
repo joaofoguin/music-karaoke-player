@@ -1,5 +1,9 @@
+import os
 import sys
 from pathlib import Path
+
+# QAudioBufferOutput (usado pelo pipeline de efeitos PCM) depende do backend FFmpeg no Qt 6.8.
+os.environ.setdefault("QT_MEDIA_BACKEND", "ffmpeg")
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -45,6 +49,15 @@ class MainWindow(QMainWindow):
         self.config_manager = ConfigManager()
         self.queue_controller = QueueController()
         self.audio_engine = PlaybackController()
+        self.audio_engine.set_configured_output_device_id(
+            self.config_manager.get("audio/output_device_id", "")
+        )
+        self.audio_engine.set_output_device(
+            self.config_manager.get("audio/output_device_id", "")
+        )
+        self.audio_engine.set_mono_enabled(
+            self.config_manager.get("audio/effects/mono_enabled", False)
+        )
         self.playback_coordinator = PlaybackCoordinator(self.audio_engine, self.queue_controller)
         self.playback_coordinator.track_changed.connect(self._ao_mudar_faixa)
         self.karaoke_window = None
@@ -75,6 +88,9 @@ class MainWindow(QMainWindow):
         )
         self.track_loader.set_audio_extensions(self.audio_extensions)
         self.explorer_widget.set_audio_extensions(self.audio_extensions)
+        self.audio_engine.set_mono_enabled(
+            self.config_manager.get("audio/effects/mono_enabled", False)
+        )
         self.aplicar_estilo()
 
     def aplicar_estilo(self):
@@ -234,7 +250,7 @@ class MainWindow(QMainWindow):
         self.karaoke_editor.activateWindow()
 
     def abrir_dialogo_configuracoes(self):
-        dialog = SettingsDialog(self.config_manager, self)
+        dialog = SettingsDialog(self.config_manager, self.audio_engine, self)
         if dialog.exec():
             self.aplicar_configuracoes()
 

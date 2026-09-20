@@ -22,6 +22,7 @@ class FakeAudioEngine(QObject):
         self._position = 0
         self._duration = 0
         self._playing = False
+        self._mono = False
 
     def load(self, path):
         self.calls.append(("load", path))
@@ -47,6 +48,13 @@ class FakeAudioEngine(QObject):
 
     def set_volume(self, volume):
         self.calls.append(("set_volume", volume))
+
+    def set_mono_enabled(self, enabled):
+        self.calls.append(("set_mono_enabled", enabled))
+        self._mono = enabled
+
+    def mono_enabled(self):
+        return self._mono
 
     def position(self):
         return self._position
@@ -112,3 +120,13 @@ def test_playback_controller_forwards_playback_signals():
     assert finished == [True]
     assert positions == [1200]
     assert durations == [180000]
+
+
+def test_playback_controller_delegates_mono_mode():
+    engine = FakeAudioEngine()
+    controller = PlaybackController(engine)
+
+    controller.set_mono_enabled(True)
+
+    assert engine.calls == [("set_mono_enabled", True)]
+    assert controller.mono_enabled() is True

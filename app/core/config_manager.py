@@ -30,6 +30,9 @@ class ConfigManager(QObject):
             ".aac",
             ".wma",
         ],
+        "audio/output_device_id": "",
+        "audio/effects/mono_enabled": False,
+        "audio/effects/gain_db": 0.0,
         "appearance/theme": "dark",  # "dark", "midnight", "light"
         "karaoke/lyrics_directory": _DEFAULT_KARAOKE_DIR,
         "karaoke/save_to_central_dir": True,
