@@ -52,8 +52,20 @@ def test_explorer_widget_emits_only_supported_files(tmp_path):
     text.write_text("notes", encoding="utf-8")
 
     widget.definir_diretorio(str(tmp_path))
-    root = widget.file_model.index(str(tmp_path))
 
+    # QFileSystemModel carrega o diretório de forma assíncrona.
+    loaded = []
+    widget.file_model.directoryLoaded.connect(loaded.append)
+    widget.file_model.setRootPath(str(tmp_path))
+
+    app = QApplication.instance()
+    for _ in range(50):
+        app.processEvents()
+        root = widget.file_model.index(str(tmp_path))
+        if widget.file_model.rowCount(root) >= 2:
+            break
+
+    root = widget.file_model.index(str(tmp_path))
     for row in range(widget.file_model.rowCount(root)):
         index = widget.file_model.index(row, 0, root)
         widget._arquivo_selecionado(index)
