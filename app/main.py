@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
 )
 
 from models.track import Track
-from core.queue_manager import QueueManager
+from core.queue_controller import QueueController
 from core.playback_controller import PlaybackController
 from core.metadata_reader import ler_metadados
 from core.config_manager import ConfigManager
@@ -137,7 +137,7 @@ class QueueItemWidget(QFrame):
         btn_descer.setIcon(get_svg_icon("arrow_down", color=self.main_window._cor_icone_painel(), size=48))
         btn_descer.setIconSize(QSize(17, 17))
         btn_descer.setFixedSize(30, 30)
-        btn_descer.setEnabled(self.index < len(self.main_window.queue_manager.tracks) - 1)
+        btn_descer.setEnabled(self.index < len(self.main_window.queue_controller.tracks) - 1)
         btn_descer.clicked.connect(lambda: self.main_window.mover_faixa(self.index, self.index + 1))
         layout.addWidget(btn_descer)
 
@@ -197,7 +197,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(900, 560)
 
         self.config_manager = ConfigManager()
-        self.queue_manager = QueueManager()
+        self.queue_controller = QueueController()
         self.audio_engine = PlaybackController()
         self.karaoke_window = None
         self.karaoke_editor = None
