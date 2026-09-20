@@ -561,7 +561,8 @@ class MainWindow(QMainWindow):
         titulo_explorer.setObjectName("sectionTitle")
         cabecalho_explorer.addWidget(titulo_explorer, 1)
 
-        btn_abrir_pasta_exp = QToolButton()
+        self.btn_abrir_pasta_exp = QToolButton()
+        btn_abrir_pasta_exp = self.btn_abrir_pasta_exp
         btn_abrir_pasta_exp.setObjectName("panelAction")
         btn_abrir_pasta_exp.setIcon(get_svg_icon("folder", color=self._cor_icone_painel(), size=64))
         btn_abrir_pasta_exp.setIconSize(QSize(19, 19))
