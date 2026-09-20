@@ -30,6 +30,12 @@ class _AudioBufferDevice(QIODevice):
     def has_data(self) -> bool:
         return bool(self._buffer)
 
+    def bytesAvailable(self) -> int:
+        return len(self._buffer) + super().bytesAvailable()
+
+    def atEnd(self) -> bool:
+        return False
+
     def readData(self, maxlen: int) -> bytes:
         if maxlen <= 0 or not self._buffer:
             return b""
