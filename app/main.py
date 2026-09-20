@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
 from models.track import Track
 from core.queue_controller import QueueController
 from core.playback_controller import PlaybackController
+from core.playback_coordinator import PlaybackCoordinator
 from core.metadata_reader import ler_metadados
 from core.config_manager import ConfigManager
 from core.icons import get_svg_icon, get_stateful_icon
@@ -199,12 +200,13 @@ class MainWindow(QMainWindow):
         self.config_manager = ConfigManager()
         self.queue_controller = QueueController()
         self.audio_engine = PlaybackController()
+        self.playback_coordinator = PlaybackCoordinator(self.audio_engine, self.queue_controller)
+        self.playback_coordinator.track_changed.connect(self._ao_mudar_faixa)
         self.karaoke_window = None
         self.karaoke_editor = None
         self._volume_anterior_mudo = None
         self._anterior_ja_reiniciou = False
 
-        self.audio_engine.playback_finished.connect(self.faixa_terminou)
         self.config_manager.settings_changed.connect(self.aplicar_configuracoes)
 
         self.audio_extensions = set(
@@ -1006,24 +1008,17 @@ class MainWindow(QMainWindow):
             self.karaoke_window.atualizar_posicao(position)
 
     def selecionar_faixa(self, index):
-        track = self.queue_controller.set_current(index)
-        if track is None:
-            return
-
-        # Uma nova música começa um novo ciclo do botão "voltar".
-        self._anterior_ja_reiniciou = False
-
-        self.audio_engine.load(track.path)
-        self.atualizar_fila()
-        self.atualizar_player(track)
-
-        if self.karaoke_editor is not None and self.karaoke_editor.isVisible():
-            self.karaoke_editor.carregar_faixa(track)
+        self.playback_coordinator.select(index)
 
     def selecionar_e_reproduzir_faixa(self, index):
-        """Seleciona e inicia a reprodução imediatamente (disparado pelo duplo clique na fila)."""
-        self.selecionar_faixa(index)
-        self.audio_engine.play()
+        """Seleciona e inicia a reprodução imediatamente."""
+        self.playback_coordinator.select_and_play(index)
+
+    def _ao_mudar_faixa(self, track):
+        self.atualizar_fila()
+        self.atualizar_player(track)
+        if self.karaoke_editor is not None and self.karaoke_editor.isVisible():
+            self.karaoke_editor.carregar_faixa(track)
 
     def definir_tocar_a_seguir(self, index: int):
         """Move a faixa escolhida para a posição seguinte à música atual e destaca em laranja."""
@@ -1238,47 +1233,13 @@ class MainWindow(QMainWindow):
         self.tempo_total.setText("00:00")
 
     def faixa_anterior(self):
-        """Primeiro clique reinicia a faixa atual; o segundo volta para a anterior."""
-        if not self._anterior_ja_reiniciou:
-            self.audio_engine.set_position(0)
-            self._anterior_ja_reiniciou = True
-            return
-
-        track = self.queue_controller.previous()
-
-        if track is None:
-            self.audio_engine.set_position(0)
-            self._anterior_ja_reiniciou = False
-            return
-
-        self._anterior_ja_reiniciou = False
-
-        self.audio_engine.load(track.path)
-        self.atualizar_fila()
-        self.atualizar_player(track)
-        self.audio_engine.play()
+        self.playback_coordinator.previous()
 
     def faixa_proxima(self):
-        self._anterior_ja_reiniciou = False
-
-        track = self.queue_controller.next()
-        if track is None:
-            return
-
-        self.audio_engine.load(track.path)
-        self.atualizar_fila()
-        self.atualizar_player(track)
-        self.audio_engine.play()
+        self.playback_coordinator.next()
 
     def alternar_reproducao(self):
-        track = self.queue_controller.current()
-        if track is None:
-            return
-
-        if self.audio_engine.is_playing():
-            self.audio_engine.pause()
-        else:
-            self.audio_engine.play()
+        self.playback_coordinator.toggle_playback()
 
     def atualizar_posicao(self, position):
         self.slider_progresso.setValue(position)
@@ -1307,21 +1268,7 @@ class MainWindow(QMainWindow):
         return f"{minutos:02d}:{segundos:02d}"
 
     def faixa_terminou(self):
-        if self.botao_repetir.isChecked():
-            faixa_atual = self.queue_controller.current()
-            if faixa_atual is not None:
-                self.audio_engine.load(faixa_atual.path)
-                self.audio_engine.play()
-            return
-
-        proxima = self.queue_controller.next()
-        if proxima is None:
-            return
-
-        self.atualizar_fila()
-        self.atualizar_player(proxima)
-        self.audio_engine.load(proxima.path)
-        self.audio_engine.play()
+        self.playback_coordinator.handle_finished()
 
     def closeEvent(self, event):
         """Salva configurações e encerra recursos ao fechar o player."""
