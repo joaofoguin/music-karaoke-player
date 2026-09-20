@@ -133,6 +133,7 @@ class AudioEngine(QObject):
 
         self._mono_enabled = enabled
         if enabled:
+            self._buffer_callback_count = 0
             self._enable_processed_output(current_position)
         else:
             self._disable_processed_output(current_position)
@@ -161,14 +162,16 @@ class AudioEngine(QObject):
     def _enable_processed_output(self, current_position: int) -> None:
         device = self.audio_output.device()
         self._configure_buffer_output(device)
-        self.player.setAudioOutput(None)
         self.player.setAudioBufferOutput(self._buffer_output)
+        self.audio_output.setMuted(True)
+        self.player.setAudioOutput(self.audio_output)
         self._recreate_processed_output(device)
         self.player.setPosition(current_position)
 
     def _disable_processed_output(self, current_position: int) -> None:
         self._reset_processed_output()
         self.player.setAudioBufferOutput(None)
+        self.audio_output.setMuted(False)
         self.player.setAudioOutput(self.audio_output)
         self.player.setPosition(current_position)
 
@@ -201,6 +204,10 @@ class AudioEngine(QObject):
     def _on_audio_buffer_received(self, buffer) -> None:
         if not self._mono_enabled or not buffer.isValid():
             return
+
+        self._buffer_callback_count += 1
+        if self._buffer_callback_count == 1:
+            print("Modo mono: QAudioBufferOutput recebeu o primeiro buffer PCM")
 
         source_format = buffer.format()
         channel_count = source_format.channelCount()
