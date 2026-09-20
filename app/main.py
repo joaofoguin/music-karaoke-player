@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
 
 from models.track import Track
 from core.queue_manager import QueueManager
-from core.audio_engine import AudioEngine
+from core.playback_controller import PlaybackController
 from core.metadata_reader import ler_metadados
 from core.config_manager import ConfigManager
 from core.icons import get_svg_icon, get_stateful_icon
@@ -198,7 +198,7 @@ class MainWindow(QMainWindow):
 
         self.config_manager = ConfigManager()
         self.queue_manager = QueueManager()
-        self.audio_engine = AudioEngine()
+        self.audio_engine = PlaybackController()
         self.karaoke_window = None
         self.karaoke_editor = None
         self._volume_anterior_mudo = None
