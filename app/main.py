@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -10,8 +9,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
-    QMenu,
-    QMenuBar,
     QMessageBox,
     QPushButton,
     QSlider,
@@ -35,6 +32,7 @@ from settings_dialog import SettingsDialog
 from widgets.queue_widget import QueueWidget
 from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
+from widgets.main_menu import MainMenu
 
 
 class MainWindow(QMainWindow):
@@ -64,7 +62,6 @@ class MainWindow(QMainWindow):
         )
 
         self.criar_interface()
-        self.criar_atalhos()
         self.aplicar_estilo()
         self.carregar_estado_inicial()
 
@@ -202,129 +199,30 @@ class MainWindow(QMainWindow):
     def atualizar_icone_volume(self, valor: int):
         self.player_widget.atualizar_icone_volume(valor)
 
-    def criar_atalhos(self):
-        """Registra os atalhos diretamente nas ações do menu.
-
-        As ações já possuem os mesmos atalhos visíveis no menu Controles,
-        portanto não criamos QShortcuts duplicados. Duplicar a mesma sequência
-        em QAction e QShortcut pode gerar ambiguidade e impedir a ativação.
-        """
-        # Os atalhos são definidos nas QAction correspondentes em
-        # criar_interface(), mantendo uma única origem para cada combinação.
-        return
-
     def criar_interface(self):
         # ==================================================
         # MENU SUPERIOR
         # ==================================================
-        menu_bar = QMenuBar()
-
-        # Menu Arquivo
-        menu_arquivo = menu_bar.addMenu("&Arquivo")
-        acao_abrir_arquivos = QAction("Abrir Arquivo(s)...", self)
-        acao_abrir_arquivos.setShortcut(QKeySequence("Ctrl+O"))
-        acao_abrir_arquivos.triggered.connect(self.abrir_arquivos_dialogo)
-        menu_arquivo.addAction(acao_abrir_arquivos)
-
-        acao_abrir_pasta = QAction("Abrir Pasta...", self)
-        acao_abrir_pasta.setShortcut(QKeySequence("Ctrl+Shift+O"))
-        acao_abrir_pasta.triggered.connect(self.abrir_pasta_dialogo)
-        menu_arquivo.addAction(acao_abrir_pasta)
-
-        menu_arquivo.addSeparator()
-
-        acao_sair = QAction("Sair", self)
-        acao_sair.setShortcut(QKeySequence("Ctrl+Q"))
-        acao_sair.triggered.connect(self.close)
-        menu_arquivo.addAction(acao_sair)
-
-        # Menu Editar
-        menu_editar = menu_bar.addMenu("&Editar")
-        acao_limpar_fila = QAction("Limpar Fila", self)
-        acao_limpar_fila.setShortcut(QKeySequence("Ctrl+L"))
-        acao_limpar_fila.triggered.connect(self.limpar_fila)
-        menu_editar.addAction(acao_limpar_fila)
-
-        acao_remover_atual = QAction("Remover Faixa Atual", self)
-        acao_remover_atual.triggered.connect(self.remover_faixa_atual)
-        menu_editar.addAction(acao_remover_atual)
-
-        # Menu Exibir
-        menu_exibir = menu_bar.addMenu("&Exibir")
-        acao_karaoke = QAction("Abrir Tela de Karaoke", self)
-        acao_karaoke.setShortcut(QKeySequence("Ctrl+K"))
-        acao_karaoke.triggered.connect(self.abrir_tela_karaoke)
-        menu_exibir.addAction(acao_karaoke)
-
-        acao_tela_cheia = QAction("Alternar Tela Cheia", self)
-        acao_tela_cheia.setShortcut(QKeySequence("F11"))
-        acao_tela_cheia.triggered.connect(self.alternar_tela_cheia)
-        menu_exibir.addAction(acao_tela_cheia)
-
-        # Menu Ferramentas
-        menu_ferramentas = menu_bar.addMenu("&Ferramentas")
-        acao_editor_karaoke = QAction("Editor de Karaoke e Cifras...", self)
-        acao_editor_karaoke.setShortcut(QKeySequence("Ctrl+E"))
-        acao_editor_karaoke.triggered.connect(self.abrir_editor_karaoke)
-        menu_ferramentas.addAction(acao_editor_karaoke)
-
-        # Menu Controles
-        menu_controles = menu_bar.addMenu("&Controles")
-        acao_play_pause = QAction("Reproduzir / Pausar", self)
-        acao_play_pause.setShortcut(QKeySequence("Space"))
-        acao_play_pause.triggered.connect(self.alternar_reproducao)
-        menu_controles.addAction(acao_play_pause)
-
-        acao_anterior = QAction("Faixa Anterior", self)
-        acao_anterior.setShortcut(QKeySequence("Ctrl+Left"))
-        acao_anterior.triggered.connect(self.faixa_anterior)
-        menu_controles.addAction(acao_anterior)
-
-        acao_proxima = QAction("Próxima Faixa", self)
-        acao_proxima.setShortcut(QKeySequence("Ctrl+Right"))
-        acao_proxima.triggered.connect(self.faixa_proxima)
-        menu_controles.addAction(acao_proxima)
-
-        menu_controles.addSeparator()
-
-        acao_vol_up = QAction("Aumentar Volume", self)
-        acao_vol_up.setShortcut(QKeySequence("Ctrl+Up"))
-        acao_vol_up.triggered.connect(self.aumentar_volume)
-        menu_controles.addAction(acao_vol_up)
-
-        acao_vol_down = QAction("Diminuir Volume", self)
-        acao_vol_down.setShortcut(QKeySequence("Ctrl+Down"))
-        acao_vol_down.triggered.connect(self.diminuir_volume)
-        menu_controles.addAction(acao_vol_down)
-
-        acao_mudo = QAction("Alternar Mudo", self)
-        acao_mudo.setShortcut(QKeySequence("Ctrl+M"))
-        acao_mudo.triggered.connect(self.alternar_mudo)
-        menu_controles.addAction(acao_mudo)
-
-        acao_repetir_toggle = QAction("Repetir Faixa Atual", self)
-        acao_repetir_toggle.setShortcut(QKeySequence("Ctrl+R"))
-        acao_repetir_toggle.triggered.connect(self.alternar_repetir)
-        menu_controles.addAction(acao_repetir_toggle)
-
-        # Menu Configurações
-        menu_config = menu_bar.addMenu("&Configurações")
-        acao_preferencias = QAction("Preferências...", self)
-        acao_preferencias.setShortcut(QKeySequence("Ctrl+,"))
-        acao_preferencias.triggered.connect(self.abrir_dialogo_configuracoes)
-        menu_config.addAction(acao_preferencias)
-
-        # Menu Ajuda
-        menu_ajuda = menu_bar.addMenu("&Ajuda")
-        acao_atalhos = QAction("Atalhos do Teclado", self)
-        acao_atalhos.triggered.connect(self.mostrar_atalhos)
-        menu_ajuda.addAction(acao_atalhos)
-
-        acao_sobre = QAction("Sobre o Music Player", self)
-        acao_sobre.triggered.connect(self.mostrar_sobre)
-        menu_ajuda.addAction(acao_sobre)
-
-        self.setMenuBar(menu_bar)
+        self.main_menu = MainMenu(self)
+        self.main_menu.open_files_requested.connect(self.abrir_arquivos_dialogo)
+        self.main_menu.open_folder_requested.connect(self.abrir_pasta_dialogo)
+        self.main_menu.exit_requested.connect(self.close)
+        self.main_menu.clear_queue_requested.connect(self.limpar_fila)
+        self.main_menu.remove_current_requested.connect(self.remover_faixa_atual)
+        self.main_menu.karaoke_requested.connect(self.abrir_tela_karaoke)
+        self.main_menu.fullscreen_requested.connect(self.alternar_tela_cheia)
+        self.main_menu.karaoke_editor_requested.connect(self.abrir_editor_karaoke)
+        self.main_menu.play_pause_requested.connect(self.alternar_reproducao)
+        self.main_menu.previous_requested.connect(self.faixa_anterior)
+        self.main_menu.next_requested.connect(self.faixa_proxima)
+        self.main_menu.volume_up_requested.connect(self.aumentar_volume)
+        self.main_menu.volume_down_requested.connect(self.diminuir_volume)
+        self.main_menu.mute_requested.connect(self.alternar_mudo)
+        self.main_menu.repeat_requested.connect(self.alternar_repetir)
+        self.main_menu.preferences_requested.connect(self.abrir_dialogo_configuracoes)
+        self.main_menu.shortcuts_requested.connect(self.mostrar_atalhos)
+        self.main_menu.about_requested.connect(self.mostrar_sobre)
+        self.setMenuBar(self.main_menu)
 
         # ==================================================
         # WIDGET CENTRAL
