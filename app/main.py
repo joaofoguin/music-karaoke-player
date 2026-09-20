@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QDir, QTimer, QSize, Qt
-from PySide6.QtGui import QAction, QKeySequence, QPixmap
+from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -32,7 +32,7 @@ from core.playback_controller import PlaybackController
 from core.playback_coordinator import PlaybackCoordinator
 from core.metadata_reader import ler_metadados
 from core.config_manager import ConfigManager
-from core.icons import get_svg_icon, get_stateful_icon
+from core.icons import get_svg_icon
 from core.clickable_slider import ClickableSlider
 from karaoke_window import KaraokeWindow
 from karaoke_editor import KaraokeEditorWindow
@@ -187,28 +187,11 @@ class MainWindow(QMainWindow):
         self.atualizar_icones()
 
     def atualizar_icones(self):
-        """Aplica ícones vetoriais em alta resolução e contraste adequado aos botões do reprodutor."""
+        """Atualiza os ícones dos componentes visuais da janela."""
         tema = self.config_manager.get("appearance/theme", "dark")
         cor_icone = "#374151" if tema == "light" else "#e5e7eb"
-        cor_destaque = "#2563eb" if tema == "light" else "#3b82f6"
 
-        self.botao_anterior.setIcon(get_svg_icon("previous", color=cor_icone, size=64))
-        self.botao_anterior.setIconSize(QSize(20, 20))
-        self.botao_anterior.setText("")
-
-        self.botao_proximo.setIcon(get_svg_icon("next", color=cor_icone, size=64))
-        self.botao_proximo.setIconSize(QSize(20, 20))
-        self.botao_proximo.setText("")
-
-        self.botao_repetir.setIcon(
-            get_stateful_icon("repeat", normal_color=cor_icone, active_color=cor_destaque, size=64)
-        )
-        self.botao_repetir.setIconSize(QSize(18, 18))
-        self.botao_repetir.setText("")
-
-        self.botao_karaoke.setIcon(get_svg_icon("microphone", color=cor_icone, size=64))
-        self.botao_karaoke.setIconSize(QSize(18, 18))
-        self.botao_karaoke.setText("")
+        self.player_widget.atualizar_icones(tema)
 
         if hasattr(self, "btn_abrir_pasta_exp"):
             self.btn_abrir_pasta_exp.setIcon(get_svg_icon("folder", color=cor_icone, size=64))
@@ -228,36 +211,11 @@ class MainWindow(QMainWindow):
         if hasattr(self, "botao_limpar_fila"):
             self.botao_limpar_fila.setIcon(get_svg_icon("trash", color=cor_icone, size=64))
 
-        self.atualizar_botao_play()
-        self.atualizar_icone_volume(self.volume.value())
-
     def atualizar_botao_play(self):
-        tema = self.config_manager.get("appearance/theme", "dark")
-        cor_play = "#171717" if tema == "dark" else "#ffffff"
-
-        if self.audio_engine.is_playing():
-            self.botao_play.setIcon(get_svg_icon("pause", color=cor_play, size=64))
-            self.botao_play.setToolTip("Pausar (Espaço)")
-        else:
-            self.botao_play.setIcon(get_svg_icon("play", color=cor_play, size=64))
-            self.botao_play.setToolTip("Reproduzir (Espaço)")
-
-        self.botao_play.setIconSize(QSize(20, 20))
-        self.botao_play.setText("")
+        self.player_widget.atualizar_botao_play()
 
     def atualizar_icone_volume(self, valor: int):
-        tema = self.config_manager.get("appearance/theme", "dark")
-        cor_icone = "#374151" if tema == "light" else "#e5e7eb"
-
-        if valor == 0:
-            self.btn_vol_icon.setIcon(get_svg_icon("volume_mute", color=cor_icone, size=64))
-        elif valor < 45:
-            self.btn_vol_icon.setIcon(get_svg_icon("volume_low", color=cor_icone, size=64))
-        else:
-            self.btn_vol_icon.setIcon(get_svg_icon("volume_high", color=cor_icone, size=64))
-
-        self.btn_vol_icon.setIconSize(QSize(18, 18))
-        self.btn_vol_icon.setText("")
+        self.player_widget.atualizar_icone_volume(valor)
 
     def criar_atalhos(self):
         """Registra os atalhos diretamente nas ações do menu.
@@ -836,14 +794,11 @@ class MainWindow(QMainWindow):
             if self.config_manager.get("playback/auto_play_on_add", False):
                 self.audio_engine.play()
 
-    def _limitar_texto_player(self, texto: str, limite: int) -> str:
-        if len(texto) <= limite:
-            return texto
-        return texto[:max(1, limite - 3)].rstrip() + "..."
-
     def atualizar_player(self, track):
         if track is None:
             return
+
+        self.player_widget.atualizar_faixa(track)
 
         if self.karaoke_window is not None:
             self.karaoke_window.atualizar_faixa(track)
@@ -852,25 +807,6 @@ class MainWindow(QMainWindow):
             if indice_atual >= 0 and indice_atual + 1 < len(self.queue_controller.tracks):
                 proxima = self.queue_controller.tracks[indice_atual + 1]
             self.karaoke_window.definir_proxima_faixa(proxima)
-
-        self.titulo_musica.setText(self._limitar_texto_player(track.title, 34))
-        self.artista_musica.setText(self._limitar_texto_player(track.artist if track.artist else "Artista desconhecido", 30))
-        self.album_musica.setText(self._limitar_texto_player(track.album if track.album else "Álbum desconhecido", 30))
-
-        if track.cover:
-            pixmap = QPixmap()
-            pixmap.loadFromData(track.cover)
-            if not pixmap.isNull():
-                pixmap = pixmap.scaled(
-                    self.capa.size(),
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
-                self.capa.setPixmap(pixmap)
-                return
-
-        self.capa.clear()
-        self.capa.setText("CAPA")
 
     def atualizar_fila(self):
         """Atualiza a lista visual da fila de reprodução."""
@@ -960,20 +896,13 @@ class MainWindow(QMainWindow):
         self.atualizar_fila()
 
     def limpar_player(self):
+        self.player_widget.limpar_faixa()
+
         if self.karaoke_window is not None:
             self.karaoke_window.limpar()
 
         if self.karaoke_editor is not None:
             self.karaoke_editor.carregar_faixa(None)
-
-        self.titulo_musica.setText("Nenhuma música selecionada")
-        self.artista_musica.setText("Artista")
-        self.album_musica.setText("Álbum")
-        self.capa.clear()
-        self.capa.setText("CAPA")
-        self.slider_progresso.setRange(0, 0)
-        self.tempo_atual.setText("00:00")
-        self.tempo_total.setText("00:00")
 
     def faixa_anterior(self):
         self.playback_coordinator.previous()
@@ -983,26 +912,6 @@ class MainWindow(QMainWindow):
 
     def alternar_reproducao(self):
         self.playback_coordinator.toggle_playback()
-
-    def atualizar_posicao(self, position):
-        self.slider_progresso.setValue(position)
-        self.atualizar_tempo()
-
-    def atualizar_duracao(self, duration):
-        self.slider_progresso.setRange(0, duration)
-        self.atualizar_tempo()
-
-    def atualizar_tempo(self):
-        position = self.audio_engine.position()
-        duration = self.audio_engine.duration()
-        self.tempo_atual.setText(self.formatar_tempo(position))
-        self.tempo_total.setText(self.formatar_tempo(duration))
-
-    def formatar_tempo(self, milliseconds):
-        segundos = milliseconds // 1000
-        minutos = segundos // 60
-        segundos = segundos % 60
-        return f"{minutos:02d}:{segundos:02d}"
 
     def formatar_duracao(self, segundos):
         segundos = int(segundos)
