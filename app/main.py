@@ -33,6 +33,7 @@ from widgets.queue_widget import QueueWidget
 from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
 from widgets.main_menu import MainMenu
+from widgets.main_content_widget import MainContentWidget
 
 
 class MainWindow(QMainWindow):
@@ -200,9 +201,6 @@ class MainWindow(QMainWindow):
         self.player_widget.atualizar_icone_volume(valor)
 
     def criar_interface(self):
-        # ==================================================
-        # MENU SUPERIOR
-        # ==================================================
         self.main_menu = MainMenu(self)
         self.main_menu.open_files_requested.connect(self.abrir_arquivos_dialogo)
         self.main_menu.open_folder_requested.connect(self.abrir_pasta_dialogo)
@@ -224,85 +222,56 @@ class MainWindow(QMainWindow):
         self.main_menu.about_requested.connect(self.mostrar_sobre)
         self.setMenuBar(self.main_menu)
 
-        # ==================================================
-        # WIDGET CENTRAL
-        # ==================================================
-        central = QWidget()
-        self.setCentralWidget(central)
-
-        layout_principal = QVBoxLayout(central)
-        layout_principal.setContentsMargins(18, 18, 18, 18)
-        layout_principal.setSpacing(12)
-
-        # ==================================================
-        # ÁREA SUPERIOR
-        # ==================================================
-        layout_superior = QHBoxLayout()
-        layout_superior.setSpacing(16)
-
-        # ==================================================
-        # EXPLORADOR
-        # ==================================================
-        self.explorer_widget = ExplorerWidget(self.audio_extensions, self)
-        self.explorer_widget.set_open_folder_callback(self.abrir_pasta_dialogo)
-        self.explorer_widget.file_selected.connect(self.arquivo_selecionado)
-        self.explorer_widget.directory_changed.connect(
-            lambda pasta: self.config_manager.set("general/last_opened_folder", pasta)
+        self.main_content = MainContentWidget(
+            self.audio_engine,
+            self.queue_controller,
+            self.audio_extensions,
+            self.config_manager,
+            self,
         )
+        self.main_content.open_files_requested.connect(self.abrir_arquivos_dialogo)
+        self.main_content.open_folder_requested.connect(self.abrir_pasta_dialogo)
+        self.main_content.file_selected.connect(self.arquivo_selecionado)
+        self.main_content.play_requested.connect(self.selecionar_e_reproduzir_faixa)
+        self.main_content.play_next_requested.connect(self.definir_tocar_a_seguir)
+        self.main_content.move_requested.connect(self.mover_faixa)
+        self.main_content.remove_requested.connect(self.remover_faixa)
+        self.main_content.clear_requested.connect(self.limpar_fila)
+        self.main_content.previous_requested.connect(self.faixa_anterior)
+        self.main_content.play_pause_requested.connect(self.alternar_reproducao)
+        self.main_content.next_requested.connect(self.faixa_proxima)
+        self.main_content.repeat_changed.connect(self._on_repeat_clicked)
+        self.main_content.karaoke_requested.connect(self.abrir_tela_karaoke)
+        self.main_content.mute_requested.connect(self.alternar_mudo)
+        self.main_content.volume_changed.connect(self._on_volume_changed)
+        self.main_content.karaoke_position_changed.connect(self.atualizar_karaoke_posicao)
 
-        # FILA DE REPRODUÇÃO
-        # ==================================================
-        self.queue_widget = QueueWidget(self.queue_controller, self)
-        self.queue_widget.set_add_files_callback(self.abrir_arquivos_dialogo)
-        self.queue_widget.play_requested.connect(self.selecionar_e_reproduzir_faixa)
-        self.queue_widget.play_next_requested.connect(self.definir_tocar_a_seguir)
-        self.queue_widget.move_requested.connect(self.mover_faixa)
-        self.queue_widget.remove_requested.connect(self.remover_faixa)
-        self.queue_widget.clear_requested.connect(self.limpar_fila)
+        self.explorer_widget = self.main_content.explorer_widget
+        self.queue_widget = self.main_content.queue_widget
+        self.player_widget = self.main_content.player_widget
 
-        self.btn_add_arquivos = self.queue_widget.btn_add_arquivos
-        self.botao_limpar_fila = self.queue_widget.botao_limpar_fila
-        self.queue_scroll = self.queue_widget.queue_scroll
-        self.queue_content = self.queue_widget.queue_content
-        self.queue_layout = self.queue_widget.queue_layout
+        self.btn_add_arquivos = self.main_content.btn_add_arquivos
+        self.botao_limpar_fila = self.main_content.botao_limpar_fila
+        self.queue_scroll = self.main_content.queue_scroll
+        self.queue_content = self.main_content.queue_content
+        self.queue_layout = self.main_content.queue_layout
 
-        # ==================================================
-        # PLAYER BAR
-        # ==================================================
-        self.player_widget = PlayerWidget(self.audio_engine)
-        self.player_widget.previous_requested.connect(self.faixa_anterior)
-        self.player_widget.play_requested.connect(self.alternar_reproducao)
-        self.player_widget.next_requested.connect(self.faixa_proxima)
-        self.player_widget.repeat_changed.connect(self._on_repeat_clicked)
-        self.player_widget.karaoke_requested.connect(self.abrir_tela_karaoke)
-        self.player_widget.mute_requested.connect(self.alternar_mudo)
-        self.player_widget.volume_changed.connect(self._on_volume_changed)
+        self.capa = self.main_content.capa
+        self.titulo_musica = self.main_content.titulo_musica
+        self.artista_musica = self.main_content.artista_musica
+        self.album_musica = self.main_content.album_musica
+        self.botao_anterior = self.main_content.botao_anterior
+        self.botao_play = self.main_content.botao_play
+        self.botao_proximo = self.main_content.botao_proximo
+        self.botao_repetir = self.main_content.botao_repetir
+        self.slider_progresso = self.main_content.slider_progresso
+        self.tempo_atual = self.main_content.tempo_atual
+        self.tempo_total = self.main_content.tempo_total
+        self.botao_karaoke = self.main_content.botao_karaoke
+        self.btn_vol_icon = self.main_content.btn_vol_icon
+        self.volume = self.main_content.volume
 
-        self.capa = self.player_widget.capa
-        self.titulo_musica = self.player_widget.titulo_musica
-        self.artista_musica = self.player_widget.artista_musica
-        self.album_musica = self.player_widget.album_musica
-        self.botao_anterior = self.player_widget.botao_anterior
-        self.botao_play = self.player_widget.botao_play
-        self.botao_proximo = self.player_widget.botao_proximo
-        self.botao_repetir = self.player_widget.botao_repetir
-        self.slider_progresso = self.player_widget.slider_progresso
-        self.tempo_atual = self.player_widget.tempo_atual
-        self.tempo_total = self.player_widget.tempo_total
-        self.botao_karaoke = self.player_widget.botao_karaoke
-        self.btn_vol_icon = self.player_widget.btn_vol_icon
-        self.volume = self.player_widget.volume
-
-        self.audio_engine.position_changed.connect(self.atualizar_karaoke_posicao)
-
-        # ==================================================
-        # MONTAR INTERFACE
-        # ==================================================
-        layout_superior.addWidget(self.explorer_widget, 1)
-        layout_superior.addWidget(self.queue_widget, 1)
-
-        layout_principal.addLayout(layout_superior, 5)
-        layout_principal.addWidget(self.player_widget, 1)
+        self.setCentralWidget(self.main_content)
 
     def carregar_estado_inicial(self):
         """Carrega pasta padrão, volume e modo de repetição das configurações."""
