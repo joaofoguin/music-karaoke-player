@@ -27,6 +27,7 @@ class ExplorerWidget(QFrame):
         super().__init__(parent)
         self.audio_extensions = set(audio_extensions or [])
         self._theme = "dark"
+        self._open_folder_connection = None
         self.setObjectName("panel")
         self.setFrameShape(QFrame.Shape.StyledPanel)
 
@@ -106,11 +107,9 @@ class ExplorerWidget(QFrame):
         self.atualizar_icones(self._theme)
 
     def set_open_folder_callback(self, callback):
-        try:
-            self.btn_abrir_pasta.clicked.disconnect()
-        except (RuntimeError, TypeError):
-            pass
-        self.btn_abrir_pasta.clicked.connect(callback)
+        if self._open_folder_connection is not None:
+            self.btn_abrir_pasta.clicked.disconnect(self._open_folder_connection)
+        self._open_folder_connection = self.btn_abrir_pasta.clicked.connect(callback)
 
     def set_audio_extensions(self, extensions):
         self.audio_extensions = set(extensions or [])
