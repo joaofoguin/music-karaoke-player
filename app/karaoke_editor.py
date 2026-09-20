@@ -526,17 +526,11 @@ class KaraokeEditorWindow(QMainWindow):
 
         txt_edit = QPlainTextEdit()
         txt_edit.setPlaceholderText(
-            "[Intro] C  Am  F  G
-
-"
-            "C                  Am
-"
-            "A letra da música aparecerá aqui
-"
-            "G                  F
-"
-            "quando houver um arquivo de karaoke
-"
+            "[Intro] C  Am  F  G\n\n"
+            "C                  Am\n"
+            "A letra da música aparecerá aqui\n"
+            "G                  F\n"
+            "quando houver um arquivo de karaoke\n"
         )
         txt_edit.setFont(QFont("Monospace", 10))
         layout.addWidget(txt_edit, 1)
@@ -564,9 +558,7 @@ class KaraokeEditorWindow(QMainWindow):
                 QMessageBox.information(
                     self,
                     "Cifra Processada!",
-                    f"Foram importados {len(linhas_convertidas)} versos com frases limpas e cifras organizadas.
-
-"
+                    f"Foram importados {len(linhas_convertidas)} versos com frases limpas e cifras organizadas.\n\n"
                     "Agora dê Play na música e clique nas linhas para carimbar o tempo de cada uma!",
                 )
             dialog.accept()
@@ -624,16 +616,13 @@ class KaraokeEditorWindow(QMainWindow):
             QMessageBox.information(
                 self,
                 "Karaoke Salvo!",
-                f"Letra sincronizada gravada com sucesso na pasta central:
-
-{destino}",
+                f"Letra sincronizada gravada com sucesso na pasta central:\n\n{destino}",
             )
         else:
             QMessageBox.critical(
                 self,
                 "Erro",
-                f"Falha ao gravar o arquivo de letra em:
-{destino}",
+                f"Falha ao gravar o arquivo de letra em:\n{destino}",
             )
 
     def _avancar_tempo(self, delta_ms: int):
