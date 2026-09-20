@@ -1,5 +1,9 @@
+import os
 import sys
 from pathlib import Path
+
+# QAudioBufferOutput (usado pelo pipeline de efeitos PCM) depende do backend FFmpeg no Qt 6.8.
+os.environ.setdefault("QT_MEDIA_BACKEND", "ffmpeg")
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
