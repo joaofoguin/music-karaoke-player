@@ -88,15 +88,27 @@ def test_playback_controller_forwards_playback_signals():
     started = []
     paused = []
     stopped = []
+    finished = []
+    positions = []
+    durations = []
 
     controller.playback_started.connect(lambda: started.append(True))
     controller.playback_paused.connect(lambda: paused.append(True))
     controller.playback_stopped.connect(lambda: stopped.append(True))
+    controller.playback_finished.connect(lambda: finished.append(True))
+    controller.position_changed.connect(positions.append)
+    controller.duration_changed.connect(durations.append)
 
     controller.play()
     controller.pause()
     controller.stop()
+    engine.position_changed.emit(1200)
+    engine.duration_changed.emit(180000)
+    engine.playback_finished.emit()
 
     assert started == [True]
     assert paused == [True]
     assert stopped == [True]
+    assert finished == [True]
+    assert positions == [1200]
+    assert durations == [180000]
