@@ -146,12 +146,15 @@ def test_playback_signals_update_progress_and_time(widget, playback):
 
 
 def test_playback_state_updates_play_button(widget, playback):
+    playback._playing = True
     playback.playback_started.emit()
     assert widget.botao_play.toolTip() == "Pausar (Espaço)"
 
+    playback._playing = False
     playback.playback_paused.emit()
     assert widget.botao_play.toolTip() == "Reproduzir (Espaço)"
 
+    playback._playing = False
     playback.playback_stopped.emit()
     assert widget.botao_play.toolTip() == "Reproduzir (Espaço)"
 
