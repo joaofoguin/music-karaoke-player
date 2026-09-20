@@ -103,7 +103,15 @@ class SettingsDialog(QDialog):
         self.chk_mono_enabled = QCheckBox("Reproduzir em mono (mesclar canais)")
         self.chk_mono_enabled.setToolTip("Mescla todos os canais do áudio em um único canal.")
         form_audio.addRow("", self.chk_mono_enabled)
-\n        self.spin_gain_db = QDoubleSpinBox()\n        self.spin_gain_db.setRange(-60.0, 24.0)\n        self.spin_gain_db.setDecimals(1)\n        self.spin_gain_db.setSingleStep(0.5)\n        self.spin_gain_db.setSuffix(" dB")\n        self.spin_gain_db.setToolTip("Ajusta o ganho do áudio antes da saída.")\n        form_audio.addRow("Ganho / Trim:", self.spin_gain_db)\n
+
+        self.spin_gain_db = QDoubleSpinBox()
+        self.spin_gain_db.setRange(-60.0, 24.0)
+        self.spin_gain_db.setDecimals(1)
+        self.spin_gain_db.setSingleStep(0.5)
+        self.spin_gain_db.setSuffix(" dB")
+        self.spin_gain_db.setToolTip("Ajusta o ganho do áudio antes da saída.")
+        form_audio.addRow("Ganho / Trim:", self.spin_gain_db)
+
         self.chk_remember_volume = QCheckBox("Lembrar o último volume ao fechar")
         form_audio.addRow("", self.chk_remember_volume)
 
@@ -402,7 +410,11 @@ class SettingsDialog(QDialog):
                 self.config_manager.set("audio/output_device_id", "")
                 self.audio_engine.set_configured_output_device_id("")
                 self.audio_engine.set_output_device("")
-            self.audio_engine.set_gain_db(novas_configuracoes["audio/effects/gain_db"])\n            self.audio_engine.set_mono_enabled(\n                novas_configuracoes["audio/effects/mono_enabled"]\n            )\n        # O botão Salvar aplica as alterações sem fechar esta janela.
+            self.audio_engine.set_gain_db(novas_configuracoes["audio/effects/gain_db"])
+            self.audio_engine.set_mono_enabled(
+                novas_configuracoes["audio/effects/mono_enabled"]
+            )
+        # O botão Salvar aplica as alterações sem fechar esta janela.
         # O usuário pode continuar ajustando as configurações ou fechá-la
         # explicitamente pelo botão Cancelar ou pelo X da janela.
 
