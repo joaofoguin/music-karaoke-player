@@ -22,6 +22,7 @@ from core.playback_coordinator import PlaybackCoordinator
 from core.track_loader import TrackLoader
 from core.config_manager import ConfigManager
 from core.theme_manager import ThemeManager
+from core.icons import get_svg_icon
 from core.clickable_slider import ClickableSlider
 from karaoke_window import KaraokeWindow
 from karaoke_editor import KaraokeEditorWindow
