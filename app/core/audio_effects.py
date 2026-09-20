@@ -98,3 +98,36 @@ class AudioEffects:
             mixed = round(sum(samples[offset : offset + channel_count]) / channel_count)
             output.append(max(0, min(255, mixed)))
         return bytes(output)
+
+
+    @staticmethod
+    def apply_gain(data: bytes, sample_format: str, gain_db: float) -> bytes:
+        """Aplica ganho linear em decibéis ao PCM, com limitação por formato."""
+        if not data or gain_db == 0:
+            return data
+
+        import math
+        gain = 10 ** (float(gain_db) / 20.0)
+        if not math.isfinite(gain):
+            raise ValueError("Ganho inválido")
+
+        if sample_format == "int16":
+            samples = struct.unpack(f"<{len(data) // 2}h", data)
+            processed = [max(-32768, min(32767, round(sample * gain))) for sample in samples]
+            return struct.pack(f"<{len(processed)}h", *processed)
+        if sample_format == "int32":
+            samples = struct.unpack(f"<{len(data) // 4}i", data)
+            processed = [max(-2147483648, min(2147483647, round(sample * gain))) for sample in samples]
+            return struct.pack(f"<{len(processed)}i", *processed)
+        if sample_format == "float32":
+            samples = struct.unpack(f"<{len(data) // 4}f", data)
+            processed = [max(-1.0, min(1.0, sample * gain)) for sample in samples]
+            return struct.pack(f"<{len(processed)}f", *processed)
+        if sample_format == "uint8":
+            processed = []
+            for sample in data:
+                value = 128 + (sample - 128) * gain
+                processed.append(max(0, min(255, round(value))))
+            return bytes(processed)
+
+        raise ValueError(f"Formato PCM não suportado: {sample_format}")
