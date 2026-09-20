@@ -55,7 +55,13 @@ class MainWindow(QMainWindow):
         self.audio_engine.set_output_device(
             self.config_manager.get("audio/output_device_id", "")
         )
-        self.audio_engine.set_gain_db(\n            self.config_manager.get("audio/effects/gain_db", 0.0)\n        )\n        self.audio_engine.set_mono_enabled(\n            self.config_manager.get("audio/effects/mono_enabled", False)\n        )\n        self.playback_coordinator = PlaybackCoordinator(self.audio_engine, self.queue_controller)
+        self.audio_engine.set_gain_db(
+            self.config_manager.get("audio/effects/gain_db", 0.0)
+        )
+        self.audio_engine.set_mono_enabled(
+            self.config_manager.get("audio/effects/mono_enabled", False)
+        )
+        self.playback_coordinator = PlaybackCoordinator(self.audio_engine, self.queue_controller)
         self.playback_coordinator.track_changed.connect(self._ao_mudar_faixa)
         self.karaoke_window = None
         self.karaoke_editor = None
@@ -85,7 +91,13 @@ class MainWindow(QMainWindow):
         )
         self.track_loader.set_audio_extensions(self.audio_extensions)
         self.explorer_widget.set_audio_extensions(self.audio_extensions)
-        self.audio_engine.set_gain_db(\n            self.config_manager.get("audio/effects/gain_db", 0.0)\n        )\n        self.audio_engine.set_mono_enabled(\n            self.config_manager.get("audio/effects/mono_enabled", False)\n        )\n        self.aplicar_estilo()
+        self.audio_engine.set_gain_db(
+            self.config_manager.get("audio/effects/gain_db", 0.0)
+        )
+        self.audio_engine.set_mono_enabled(
+            self.config_manager.get("audio/effects/mono_enabled", False)
+        )
+        self.aplicar_estilo()
 
     def aplicar_estilo(self):
         tema = self.config_manager.get("appearance/theme", "dark")
