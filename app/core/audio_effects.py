@@ -101,6 +101,62 @@ class AudioEffects:
 
 
     @staticmethod
+    def normalize_peak(
+        data: bytes,
+        sample_format: str,
+        target_peak: float = 0.8912509381,
+    ) -> bytes:
+        """Normaliza o pico do buffer para o nível-alvo sem ultrapassá-lo."""
+        if not data:
+            return data
+
+        target_peak = float(target_peak)
+        if not 0.0 < target_peak <= 1.0:
+            raise ValueError("Pico-alvo inválido")
+
+        if sample_format == "int16":
+            samples = struct.unpack(f"<{len(data) // 2}h", data)
+            peak = max((abs(sample) for sample in samples), default=0)
+            if peak == 0:
+                return data
+            scale = min(1.0, target_peak * 32767.0 / peak)
+            return struct.pack(
+                f"<{len(samples)}h",
+                *(max(-32768, min(32767, round(sample * scale))) for sample in samples),
+            )
+        if sample_format == "int32":
+            samples = struct.unpack(f"<{len(data) // 4}i", data)
+            peak = max((abs(sample) for sample in samples), default=0)
+            if peak == 0:
+                return data
+            scale = min(1.0, target_peak * 2147483647.0 / peak)
+            return struct.pack(
+                f"<{len(samples)}i",
+                *(max(-2147483648, min(2147483647, round(sample * scale))) for sample in samples),
+            )
+        if sample_format == "float32":
+            samples = struct.unpack(f"<{len(data) // 4}f", data)
+            peak = max((abs(sample) for sample in samples), default=0.0)
+            if peak == 0:
+                return data
+            scale = min(1.0, target_peak / peak)
+            return struct.pack(
+                f"<{len(samples)}f",
+                *(max(-1.0, min(1.0, sample * scale)) for sample in samples),
+            )
+        if sample_format == "uint8":
+            peak = max((abs(sample - 128) for sample in data), default=0)
+            if peak == 0:
+                return data
+            scale = min(1.0, target_peak * 127.0 / peak)
+            return bytes(
+                max(0, min(255, round(128 + (sample - 128) * scale)))
+                for sample in data
+            )
+
+        raise ValueError(f"Formato PCM não suportado: {sample_format}")
+
+    @staticmethod
     def apply_gain(data: bytes, sample_format: str, gain_db: float) -> bytes:
         """Aplica ganho linear em decibéis ao PCM, com limitação por formato."""
         if not data or gain_db == 0:
