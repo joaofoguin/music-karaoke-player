@@ -21,6 +21,7 @@ class PlayerWidget(QFrame):
     def __init__(self, playback, parent=None):
         super().__init__(parent)
         self.playback = playback
+        self._theme = "dark"
         self._build_ui()
         self._connect_signals()
 
@@ -144,6 +145,7 @@ class PlayerWidget(QFrame):
         self.playback.duration_changed.connect(self.atualizar_duracao)
 
     def atualizar_icones(self, tema: str):
+        self._theme = tema
         cor_icone = "#374151" if tema == "light" else "#e5e7eb"
         cor_destaque = "#2563eb" if tema == "light" else "#3b82f6"
 
@@ -189,10 +191,7 @@ class PlayerWidget(QFrame):
         self.btn_vol_icon.setText("")
 
     def _tema_atual(self):
-        parent = self.parentWidget()
-        if parent is not None and hasattr(parent, "config_manager"):
-            return parent.config_manager.get("appearance/theme", "dark")
-        return "dark"
+        return self._theme
 
     def atualizar_posicao(self, position: int):
         self.slider_progresso.setValue(position)
