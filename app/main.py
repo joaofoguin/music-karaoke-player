@@ -783,7 +783,8 @@ class MainWindow(QMainWindow):
     def definir_modo_exibicao(self, modo: str):
         if modo == "details":
             self.file_stack.setCurrentWidget(self.file_tree)
-            self.btn_modo_explorer.setIcon(get_svg_icon("view_details", color=self._cor_icone_painel(), size=64))            self.file_tree.setColumnHidden(1, False)
+            self.btn_modo_explorer.setIcon(get_svg_icon("view_details", color=self._cor_icone_painel(), size=64))            
+            self.file_tree.setColumnHidden(1, False)
             self.file_tree.setColumnHidden(2, False)
             self.file_tree.setColumnHidden(3, False)
             self.file_tree.setColumnWidth(0, max(300, self.file_tree.width() // 2))
