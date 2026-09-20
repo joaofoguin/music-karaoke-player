@@ -373,6 +373,7 @@ class KaraokeEditorWindow(QMainWindow):
         layout_acoes.setSpacing(2)
 
         btn_marcar = QPushButton()
+        btn_marcar.setObjectName("btnRowAction")
         btn_marcar.setIcon(get_svg_icon("timer"))
         btn_marcar.setIconSize(QSize(17, 17))
         btn_marcar.setFixedSize(28, 28)
@@ -382,6 +383,7 @@ class KaraokeEditorWindow(QMainWindow):
         layout_acoes.addWidget(btn_marcar)
 
         btn_ouvir = QPushButton()
+        btn_ouvir.setObjectName("btnRowAction")
         btn_ouvir.setIcon(get_svg_icon("play"))
         btn_ouvir.setIconSize(QSize(16, 16))
         btn_ouvir.setFixedSize(28, 28)
@@ -478,6 +480,8 @@ class KaraokeEditorWindow(QMainWindow):
         for row in linhas:
             self.tabela.removeRow(row)
 
+        self._renumerar_e_reconstruir_acoes()
+
         if self.tabela.rowCount() > 0:
             self.tabela.selectRow(min(linhas[-1], self.tabela.rowCount() - 1))
 
@@ -485,7 +489,7 @@ class KaraokeEditorWindow(QMainWindow):
         row = self.tabela.currentRow()
         destino = row + delta
         if 0 <= row < self.tabela.rowCount() and 0 <= destino < self.tabela.rowCount():
-            tempo_ms = self.tabela.item(row, 1).data(Qt.ItemDataRole.UserRole)
+            tempo_ms = self.tabela.item(row, 0).data(Qt.ItemDataRole.UserRole)
             chords = self.tabela.item(row, 1).text()
             texto = self.tabela.item(row, 2).text()
 
@@ -502,6 +506,7 @@ class KaraokeEditorWindow(QMainWindow):
             layout_acoes.setSpacing(2)
 
             btn_marcar = QPushButton()
+            btn_marcar.setObjectName("btnRowAction")
             btn_marcar.setIcon(get_svg_icon("timer"))
             btn_marcar.setIconSize(QSize(17, 17))
             btn_marcar.setFixedSize(28, 28)
@@ -511,6 +516,7 @@ class KaraokeEditorWindow(QMainWindow):
             layout_acoes.addWidget(btn_marcar)
 
             btn_ouvir = QPushButton()
+            btn_ouvir.setObjectName("btnRowAction")
             btn_ouvir.setIcon(get_svg_icon("play"))
             btn_ouvir.setIconSize(QSize(16, 16))
             btn_ouvir.setFixedSize(28, 28)
