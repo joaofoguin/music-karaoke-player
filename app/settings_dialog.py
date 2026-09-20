@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QColorDialog,
     QComboBox,
     QDialog,
+    QDoubleSpinBox,
     QFileDialog,
     QFormLayout,
     QGroupBox,
@@ -102,7 +103,7 @@ class SettingsDialog(QDialog):
         self.chk_mono_enabled = QCheckBox("Reproduzir em mono (mesclar canais)")
         self.chk_mono_enabled.setToolTip("Mescla todos os canais do áudio em um único canal.")
         form_audio.addRow("", self.chk_mono_enabled)
-
+\n        self.spin_gain_db = QDoubleSpinBox()\n        self.spin_gain_db.setRange(-60.0, 24.0)\n        self.spin_gain_db.setDecimals(1)\n        self.spin_gain_db.setSingleStep(0.5)\n        self.spin_gain_db.setSuffix(" dB")\n        self.spin_gain_db.setToolTip("Ajusta o ganho do áudio antes da saída.")\n        form_audio.addRow("Ganho / Trim:", self.spin_gain_db)\n
         self.chk_remember_volume = QCheckBox("Lembrar o último volume ao fechar")
         form_audio.addRow("", self.chk_remember_volume)
 
@@ -332,6 +333,7 @@ class SettingsDialog(QDialog):
         self.lbl_volume_val.setText(f"{vol}%")
 
         self.chk_mono_enabled.setChecked(self.config_manager.get("audio/effects/mono_enabled", False))
+        self.spin_gain_db.setValue(self.config_manager.get("audio/effects/gain_db", 0.0))
         self.chk_remember_volume.setChecked(self.config_manager.get("playback/remember_volume", True))
         self.chk_repeat_default.setChecked(self.config_manager.get("playback/repeat_enabled", False))
         self.chk_autoplay.setChecked(self.config_manager.get("playback/auto_play_on_add", False))
@@ -379,6 +381,7 @@ class SettingsDialog(QDialog):
             "playback/audio_extensions": exts,
             "audio/output_device_id": self.combo_output_device.currentData() or "",
             "audio/effects/mono_enabled": self.chk_mono_enabled.isChecked(),
+            "audio/effects/gain_db": self.spin_gain_db.value(),
             "karaoke/lyrics_directory": self.edit_lyrics_dir.text().strip(),
             "karaoke/save_to_central_dir": self.chk_save_central.isChecked(),
             "karaoke/show_chords": self.chk_show_chords.isChecked(),
@@ -399,10 +402,7 @@ class SettingsDialog(QDialog):
                 self.config_manager.set("audio/output_device_id", "")
                 self.audio_engine.set_configured_output_device_id("")
                 self.audio_engine.set_output_device("")
-            self.audio_engine.set_mono_enabled(
-                novas_configuracoes["audio/effects/mono_enabled"]
-            )
-        # O botão Salvar aplica as alterações sem fechar esta janela.
+            self.audio_engine.set_gain_db(novas_configuracoes["audio/effects/gain_db"])\n            self.audio_engine.set_mono_enabled(\n                novas_configuracoes["audio/effects/mono_enabled"]\n            )\n        # O botão Salvar aplica as alterações sem fechar esta janela.
         # O usuário pode continuar ajustando as configurações ou fechá-la
         # explicitamente pelo botão Cancelar ou pelo X da janela.
 
