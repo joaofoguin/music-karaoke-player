@@ -1,5 +1,6 @@
 from PySide6.QtCore import QObject, Signal
 
+from core.audio_backend import AudioBackend
 from core.audio_engine import AudioEngine
 
 
@@ -13,10 +14,10 @@ class PlaybackController(QObject):
     playback_stopped = Signal()
     playback_finished = Signal()
 
-    def __init__(self, audio_engine=None, parent=None):
+    def __init__(self, audio_engine: AudioBackend | None = None, parent=None):
         super().__init__(parent)
 
-        self._audio_engine = audio_engine if audio_engine is not None else AudioEngine()
+        self._audio_engine: AudioBackend = audio_engine if audio_engine is not None else AudioEngine()
 
         self._audio_engine.position_changed.connect(self.position_changed.emit)
         self._audio_engine.duration_changed.connect(self.duration_changed.emit)
