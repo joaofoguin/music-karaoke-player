@@ -72,5 +72,5 @@ def test_queue_controller_forwards_state_signals():
     assert current_changes[1] == first
     assert current_changes[2] == second
     assert current_changes[3] == first
-    assert current_changes[4] == first
+    assert current_changes[4] == second
     assert current_changes[5] is None
