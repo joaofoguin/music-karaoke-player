@@ -325,6 +325,10 @@ class KaraokeEditorWindow(QMainWindow):
         self.target_lrc_path = get_save_lyrics_path(track, self.config_manager)
         self.lbl_destino.setText(f"Salvo em: {self.target_lrc_path}")
 
+        # Usa o caminho de salvamento como fallback para restaurar um LRC existente.
+        if not lrc_existente and self.target_lrc_path.is_file():
+            lrc_existente = self.target_lrc_path
+
         linhas = []
         if lrc_existente and lrc_existente.is_file():
             linhas = load_lrc(lrc_existente)
@@ -494,13 +498,14 @@ class KaraokeEditorWindow(QMainWindow):
         for r in range(self.tabela.rowCount()):
             widget_acoes = QWidget()
             layout_acoes = QHBoxLayout(widget_acoes)
-            layout_acoes.setContentsMargins(4, 2, 4, 2)
-            layout_acoes.setSpacing(6)
+            layout_acoes.setContentsMargins(2, 1, 2, 1)
+            layout_acoes.setSpacing(2)
 
             btn_marcar = QPushButton()
             btn_marcar.setIcon(get_svg_icon("timer"))
             btn_marcar.setIconSize(QSize(17, 17))
-            btn_marcar.setFixedSize(34, 30)
+            btn_marcar.setFixedSize(28, 28)
+            btn_marcar.setFlat(True)
             btn_marcar.setToolTip("Marcar tempo")
             btn_marcar.clicked.connect(lambda checked=False, row_idx=r: self._gravar_tempo_linha(row_idx))
             layout_acoes.addWidget(btn_marcar)
@@ -508,7 +513,8 @@ class KaraokeEditorWindow(QMainWindow):
             btn_ouvir = QPushButton()
             btn_ouvir.setIcon(get_svg_icon("play"))
             btn_ouvir.setIconSize(QSize(16, 16))
-            btn_ouvir.setFixedSize(34, 30)
+            btn_ouvir.setFixedSize(28, 28)
+            btn_ouvir.setFlat(True)
             btn_ouvir.setToolTip("Ouvir a partir desta linha")
             btn_ouvir.clicked.connect(lambda checked=False, row_idx=r: self._ouvir_linha(row_idx))
             layout_acoes.addWidget(btn_ouvir)
@@ -600,13 +606,15 @@ class KaraokeEditorWindow(QMainWindow):
 
         linhas: list[LyricLine] = []
         for r in range(self.tabela.rowCount()):
-            item_tempo = self.tabela.item(r, 1)
+            item_tempo = self.tabela.item(r, 0)
             item_chords = self.tabela.item(r, 1)
             item_texto = self.tabela.item(r, 2)
             ms = item_tempo.data(Qt.ItemDataRole.UserRole) if item_tempo else 0
+            if ms is None:
+                ms = 0
             chords = item_chords.text().strip() if item_chords else ""
             texto = item_texto.text() if item_texto else ""
-            linhas.append(LyricLine(timestamp_ms=ms, text=texto, chords=chords))
+            linhas.append(LyricLine(timestamp_ms=int(ms), text=texto, chords=chords))
 
         destino = self.target_lrc_path or get_save_lyrics_path(self.current_track, self.config_manager)
         sucesso = save_lrc(
