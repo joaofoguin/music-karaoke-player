@@ -176,7 +176,7 @@ class QueueItemWidget(QFrame):
             acao_up.triggered.connect(lambda: self.main_window.mover_faixa(self.index, self.index - 1))
             menu.addAction(acao_up)
 
-        if self.index < len(self.main_window.queue_manager.tracks) - 1:
+        if self.index < len(self.main_window.queue_controller.tracks) - 1:
             acao_down = QAction("Mover para Baixo", self)
             acao_down.triggered.connect(lambda: self.main_window.mover_faixa(self.index, self.index + 1))
             menu.addAction(acao_down)
@@ -872,7 +872,7 @@ class MainWindow(QMainWindow):
         if self.karaoke_editor is None:
             self.karaoke_editor = KaraokeEditorWindow(self.audio_engine, self.config_manager)
 
-        faixa_atual = self.queue_manager.current()
+        faixa_atual = self.queue_controller.current()
         if faixa_atual is not None:
             self.karaoke_editor.carregar_faixa(faixa_atual)
 
@@ -897,11 +897,11 @@ class MainWindow(QMainWindow):
         if not caminhos:
             return
 
-        primeira_adicionada = len(self.queue_manager.tracks) == 0
+        primeira_adicionada = len(self.queue_controller.tracks) == 0
         for arq in caminhos:
             self._adicionar_caminho_fila(Path(arq))
 
-        if primeira_adicionada and self.queue_manager.tracks:
+        if primeira_adicionada and self.queue_controller.tracks:
             self.selecionar_faixa(0)
             if self.config_manager.get("playback/auto_play_on_add", False):
                 self.audio_engine.play()
@@ -991,7 +991,7 @@ class MainWindow(QMainWindow):
             self.karaoke_window.faixa_anterior_solicitada.connect(self.faixa_anterior)
             self.karaoke_window.faixa_proxima_solicitada.connect(self.faixa_proxima)
 
-        faixa_atual = self.queue_manager.current()
+        faixa_atual = self.queue_controller.current()
         if faixa_atual is not None:
             self.karaoke_window.atualizar_faixa(faixa_atual)
             self.karaoke_window.atualizar_posicao(self.audio_engine.position())
@@ -1006,7 +1006,7 @@ class MainWindow(QMainWindow):
             self.karaoke_window.atualizar_posicao(position)
 
     def selecionar_faixa(self, index):
-        track = self.queue_manager.set_current(index)
+        track = self.queue_controller.set_current(index)
         if track is None:
             return
 
@@ -1027,7 +1027,7 @@ class MainWindow(QMainWindow):
 
     def definir_tocar_a_seguir(self, index: int):
         """Move a faixa escolhida para a posição seguinte à música atual e destaca em laranja."""
-        if self.queue_manager.set_play_next(index):
+        if self.queue_controller.set_play_next(index):
             self.atualizar_fila()
 
     def _adicionar_caminho_fila(self, caminho: Path):
@@ -1044,7 +1044,7 @@ class MainWindow(QMainWindow):
             format=metadados["format"],
             duration=metadados["duration"],
         )
-        self.queue_manager.add(track)
+        self.queue_controller.add(track)
         self.atualizar_fila()
 
     def definir_modo_exibicao(self, modo: str):
@@ -1095,7 +1095,7 @@ class MainWindow(QMainWindow):
         if caminho.suffix.lower() not in self.audio_extensions:
             return
 
-        fila_estava_vazia = not self.queue_manager.tracks
+        fila_estava_vazia = not self.queue_controller.tracks
         self._adicionar_caminho_fila(caminho)
 
         if fila_estava_vazia:
@@ -1114,10 +1114,10 @@ class MainWindow(QMainWindow):
 
         if self.karaoke_window is not None:
             self.karaoke_window.atualizar_faixa(track)
-            indice_atual = self.queue_manager.current_index
+            indice_atual = self.queue_controller.current_index
             proxima = None
-            if indice_atual >= 0 and indice_atual + 1 < len(self.queue_manager.tracks):
-                proxima = self.queue_manager.tracks[indice_atual + 1]
+            if indice_atual >= 0 and indice_atual + 1 < len(self.queue_controller.tracks):
+                proxima = self.queue_controller.tracks[indice_atual + 1]
             self.karaoke_window.definir_proxima_faixa(proxima)
 
         self.titulo_musica.setText(self._limitar_texto_player(track.title, 34))
@@ -1147,9 +1147,9 @@ class MainWindow(QMainWindow):
             if widget is not None:
                 widget.deleteLater()
 
-        for index, track in enumerate(self.queue_manager.tracks):
-            is_current = (index == self.queue_manager.current_index)
-            is_next = (index == self.queue_manager.current_index + 1)
+        for index, track in enumerate(self.queue_controller.tracks):
+            is_current = (index == self.queue_controller.current_index)
+            is_next = (index == self.queue_controller.current_index + 1)
 
             item_widget = QueueItemWidget(
                 main_window=self,
@@ -1160,16 +1160,16 @@ class MainWindow(QMainWindow):
             )
             self.queue_layout.addWidget(item_widget)
 
-        self.botao_limpar_fila.setEnabled(bool(self.queue_manager.tracks))
+        self.botao_limpar_fila.setEnabled(bool(self.queue_controller.tracks))
         QTimer.singleShot(0, self._manter_faixas_atuais_visiveis)
 
     def _manter_faixas_atuais_visiveis(self):
-        if not self.queue_manager.tracks or self.queue_manager.current_index < 0:
+        if not self.queue_controller.tracks or self.queue_controller.current_index < 0:
             return
 
         widgets = [self.queue_layout.itemAt(i).widget() for i in range(self.queue_layout.count())]
         widgets = [w for w in widgets if w is not None]
-        indice = self.queue_manager.current_index
+        indice = self.queue_controller.current_index
         atual = widgets[indice] if indice < len(widgets) else None
         proxima = widgets[indice + 1] if indice + 1 < len(widgets) else None
         if atual is None:
@@ -1187,20 +1187,20 @@ class MainWindow(QMainWindow):
         barra.setValue(max(0, min(valor, barra.maximum())))
 
     def mover_faixa(self, index, destino):
-        if self.queue_manager.move(index, destino):
+        if self.queue_controller.move(index, destino):
             self.atualizar_fila()
 
     def remover_faixa(self, index):
-        faixa_atual = self.queue_manager.current_index
+        faixa_atual = self.queue_controller.current_index
         estava_reproduzindo = self.audio_engine.is_playing()
         removeu_atual = index == faixa_atual
 
-        if self.queue_manager.remove(index) is None:
+        if self.queue_controller.remove(index) is None:
             return
 
         if removeu_atual:
             self.audio_engine.stop()
-            nova_atual = self.queue_manager.current()
+            nova_atual = self.queue_controller.current()
             if nova_atual is None:
                 self.limpar_player()
             else:
@@ -1212,12 +1212,12 @@ class MainWindow(QMainWindow):
         self.atualizar_fila()
 
     def remover_faixa_atual(self):
-        if self.queue_manager.current_index >= 0:
-            self.remover_faixa(self.queue_manager.current_index)
+        if self.queue_controller.current_index >= 0:
+            self.remover_faixa(self.queue_controller.current_index)
 
     def limpar_fila(self):
         self.audio_engine.stop()
-        self.queue_manager.clear()
+        self.queue_controller.clear()
         self.limpar_player()
         self.atualizar_fila()
 
@@ -1244,7 +1244,7 @@ class MainWindow(QMainWindow):
             self._anterior_ja_reiniciou = True
             return
 
-        track = self.queue_manager.previous()
+        track = self.queue_controller.previous()
 
         if track is None:
             self.audio_engine.set_position(0)
@@ -1261,7 +1261,7 @@ class MainWindow(QMainWindow):
     def faixa_proxima(self):
         self._anterior_ja_reiniciou = False
 
-        track = self.queue_manager.next()
+        track = self.queue_controller.next()
         if track is None:
             return
 
@@ -1271,7 +1271,7 @@ class MainWindow(QMainWindow):
         self.audio_engine.play()
 
     def alternar_reproducao(self):
-        track = self.queue_manager.current()
+        track = self.queue_controller.current()
         if track is None:
             return
 
@@ -1308,13 +1308,13 @@ class MainWindow(QMainWindow):
 
     def faixa_terminou(self):
         if self.botao_repetir.isChecked():
-            faixa_atual = self.queue_manager.current()
+            faixa_atual = self.queue_controller.current()
             if faixa_atual is not None:
                 self.audio_engine.load(faixa_atual.path)
                 self.audio_engine.play()
             return
 
-        proxima = self.queue_manager.next()
+        proxima = self.queue_controller.next()
         if proxima is None:
             return
 
