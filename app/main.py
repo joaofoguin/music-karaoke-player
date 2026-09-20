@@ -352,6 +352,24 @@ class MainWindow(QMainWindow):
         self.botao_karaoke.setIconSize(QSize(18, 18))
         self.botao_karaoke.setText("")
 
+        if hasattr(self, "btn_abrir_pasta_exp"):
+            self.btn_abrir_pasta_exp.setIcon(get_svg_icon("folder", color=cor_icone, size=64))
+        if hasattr(self, "btn_modo_explorer"):
+            modo_icones = {
+                "details": "view_details",
+                "list": "view_list",
+                "small": "view_grid",
+                "large": "view_large",
+            }
+            for acao in self.menu_modo_explorer.actions():
+                modo = acao.data()
+                if modo in modo_icones:
+                    acao.setIcon(get_svg_icon(modo_icones[modo], color=cor_icone, size=48))
+        if hasattr(self, "btn_add_arquivos"):
+            self.btn_add_arquivos.setIcon(get_svg_icon("plus", color=cor_icone, size=64))
+        if hasattr(self, "botao_limpar_fila"):
+            self.botao_limpar_fila.setIcon(get_svg_icon("trash", color=cor_icone, size=64))
+
         self.atualizar_botao_play()
         self.atualizar_icone_volume(self.volume.value())
 
