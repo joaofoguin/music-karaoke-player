@@ -26,12 +26,14 @@ class AudioEngine(QObject):
     playback_finished = Signal()
     output_device_changed = Signal(str)
     mono_changed = Signal(bool)
+    gain_changed = Signal(float)
 
     def __init__(self):
         super().__init__()
         self.media_devices = QMediaDevices(self)
         self._configured_output_device_id = ""
         self._mono_enabled = False
+        self._gain_db = 0.0
 
         default_device = self.media_devices.defaultAudioOutput()
         self.audio_output = QAudioOutput(default_device, self)
@@ -85,7 +87,7 @@ class AudioEngine(QObject):
         self._configured_output_device_id = device_id or ""
 
     def output_device_id(self) -> str:
-        device = self._processed_output_device if self._mono_enabled else self.audio_output.device()
+        device = self._processed_output_device if self._processing_enabled() else self.audio_output.device()
         return bytes(device.id()).hex() if not device.isNull() else ""
 
     def set_output_device(self, device_id: str) -> bool:
@@ -121,6 +123,34 @@ class AudioEngine(QObject):
         self.output_device_changed.emit(device.description())
         return True
 
+    def set_gain_db(self, gain_db: float) -> None:
+        gain_db = float(gain_db)
+        if gain_db == self._gain_db:
+            return
+
+        was_playing = self.is_playing()
+        current_position = self.player.position()
+        if was_playing:
+            self.player.pause()
+
+        self._gain_db = gain_db
+        if self._processing_enabled():
+            self._enable_processed_output()
+        else:
+            self._disable_processed_output()
+
+        if was_playing:
+            self.player.setPosition(current_position)
+            self.player.play()
+
+        self.gain_changed.emit(gain_db)
+
+    def gain_db(self) -> float:
+        return self._gain_db
+
+    def _processing_enabled(self) -> bool:
+        return self._mono_enabled or self._gain_db != 0.0
+
     def set_mono_enabled(self, enabled: bool) -> None:
         enabled = bool(enabled)
         if enabled == self._mono_enabled:
@@ -134,9 +164,12 @@ class AudioEngine(QObject):
         self._mono_enabled = enabled
         if enabled:
             self._buffer_callback_count = 0
-            self._enable_processed_output(current_position)
+            self._enable_processed_output()
         else:
-            self._disable_processed_output(current_position)
+            if self._processing_enabled():
+                self._enable_processed_output()
+            else:
+                self._disable_processed_output()
 
         if was_playing:
             self.player.setPosition(current_position)
@@ -159,20 +192,18 @@ class AudioEngine(QObject):
     def _current_output_device(self):
         return self._processed_output_device if self._mono_enabled else self.audio_output.device()
 
-    def _enable_processed_output(self, current_position: int) -> None:
+    def _enable_processed_output(self) -> None:
         device = self.audio_output.device()
         self.player.setAudioOutput(self.audio_output)
         self.player.setAudioBufferOutput(self._buffer_output)
         self.audio_output.setMuted(True)
         self._recreate_processed_output(device)
-        self.player.setPosition(current_position)
 
-    def _disable_processed_output(self, current_position: int) -> None:
+    def _disable_processed_output(self) -> None:
         self._reset_processed_output()
         self.player.setAudioBufferOutput(None)
         self.audio_output.setMuted(False)
         self.player.setAudioOutput(self.audio_output)
-        self.player.setPosition(current_position)
 
     def _configure_buffer_output(self, device) -> None:
         # O QAudioBufferOutput não depende do dispositivo de saída.
@@ -185,11 +216,11 @@ class AudioEngine(QObject):
         self._pending_sink_device = device
         self._processed_output_device = device
         self._configure_buffer_output(device)
-        if self._mono_enabled:
+        if self._processing_enabled():
             self.player.setAudioBufferOutput(self._buffer_output)
 
     def _on_audio_buffer_received(self, buffer) -> None:
-        if not self._mono_enabled or not buffer.isValid():
+        if not self._processing_enabled() or not buffer.isValid():
             return
 
         self._buffer_callback_count += 1
@@ -223,17 +254,22 @@ class AudioEngine(QObject):
         raw_data = bytes(buffer.constData())
         sample_format = self._sample_format_name(source_format.sampleFormat())
         try:
-            mono_data = AudioEffects.mix_to_mono(raw_data, sample_format, channel_count)
-            if output_format.channelCount() > 1:
-                processed = AudioEffects.mono_to_channels(
-                    mono_data,
-                    sample_format,
-                    output_format.channelCount(),
+            processed = raw_data
+            if self._mono_enabled:
+                processed = AudioEffects.mix_to_mono(
+                    processed, sample_format, channel_count
                 )
-            else:
-                processed = mono_data
+                if output_format.channelCount() > 1:
+                    processed = AudioEffects.mono_to_channels(
+                        processed,
+                        sample_format,
+                        output_format.channelCount(),
+                    )
+            processed = AudioEffects.apply_gain(
+                processed, sample_format, self._gain_db
+            )
         except ValueError as exc:
-            print(f"Efeito mono indisponível: {exc}")
+            print(f"Efeito de áudio indisponível: {exc}")
             return
 
         # Escreve diretamente na QIODevice interna do QAudioSink.
@@ -317,7 +353,7 @@ class AudioEngine(QObject):
         if was_playing:
             self.player.pause()
 
-        if self._mono_enabled:
+        if self._processing_enabled():
             self._recreate_processed_output(new_device)
         else:
             self.audio_output.setDevice(new_device)
