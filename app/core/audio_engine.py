@@ -161,8 +161,9 @@ class AudioEngine(QObject):
 
     def _enable_processed_output(self, current_position: int) -> None:
         device = self.audio_output.device()
-        self.audio_output.setMuted(True)
         self.player.setAudioOutput(self.audio_output)
+        self.player.setAudioBufferOutput(self._buffer_output)
+        self.audio_output.setMuted(True)
         self._recreate_processed_output(device)
         self.player.setPosition(current_position)
 
@@ -174,24 +175,10 @@ class AudioEngine(QObject):
         self.player.setPosition(current_position)
 
     def _configure_buffer_output(self, device) -> None:
-        preferred = device.preferredFormat()
-        if not preferred.isValid():
-            self._replace_buffer_output(None)
-            return
-
-        self._replace_buffer_output(preferred)
-
-    def _replace_buffer_output(self, audio_format) -> None:
-        if self._buffer_output is not None:
-            self._buffer_output.audioBufferReceived.disconnect(self._on_audio_buffer_received)
-            self._buffer_output.deleteLater()
-
-        self._buffer_output = (
-            QAudioBufferOutput(self)
-            if audio_format is None
-            else QAudioBufferOutput(audio_format, self)
-        )
-        self._buffer_output.audioBufferReceived.connect(self._on_audio_buffer_received)
+        # O QAudioBufferOutput não depende do dispositivo de saída.
+        # Mantemos a mesma instância para não interromper o vínculo com o player
+        # durante uma troca de modo ou de dispositivo.
+        return
 
     def _recreate_processed_output(self, device) -> None:
         self._reset_processed_output()
@@ -232,7 +219,12 @@ class AudioEngine(QObject):
             self._sink_format = output_format
             self._audio_sink = QAudioSink(device, output_format, self)
             self._audio_sink.setVolume(self.audio_output.volume())
-            self._audio_sink.stateChanged.connect(self._on_sink_state_changed)
+            # PySide6 pode falhar ao converter QAudio::State ao despachar
+            # diretamente para um método Python tipado. A lambda mantém o
+            # argumento no lado Python e evita o erro de meta-função.
+            self._audio_sink.stateChanged.connect(
+                lambda state: self._on_sink_state_changed(state)
+            )
 
         raw_data = bytes(buffer.constData())
         sample_format = self._sample_format_name(source_format.sampleFormat())
