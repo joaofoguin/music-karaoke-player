@@ -69,5 +69,5 @@ class MainMenu(QMenuBar):
         acao = QAction(texto, menu)
         if atalho:
             acao.setShortcut(QKeySequence(atalho))
-        acao.triggered.connect(sinal)
+        acao.triggered.connect(lambda _checked=False: sinal.emit())
         menu.addAction(acao)
