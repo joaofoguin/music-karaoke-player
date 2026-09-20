@@ -210,9 +210,8 @@ class KaraokeEditorWindow(QMainWindow):
         # ÁREA CENTRAL: TABELA DE VERSOS LIMPOS E CIFRAS SEPARADAS
         # ----------------------------------------------------
         self.tabela = QTableWidget()
-        self.tabela.setColumnCount(5)
+        self.tabela.setColumnCount(4)
         self.tabela.setHorizontalHeaderLabels([
-            "#",
             "Tempo (LRC)",
             "Cifras / Acordes",
             "Letra do Verso (Frase Limpa)",
@@ -220,10 +219,10 @@ class KaraokeEditorWindow(QMainWindow):
         ])
         self.tabela.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.tabela.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        self.tabela.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        self.tabela.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        self.tabela.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabela.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        self.tabela.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         self.tabela.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabela.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
         self.tabela.setAlternatingRowColors(True)
 
         self.tabela.cellClicked.connect(self._on_cell_clicked)
@@ -308,6 +307,8 @@ class KaraokeEditorWindow(QMainWindow):
     def _criar_atalhos(self):
         QShortcut(QKeySequence("F5"), self, self._gravar_tempo_linha_selecionada)
         QShortcut(QKeySequence("Ctrl+S"), self, self.salvar_letra)
+        QShortcut(QKeySequence("Insert"), self, self._adicionar_linha)
+        QShortcut(QKeySequence("Delete"), self, self._remover_linhas_selecionadas)
 
     def carregar_faixa(self, track):
         """Carrega a música atual e busca a letra existente na pasta central ou local."""
@@ -344,28 +345,22 @@ class KaraokeEditorWindow(QMainWindow):
     def _inserir_linha_tabela(self, row: int, timestamp_ms: int, text: str, chords: str = ""):
         self.tabela.insertRow(row)
 
-        # Col 0: Número da linha
-        item_num = QTableWidgetItem(f"{row + 1:02d}")
-        item_num.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
-        item_num.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.tabela.setItem(row, 0, item_num)
-
-        # Col 1: Tempo
+        # Col 0: Tempo
         item_tempo = QTableWidgetItem(format_timestamp_ms(timestamp_ms))
         item_tempo.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         item_tempo.setData(Qt.ItemDataRole.UserRole, timestamp_ms)
         item_tempo.setToolTip("Clique aqui para carimbar o tempo atual da música neste verso")
-        self.tabela.setItem(row, 1, item_tempo)
+        self.tabela.setItem(row, 0, item_tempo)
 
         # Col 2: Cifras / Acordes separados
         item_cifras = QTableWidgetItem(chords)
         item_cifras.setForeground(QColor("#f59e0b"))
         item_cifras.setFont(QFont("Monospace", 10, QFont.Weight.Bold))
-        self.tabela.setItem(row, 2, item_cifras)
+        self.tabela.setItem(row, 1, item_cifras)
 
         # Col 3: Frase limpa do verso
         item_texto = QTableWidgetItem(text)
-        self.tabela.setItem(row, 3, item_texto)
+        self.tabela.setItem(row, 2, item_texto)
 
         # Col 4: Botões de ação
         widget_acoes = QWidget()
@@ -389,7 +384,7 @@ class KaraokeEditorWindow(QMainWindow):
         btn_ouvir.clicked.connect(lambda checked=False, r=row: self._ouvir_linha(r))
         layout_acoes.addWidget(btn_ouvir)
 
-        self.tabela.setCellWidget(row, 4, widget_acoes)
+        self.tabela.setCellWidget(row, 3, widget_acoes)
 
     def _on_cell_clicked(self, row: int, col: int):
         """Disparado quando o usuário clica em qualquer célula da tabela."""
@@ -407,7 +402,7 @@ class KaraokeEditorWindow(QMainWindow):
             return
 
         posicao_ms = self.audio_engine.position()
-        item_tempo = self.tabela.item(row, 1)
+        item_tempo = self.tabela.item(row, 0)
         if item_tempo:
             item_tempo.setText(format_timestamp_ms(posicao_ms))
             item_tempo.setData(Qt.ItemDataRole.UserRole, posicao_ms)
@@ -469,13 +464,24 @@ class KaraokeEditorWindow(QMainWindow):
             self.tabela.removeRow(row)
             self._renumerar_e_reconstruir_acoes()
 
+    def _remover_linhas_selecionadas(self):
+        linhas = sorted({index.row() for index in self.tabela.selectionModel().selectedRows()}, reverse=True)
+        if not linhas:
+            return
+
+        for row in linhas:
+            self.tabela.removeRow(row)
+
+        if self.tabela.rowCount() > 0:
+            self.tabela.selectRow(min(linhas[-1], self.tabela.rowCount() - 1))
+
     def _mover_linha(self, delta: int):
         row = self.tabela.currentRow()
         destino = row + delta
         if 0 <= row < self.tabela.rowCount() and 0 <= destino < self.tabela.rowCount():
             tempo_ms = self.tabela.item(row, 1).data(Qt.ItemDataRole.UserRole)
-            chords = self.tabela.item(row, 2).text()
-            texto = self.tabela.item(row, 3).text()
+            chords = self.tabela.item(row, 1).text()
+            texto = self.tabela.item(row, 2).text()
 
             self.tabela.removeRow(row)
             self._inserir_linha_tabela(destino, tempo_ms, texto, chords)
@@ -484,10 +490,6 @@ class KaraokeEditorWindow(QMainWindow):
 
     def _renumerar_e_reconstruir_acoes(self):
         for r in range(self.tabela.rowCount()):
-            item_num = self.tabela.item(r, 0)
-            if item_num:
-                item_num.setText(f"{r + 1:02d}")
-
             widget_acoes = QWidget()
             layout_acoes = QHBoxLayout(widget_acoes)
             layout_acoes.setContentsMargins(4, 2, 4, 2)
@@ -509,7 +511,7 @@ class KaraokeEditorWindow(QMainWindow):
             btn_ouvir.clicked.connect(lambda checked=False, row_idx=r: self._ouvir_linha(row_idx))
             layout_acoes.addWidget(btn_ouvir)
 
-            self.tabela.setCellWidget(r, 4, widget_acoes)
+            self.tabela.setCellWidget(r, 3, widget_acoes)
 
     def _abrir_dialogo_colar_cifra_completa(self):
         """Abre caixa de diálogo para colar a música completa com cifras copiadas da internet."""
@@ -581,7 +583,7 @@ class KaraokeEditorWindow(QMainWindow):
         )
         if ok and offset != 0:
             for r in range(self.tabela.rowCount()):
-                item_tempo = self.tabela.item(r, 1)
+                item_tempo = self.tabela.item(r, 0)
                 if item_tempo:
                     ms_atual = item_tempo.data(Qt.ItemDataRole.UserRole) or 0
                     novo_ms = max(0, ms_atual + offset)
@@ -597,8 +599,8 @@ class KaraokeEditorWindow(QMainWindow):
         linhas: list[LyricLine] = []
         for r in range(self.tabela.rowCount()):
             item_tempo = self.tabela.item(r, 1)
-            item_chords = self.tabela.item(r, 2)
-            item_texto = self.tabela.item(r, 3)
+            item_chords = self.tabela.item(r, 1)
+            item_texto = self.tabela.item(r, 2)
             ms = item_tempo.data(Qt.ItemDataRole.UserRole) if item_tempo else 0
             chords = item_chords.text().strip() if item_chords else ""
             texto = item_texto.text() if item_texto else ""
