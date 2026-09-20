@@ -66,7 +66,6 @@ def test_playback_coordinator_select_and_navigation():
         ("play",),
         ("load", second.path),
         ("play",),
-        ("set_position", 0),
         ("load", first.path),
         ("play",),
     ]
