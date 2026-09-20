@@ -50,6 +50,18 @@ class PlaybackController(QObject):
         """Define o volume usando a escala pública de 0 a 100."""
         self._audio_engine.set_volume(volume)
 
+    def output_devices(self):
+        return self._audio_engine.output_devices()
+
+    def output_device_id(self) -> str:
+        return self._audio_engine.output_device_id()
+
+    def set_output_device(self, device_id: str) -> bool:
+        return self._audio_engine.set_output_device(device_id)
+
+    def set_configured_output_device_id(self, device_id: str) -> None:
+        self._audio_engine.set_configured_output_device_id(device_id)
+
     def position(self) -> int:
         """Retorna a posição atual em milissegundos."""
         return self._audio_engine.position()
