@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QUrl, Signal
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from PySide6.QtMultimedia import QAudioOutput, QAudioDevice, QMediaDevices, QMediaPlayer
 
 
 class AudioEngine(QObject):
@@ -19,7 +19,11 @@ class AudioEngine(QObject):
     def __init__(self):
         super().__init__()
 
-        self.audio_output = QAudioOutput()
+        default_device = QMediaDevices.defaultAudioOutput()
+        self.audio_output = QAudioOutput(default_device)
+        self.audio_output.setMuted(False)
+        self.audio_output.setVolume(1.0)
+
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
 
@@ -27,6 +31,7 @@ class AudioEngine(QObject):
         self.player.durationChanged.connect(self.duration_changed.emit)
         self.player.playbackStateChanged.connect(self._on_playback_state_changed)
         self.player.mediaStatusChanged.connect(self._on_media_status_changed)
+        self.player.errorOccurred.connect(self._on_error)
 
     def load(self, path: Path | str) -> None:
         """Carrega uma faixa sem iniciar sua reprodução."""
@@ -78,3 +83,7 @@ class AudioEngine(QObject):
     def _on_media_status_changed(self, status) -> None:
         if status == QMediaPlayer.MediaStatus.EndOfMedia:
             self.playback_finished.emit()
+
+    def _on_error(self, error, error_string) -> None:
+        if error != QMediaPlayer.Error.NoError:
+            print(f"Erro de reprodução: {error_string}")
