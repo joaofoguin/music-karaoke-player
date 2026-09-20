@@ -687,8 +687,7 @@ class MainWindow(QMainWindow):
 
     def definir_tocar_a_seguir(self, index: int):
         """Move a faixa escolhida para a posição seguinte à música atual e destaca em laranja."""
-        if self.queue_controller.set_play_next(index):
-            self.atualizar_fila()
+        self.queue_controller.set_play_next(index)
 
     def _adicionar_caminho_fila(self, caminho: Path):
         if not caminho.is_file() or caminho.suffix.lower() not in self.audio_extensions:
@@ -705,7 +704,6 @@ class MainWindow(QMainWindow):
             duration=metadados["duration"],
         )
         self.queue_controller.add(track)
-        self.atualizar_fila()
 
     def definir_modo_exibicao(self, modo: str):
         if modo == "details":
