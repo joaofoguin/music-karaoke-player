@@ -38,6 +38,7 @@ from karaoke_window import KaraokeWindow
 from karaoke_editor import KaraokeEditorWindow
 from settings_dialog import SettingsDialog
 from widgets.queue_item_widget import QueueItemWidget
+from widgets.player_widget import PlayerWidget
 
 
 class MainWindow(QMainWindow):
@@ -447,7 +448,6 @@ class MainWindow(QMainWindow):
         self.file_model = QFileSystemModel()
         self.file_model.setFilter(QDir.Filter.AllDirs | QDir.Filter.Files | QDir.Filter.NoDotAndDotDot)
         self.file_model.setRootPath("")
-
         self.file_stack = QStackedWidget()
         self.file_tree = QTreeView()
         self.file_tree.doubleClicked.connect(self.arquivo_selecionado)
@@ -523,146 +523,31 @@ class MainWindow(QMainWindow):
         # ==================================================
         # PLAYER BAR
         # ==================================================
-        player = QFrame()
-        player.setObjectName("playerBar")
-        player.setFrameShape(QFrame.Shape.StyledPanel)
+        self.player_widget = PlayerWidget(self.audio_engine)
+        self.player_widget.previous_requested.connect(self.faixa_anterior)
+        self.player_widget.play_requested.connect(self.alternar_reproducao)
+        self.player_widget.next_requested.connect(self.faixa_proxima)
+        self.player_widget.repeat_changed.connect(self._on_repeat_clicked)
+        self.player_widget.karaoke_requested.connect(self.abrir_tela_karaoke)
+        self.player_widget.mute_requested.connect(self.alternar_mudo)
+        self.player_widget.volume_changed.connect(self._on_volume_changed)
 
-        layout_player = QHBoxLayout(player)
-        layout_player.setContentsMargins(12, 6, 12, 6)
-        layout_player.setSpacing(8)
+        self.capa = self.player_widget.capa
+        self.titulo_musica = self.player_widget.titulo_musica
+        self.artista_musica = self.player_widget.artista_musica
+        self.album_musica = self.player_widget.album_musica
+        self.botao_anterior = self.player_widget.botao_anterior
+        self.botao_play = self.player_widget.botao_play
+        self.botao_proximo = self.player_widget.botao_proximo
+        self.botao_repetir = self.player_widget.botao_repetir
+        self.slider_progresso = self.player_widget.slider_progresso
+        self.tempo_atual = self.player_widget.tempo_atual
+        self.tempo_total = self.player_widget.tempo_total
+        self.botao_karaoke = self.player_widget.botao_karaoke
+        self.btn_vol_icon = self.player_widget.btn_vol_icon
+        self.volume = self.player_widget.volume
 
-        # ==================================================
-        # LATERAL ESQUERDA: CAPA E INFORMAÇÕES
-        # ==================================================
-        self.capa = QLabel()
-        self.capa.setFixedSize(54, 54)
-        self.capa.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.capa.setText("CAPA")
-        self.capa.setStyleSheet(
-            "background: #2b2b2b; border: 1px solid #444444; border-radius: 6px; font-size: 11px;"
-        )
-
-        faixa_atual = QHBoxLayout()
-        faixa_atual.setSpacing(6)
-        faixa_atual.addWidget(self.capa)
-
-        informacoes = QVBoxLayout()
-        informacoes.setSpacing(0)
-        informacoes.setContentsMargins(0, 0, 0, 0)
-
-        self.titulo_musica = QLabel("Nenhuma música selecionada")
-        self.artista_musica = QLabel("Artista")
-        self.album_musica = QLabel("Álbum")
-
-        self.titulo_musica.setObjectName("trackTitle")
-        self.artista_musica.setObjectName("trackMetadata")
-        self.album_musica.setObjectName("trackMetadata")
-
-        informacoes.addWidget(self.titulo_musica)
-        informacoes.addWidget(self.artista_musica)
-        informacoes.addWidget(self.album_musica)
-
-        faixa_atual.addLayout(informacoes)
-        layout_player.addLayout(faixa_atual, 3)
-
-        # ==================================================
-        # CENTRO: CONTROLES PRINCIPAIS E PROGRESSO
-        # ==================================================
-        player_central = QVBoxLayout()
-        player_central.setSpacing(1)
-        player_central.setContentsMargins(8, 0, 8, 0)
-        player_central.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        controles = QHBoxLayout()
-        controles.setSpacing(6)
-        controles.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.botao_anterior = QPushButton()
-        self.botao_play = QPushButton()
-        self.botao_proximo = QPushButton()
-        self.botao_repetir = QPushButton()
-
-        self.botao_repetir.setCheckable(True)
-        self.botao_repetir.setToolTip("Repetir a música atual (Ctrl+R)")
-
-        self.botao_anterior.setObjectName("mediaButton")
-        self.botao_proximo.setObjectName("mediaButton")
-        self.botao_repetir.setObjectName("mediaButton")
-        self.botao_play.setObjectName("mainPlayButton")
-
-        self.botao_anterior.setToolTip("Faixa anterior / Recomeçar (Ctrl+Left)")
-        self.botao_play.setToolTip("Reproduzir ou pausar (Espaço)")
-        self.botao_proximo.setToolTip("Próxima faixa (Ctrl+Right)")
-
-        controles.addWidget(self.botao_anterior)
-        controles.addWidget(self.botao_play)
-        controles.addWidget(self.botao_proximo)
-        controles.addWidget(self.botao_repetir)
-
-        self.botao_anterior.clicked.connect(self.faixa_anterior)
-        self.botao_proximo.clicked.connect(self.faixa_proxima)
-        self.botao_play.clicked.connect(self.alternar_reproducao)
-        self.botao_repetir.clicked.connect(self._on_repeat_clicked)
-
-        self.audio_engine.playback_started.connect(self.atualizar_botao_play)
-        self.audio_engine.playback_paused.connect(self.atualizar_botao_play)
-        self.audio_engine.playback_stopped.connect(self.atualizar_botao_play)
-
-        player_central.addLayout(controles)
-
-        # PROGRESSO COM CLIQUE DIRETO (ClickableSlider)
-        progresso = QHBoxLayout()
-        progresso.setSpacing(4)
-
-        self.slider_progresso = ClickableSlider(Qt.Orientation.Horizontal)
-        self.slider_progresso.setMaximumWidth(400)
-        self.slider_progresso.setMinimumWidth(180)
-        self.slider_progresso.sliderMoved.connect(self.audio_engine.set_position)
-        self.slider_progresso.clicked_position.connect(self.audio_engine.set_position)
-
-        self.tempo_atual = QLabel("00:00")
-        self.tempo_total = QLabel("00:00")
-        self.tempo_atual.setObjectName("trackMetadata")
-        self.tempo_total.setObjectName("trackMetadata")
-
-        progresso.addWidget(self.tempo_atual)
-        progresso.addWidget(self.slider_progresso, 1)
-        progresso.addWidget(self.tempo_total)
-
-        player_central.addLayout(progresso)
-        layout_player.addLayout(player_central, 5)
-
-        self.audio_engine.position_changed.connect(self.atualizar_posicao)
         self.audio_engine.position_changed.connect(self.atualizar_karaoke_posicao)
-        self.audio_engine.duration_changed.connect(self.atualizar_duracao)
-
-        # ==================================================
-        # LATERAL DIREITA: BOTÃO KARAOKE & VOLUME
-        # ==================================================
-        layout_direita = QHBoxLayout()
-        layout_direita.setSpacing(5)
-        layout_direita.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-
-        self.botao_karaoke = QPushButton()
-        self.botao_karaoke.setObjectName("mediaButton")
-        self.botao_karaoke.setToolTip("Abrir tela de Karaoke (Ctrl+K)")
-        self.botao_karaoke.clicked.connect(self.abrir_tela_karaoke)
-
-        self.btn_vol_icon = QPushButton()
-        self.btn_vol_icon.setObjectName("mediaButton")
-        self.btn_vol_icon.setToolTip("Alternar mudo (Ctrl+M)")
-        self.btn_vol_icon.clicked.connect(self.alternar_mudo)
-
-        self.volume = ClickableSlider(Qt.Orientation.Horizontal)
-        self.volume.setRange(0, 100)
-        self.volume.setFixedWidth(72)
-        self.volume.valueChanged.connect(self._on_volume_changed)
-        self.volume.clicked_position.connect(self._on_volume_changed)
-
-        layout_direita.addWidget(self.botao_karaoke)
-        layout_direita.addWidget(self.btn_vol_icon)
-        layout_direita.addWidget(self.volume)
-        layout_player.addLayout(layout_direita, 2)
 
         # ==================================================
         # MONTAR INTERFACE
@@ -671,7 +556,7 @@ class MainWindow(QMainWindow):
         layout_superior.addWidget(queue, 1)
 
         layout_principal.addLayout(layout_superior, 5)
-        layout_principal.addWidget(player, 1)
+        layout_principal.addWidget(self.player_widget, 1)
 
     def carregar_estado_inicial(self):
         """Carrega pasta padrão, volume e modo de repetição das configurações."""
@@ -897,8 +782,7 @@ class MainWindow(QMainWindow):
     def definir_modo_exibicao(self, modo: str):
         if modo == "details":
             self.file_stack.setCurrentWidget(self.file_tree)
-            self.btn_modo_explorer.setIcon(get_svg_icon("view_details", color=self._cor_icone_painel(), size=64))
-            self.file_tree.setColumnHidden(1, False)
+            self.btn_modo_explorer.setIcon(get_svg_icon("view_details", color=self._cor_icone_painel(), size=64))            self.file_tree.setColumnHidden(1, False)
             self.file_tree.setColumnHidden(2, False)
             self.file_tree.setColumnHidden(3, False)
             self.file_tree.setColumnWidth(0, max(300, self.file_tree.width() // 2))
