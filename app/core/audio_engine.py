@@ -75,6 +75,7 @@ class AudioEngine(QObject):
         self._buffer_device = _AudioBufferDevice(self)
         self._audio_sink = None
         self._sink_format = None
+        self._processed_output_device = default_device
 
         self.player = QMediaPlayer(self)
         self.player.setAudioOutput(self.audio_output)
@@ -121,7 +122,7 @@ class AudioEngine(QObject):
 
     def output_device_id(self) -> str:
         if self._mono_enabled:
-            device = self._current_output_device()
+            device = self._processed_output_device
         else:
             device = self.audio_output.device()
         return bytes(device.id()).hex() if not device.isNull() else ""
@@ -203,8 +204,8 @@ class AudioEngine(QObject):
         )
 
     def _current_output_device(self):
-        if self._mono_enabled and self._audio_sink is not None:
-            return self._audio_sink.device()
+        if self._mono_enabled:
+            return self._processed_output_device
         return self.audio_output.device()
 
     def _enable_processed_output(self, current_position: int) -> None:
@@ -229,6 +230,7 @@ class AudioEngine(QObject):
         # O QAudioSink precisa do formato final que será enviado ao dispositivo.
         # O formato exato é conhecido quando o primeiro QAudioBuffer chegar.
         self._pending_sink_device = device
+        self._processed_output_device = device
 
     def _on_audio_buffer_received(self, buffer) -> None:
         if not self._mono_enabled or not buffer.isValid():
