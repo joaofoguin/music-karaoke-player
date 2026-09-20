@@ -190,7 +190,7 @@ class AudioEngine(QObject):
         return self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState
 
     def _current_output_device(self):
-        return self._processed_output_device if self._mono_enabled else self.audio_output.device()
+        return self._processed_output_device if self._processing_enabled() else self.audio_output.device()
 
     def _enable_processed_output(self) -> None:
         device = self.audio_output.device()
