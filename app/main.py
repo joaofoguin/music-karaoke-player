@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QFileSystemModel,
     QHBoxLayout,
     QLabel,
+    QListView,
     QMainWindow,
     QMenu,
     QMenuBar,
@@ -17,7 +18,9 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSlider,
+    QStackedWidget,
     QStyle,
+    QToolButton,
     QTreeView,
     QVBoxLayout,
     QWidget,
@@ -66,16 +69,13 @@ class QueueItemWidget(QFrame):
         duracao = self.main_window.formatar_duracao(self.track.duration)
 
         if self.is_current:
-            prefixo = "▶ "
             tag = " [Tocando Agora]"
         elif self.is_next:
-            prefixo = "⏭ "
             tag = " [A Seguir]"
         else:
-            prefixo = ""
             tag = ""
 
-        lbl_titulo = QLabel(f"{prefixo}{self.index + 1:02d}. {titulo}{tag}")
+        lbl_titulo = QLabel(f"{self.index + 1:02d}. {titulo}{tag}")
         lbl_titulo.setStyleSheet("font-weight: bold; font-size: 13px;")
 
         lbl_sub = QLabel(f"{artista}  •  {duracao}")
@@ -105,32 +105,44 @@ class QueueItemWidget(QFrame):
 
         # Botão "Tocar a seguir"
         if not self.is_current:
-            btn_next = QPushButton("⏭")
+            btn_next = QPushButton()
             btn_next.setToolTip("Tocar a seguir (Definir como próxima na fila)")
-            btn_next.setFixedWidth(28)
+            btn_next.setObjectName("queueActionButton")
+            btn_next.setIcon(get_svg_icon("next", color="#d8d8d8", size=48))
+            btn_next.setIconSize(QSize(17, 17))
+            btn_next.setFixedSize(30, 30)
             btn_next.clicked.connect(lambda: self.main_window.definir_tocar_a_seguir(self.index))
             layout.addWidget(btn_next)
 
         # Botão subir
-        btn_subir = QPushButton("↑")
+        btn_subir = QPushButton()
         btn_subir.setToolTip("Mover para cima")
-        btn_subir.setFixedWidth(26)
+        btn_subir.setObjectName("queueActionButton")
+        btn_subir.setIcon(get_svg_icon("arrow_up", color="#d8d8d8", size=48))
+        btn_subir.setIconSize(QSize(17, 17))
+        btn_subir.setFixedSize(30, 30)
         btn_subir.setEnabled(self.index > 0)
         btn_subir.clicked.connect(lambda: self.main_window.mover_faixa(self.index, self.index - 1))
         layout.addWidget(btn_subir)
 
         # Botão descer
-        btn_descer = QPushButton("↓")
+        btn_descer = QPushButton()
         btn_descer.setToolTip("Mover para baixo")
-        btn_descer.setFixedWidth(26)
+        btn_descer.setObjectName("queueActionButton")
+        btn_descer.setIcon(get_svg_icon("arrow_down", color="#d8d8d8", size=48))
+        btn_descer.setIconSize(QSize(17, 17))
+        btn_descer.setFixedSize(30, 30)
         btn_descer.setEnabled(self.index < len(self.main_window.queue_manager.tracks) - 1)
         btn_descer.clicked.connect(lambda: self.main_window.mover_faixa(self.index, self.index + 1))
         layout.addWidget(btn_descer)
 
         # Botão remover
-        btn_remover = QPushButton("×")
+        btn_remover = QPushButton()
         btn_remover.setToolTip("Remover da fila")
-        btn_remover.setFixedWidth(26)
+        btn_remover.setObjectName("queueActionButton")
+        btn_remover.setIcon(get_svg_icon("trash", color="#d8d8d8", size=48))
+        btn_remover.setIconSize(QSize(17, 17))
+        btn_remover.setFixedSize(30, 30)
         btn_remover.clicked.connect(lambda: self.main_window.remover_faixa(self.index))
         layout.addWidget(btn_remover)
 
@@ -143,28 +155,28 @@ class QueueItemWidget(QFrame):
     def _mostrar_menu_contexto(self, pos: QPoint):
         menu = QMenu(self)
 
-        acao_play = QAction("▶ Reproduzir Agora (Duplo Clique)", self)
+        acao_play = QAction("Reproduzir Agora (Duplo Clique)", self)
         acao_play.triggered.connect(lambda: self.main_window.selecionar_e_reproduzir_faixa(self.index))
         menu.addAction(acao_play)
 
         if not self.is_current:
-            acao_next = QAction("⏭ Tocar a Seguir (Definir como Próxima)", self)
+            acao_next = QAction("Tocar a Seguir (Definir como Próxima)", self)
             acao_next.triggered.connect(lambda: self.main_window.definir_tocar_a_seguir(self.index))
             menu.addAction(acao_next)
 
         menu.addSeparator()
 
         if self.index > 0:
-            acao_up = QAction("↑ Mover para Cima", self)
+            acao_up = QAction("Mover para Cima", self)
             acao_up.triggered.connect(lambda: self.main_window.mover_faixa(self.index, self.index - 1))
             menu.addAction(acao_up)
 
         if self.index < len(self.main_window.queue_manager.tracks) - 1:
-            acao_down = QAction("↓ Mover para Baixo", self)
+            acao_down = QAction("Mover para Baixo", self)
             acao_down.triggered.connect(lambda: self.main_window.mover_faixa(self.index, self.index + 1))
             menu.addAction(acao_down)
 
-        acao_del = QAction("× Remover da Fila", self)
+        acao_del = QAction("Remover da Fila", self)
         acao_del.triggered.connect(lambda: self.main_window.remover_faixa(self.index))
         menu.addAction(acao_del)
 
@@ -235,6 +247,12 @@ class MainWindow(QMainWindow):
             QPushButton#mediaButton:hover { background: #1f2937; }
             QPushButton#mediaButton:pressed { background: #111827; }
             QPushButton#mediaButton:checked { background: rgba(37, 99, 235, 0.3); border: 1px solid #3b82f6; }
+            QPushButton#queueActionButton { background: transparent; border: 0; min-width: 30px; max-width: 30px; min-height: 30px; max-height: 30px; padding: 4px; border-radius: 5px; }
+            QPushButton#queueActionButton:hover { background: rgba(59, 130, 246, 0.18); }
+            QPushButton#queueActionButton:pressed { background: rgba(59, 130, 246, 0.28); }
+            QToolButton#panelAction { background: transparent; border: 0; min-width: 34px; max-width: 34px; min-height: 34px; max-height: 34px; padding: 5px; border-radius: 6px; }
+            QToolButton#panelAction:hover { background: rgba(59, 130, 246, 0.16); }
+            QToolButton#panelAction:pressed { background: rgba(59, 130, 246, 0.24); }
             QPushButton#mainPlayButton { background: #2563eb; color: #ffffff; border: 0; border-radius: 20px; min-width: 40px; max-width: 40px; min-height: 40px; max-height: 40px; padding: 0; }
             QPushButton#mainPlayButton:hover { background: #3b82f6; }
             QPushButton#mainPlayButton:pressed { background: #1d4ed8; }
@@ -502,7 +520,7 @@ class MainWindow(QMainWindow):
 
         layout_principal = QVBoxLayout(central)
         layout_principal.setContentsMargins(18, 18, 18, 18)
-        layout_principal.setSpacing(16)
+        layout_principal.setSpacing(12)
 
         # ==================================================
         # ÁREA SUPERIOR
@@ -520,30 +538,69 @@ class MainWindow(QMainWindow):
         layout_explorer = QVBoxLayout(explorer)
 
         cabecalho_explorer = QHBoxLayout()
+        cabecalho_explorer.setSpacing(4)
         titulo_explorer = QLabel("EXPLORADOR DE ARQUIVOS")
         titulo_explorer.setObjectName("sectionTitle")
         cabecalho_explorer.addWidget(titulo_explorer, 1)
 
-        btn_abrir_pasta_exp = QPushButton("Abrir Pasta...")
+        btn_abrir_pasta_exp = QToolButton()
+        btn_abrir_pasta_exp.setObjectName("panelAction")
+        btn_abrir_pasta_exp.setIcon(get_svg_icon("folder", color="#e5e7eb", size=64))
+        btn_abrir_pasta_exp.setIconSize(QSize(19, 19))
         btn_abrir_pasta_exp.setToolTip("Alterar pasta do explorador")
         btn_abrir_pasta_exp.clicked.connect(self.abrir_pasta_dialogo)
         cabecalho_explorer.addWidget(btn_abrir_pasta_exp)
+
+        self.btn_modo_explorer = QToolButton()
+        self.btn_modo_explorer.setObjectName("panelAction")
+        self.btn_modo_explorer.setIcon(get_svg_icon("view_details", color="#e5e7eb", size=64))
+        self.btn_modo_explorer.setIconSize(QSize(19, 19))
+        self.btn_modo_explorer.setToolTip("Layout e exibição")
+        self.menu_modo_explorer = QMenu(self)
+        for texto, modo, icone in [
+            ("Detalhes", "details", "view_details"),
+            ("Lista", "list", "view_list"),
+            ("Ícones pequenos", "small", "view_grid"),
+            ("Ícones grandes", "large", "view_large"),
+        ]:
+            acao = QAction(texto, self)
+            acao.setData(modo)
+            acao.setIcon(get_svg_icon(icone, color="#e5e7eb", size=48))
+            acao.triggered.connect(lambda checked=False, m=modo: self.definir_modo_exibicao(m))
+            self.menu_modo_explorer.addAction(acao)
+        self.btn_modo_explorer.setMenu(self.menu_modo_explorer)
+        self.btn_modo_explorer.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        cabecalho_explorer.addWidget(self.btn_modo_explorer)
         layout_explorer.addLayout(cabecalho_explorer)
 
         self.file_model = QFileSystemModel()
-        self.file_model.setFilter(
-            QDir.Filter.AllDirs |
-            QDir.Filter.Files |
-            QDir.Filter.NoDotAndDotDot
-        )
+        self.file_model.setFilter(QDir.Filter.AllDirs | QDir.Filter.Files | QDir.Filter.NoDotAndDotDot)
         self.file_model.setRootPath("")
 
+        self.file_stack = QStackedWidget()
         self.file_tree = QTreeView()
         self.file_tree.doubleClicked.connect(self.arquivo_selecionado)
         self.file_tree.setModel(self.file_model)
         self.file_tree.setRootIndex(self.file_model.index(""))
+        self.file_tree.setAlternatingRowColors(True)
+        self.file_tree.setSortingEnabled(True)
+        self.file_tree.setColumnWidth(0, 300)
+        self.file_tree.setColumnWidth(1, 90)
+        self.file_tree.setColumnWidth(2, 130)
+        self.file_tree.setColumnWidth(3, 165)
 
-        layout_explorer.addWidget(self.file_tree)
+        self.file_list = QListView()
+        self.file_list.setModel(self.file_model)
+        self.file_list.setRootIndex(self.file_model.index(""))
+        self.file_list.doubleClicked.connect(self.arquivo_selecionado)
+        self.file_list.setResizeMode(QListView.ResizeMode.Adjust)
+        self.file_list.setSpacing(6)
+        self.file_list.setUniformItemSizes(True)
+
+        self.file_stack.addWidget(self.file_tree)
+        self.file_stack.addWidget(self.file_list)
+        layout_explorer.addWidget(self.file_stack)
+        self.definir_modo_exibicao("details")
 
         # ==================================================
         # FILA DE REPRODUÇÃO (COM DUPLO CLIQUE E TOCAR A SEGUIR)
@@ -558,14 +615,22 @@ class MainWindow(QMainWindow):
         titulo_queue.setObjectName("sectionTitle")
 
         cabecalho_fila = QHBoxLayout()
+        cabecalho_fila.setSpacing(4)
         cabecalho_fila.addWidget(titulo_queue, 1)
 
-        self.btn_add_arquivos = QPushButton("+ Arquivos")
+        self.btn_add_arquivos = QToolButton()
+        self.btn_add_arquivos.setObjectName("panelAction")
+        self.btn_add_arquivos.setIcon(get_svg_icon("plus", color="#e5e7eb", size=64))
+        self.btn_add_arquivos.setIconSize(QSize(19, 19))
         self.btn_add_arquivos.setToolTip("Adicionar arquivos à fila (Ctrl+O)")
         self.btn_add_arquivos.clicked.connect(self.abrir_arquivos_dialogo)
         cabecalho_fila.addWidget(self.btn_add_arquivos)
 
-        self.botao_limpar_fila = QPushButton("Limpar fila")
+        self.botao_limpar_fila = QToolButton()
+        self.botao_limpar_fila.setObjectName("panelAction")
+        self.botao_limpar_fila.setIcon(get_svg_icon("trash", color="#e5e7eb", size=64))
+        self.botao_limpar_fila.setIconSize(QSize(19, 19))
+        self.botao_limpar_fila.setToolTip("Limpar fila de reprodução (Ctrl+L)")
         self.botao_limpar_fila.clicked.connect(self.limpar_fila)
         cabecalho_fila.addWidget(self.botao_limpar_fila)
         layout_queue.addLayout(cabecalho_fila)
@@ -591,8 +656,8 @@ class MainWindow(QMainWindow):
         player.setFrameShape(QFrame.Shape.StyledPanel)
 
         layout_player = QHBoxLayout(player)
-        layout_player.setContentsMargins(14, 10, 14, 10)
-        layout_player.setSpacing(16)
+        layout_player.setContentsMargins(12, 8, 12, 8)
+        layout_player.setSpacing(10)
 
         # ==================================================
         # LATERAL ESQUERDA: CAPA E INFORMAÇÕES
@@ -606,11 +671,11 @@ class MainWindow(QMainWindow):
         )
 
         faixa_atual = QHBoxLayout()
-        faixa_atual.setSpacing(12)
+        faixa_atual.setSpacing(8)
         faixa_atual.addWidget(self.capa)
 
         informacoes = QVBoxLayout()
-        informacoes.setSpacing(2)
+        informacoes.setSpacing(0)
 
         self.titulo_musica = QLabel("Nenhuma música selecionada")
         self.artista_musica = QLabel("Artista")
@@ -631,7 +696,9 @@ class MainWindow(QMainWindow):
         # CENTRO: CONTROLES PRINCIPAIS E PROGRESSO
         # ==================================================
         player_central = QVBoxLayout()
-        player_central.setSpacing(4)
+        player_central.setSpacing(2)
+        player_central.setContentsMargins(12, 0, 12, 0)
+        player_central.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         controles = QHBoxLayout()
         controles.setSpacing(10)
@@ -672,9 +739,11 @@ class MainWindow(QMainWindow):
 
         # PROGRESSO COM CLIQUE DIRETO (ClickableSlider)
         progresso = QHBoxLayout()
-        progresso.setSpacing(8)
+        progresso.setSpacing(6)
 
         self.slider_progresso = ClickableSlider(Qt.Orientation.Horizontal)
+        self.slider_progresso.setMaximumWidth(520)
+        self.slider_progresso.setMinimumWidth(260)
         self.slider_progresso.sliderMoved.connect(self.audio_engine.set_position)
         self.slider_progresso.clicked_position.connect(self.audio_engine.set_position)
 
@@ -713,7 +782,7 @@ class MainWindow(QMainWindow):
 
         self.volume = ClickableSlider(Qt.Orientation.Horizontal)
         self.volume.setRange(0, 100)
-        self.volume.setFixedWidth(90)
+        self.volume.setFixedWidth(82)
         self.volume.valueChanged.connect(self._on_volume_changed)
         self.volume.clicked_position.connect(self._on_volume_changed)
 
@@ -762,6 +831,7 @@ class MainWindow(QMainWindow):
         if Path(pasta).is_dir():
             idx = self.file_model.setRootPath(pasta)
             self.file_tree.setRootIndex(self.file_model.index(pasta))
+            self.file_list.setRootIndex(self.file_model.index(pasta))
             self.config_manager.set("general/last_opened_folder", pasta)
 
     def _on_repeat_clicked(self):
@@ -955,6 +1025,45 @@ class MainWindow(QMainWindow):
         )
         self.queue_manager.add(track)
         self.atualizar_fila()
+
+    def definir_modo_exibicao(self, modo: str):
+        if modo == "details":
+            self.file_stack.setCurrentWidget(self.file_tree)
+            self.btn_modo_explorer.setIcon(get_svg_icon("view_details", color=self._cor_icone_painel(), size=64))
+            self.file_tree.setColumnHidden(1, False)
+            self.file_tree.setColumnHidden(2, False)
+            self.file_tree.setColumnHidden(3, False)
+            self.file_tree.setColumnWidth(0, max(300, self.file_tree.width() // 2))
+        else:
+            self.file_stack.setCurrentWidget(self.file_list)
+            self.file_tree.setColumnHidden(1, True)
+            self.file_tree.setColumnHidden(2, True)
+            self.file_tree.setColumnHidden(3, True)
+            if modo == "list":
+                self.file_list.setViewMode(QListView.ViewMode.ListMode)
+                self.file_list.setFlow(QListView.Flow.LeftToRight)
+                self.file_list.setWrapping(True)
+                self.file_list.setGridSize(QSize(340, 34))
+                self.file_list.setIconSize(QSize(20, 20))
+                self.btn_modo_explorer.setIcon(get_svg_icon("view_list", color=self._cor_icone_painel(), size=64))
+            elif modo == "small":
+                self.file_list.setViewMode(QListView.ViewMode.IconMode)
+                self.file_list.setFlow(QListView.Flow.LeftToRight)
+                self.file_list.setWrapping(True)
+                self.file_list.setGridSize(QSize(120, 72))
+                self.file_list.setIconSize(QSize(32, 32))
+                self.btn_modo_explorer.setIcon(get_svg_icon("view_grid", color=self._cor_icone_painel(), size=64))
+            else:
+                self.file_list.setViewMode(QListView.ViewMode.IconMode)
+                self.file_list.setFlow(QListView.Flow.LeftToRight)
+                self.file_list.setWrapping(True)
+                self.file_list.setGridSize(QSize(170, 110))
+                self.file_list.setIconSize(QSize(64, 64))
+                self.btn_modo_explorer.setIcon(get_svg_icon("view_large", color=self._cor_icone_painel(), size=64))
+
+    def _cor_icone_painel(self):
+        tema = self.config_manager.get("appearance/theme", "dark")
+        return "#374151" if tema == "light" else "#e5e7eb"
 
     def arquivo_selecionado(self, index):
         caminho = Path(self.file_model.filePath(index))
