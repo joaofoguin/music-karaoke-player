@@ -27,27 +27,21 @@ class PlaybackController(QObject):
         self._audio_engine.playback_finished.connect(self.playback_finished.emit)
 
     def load(self, path) -> None:
-        """Carrega uma faixa sem iniciar sua reprodução."""
         self._audio_engine.load(path)
 
     def play(self) -> None:
-        """Inicia ou retoma a reprodução."""
         self._audio_engine.play()
 
     def pause(self) -> None:
-        """Pausa a reprodução atual."""
         self._audio_engine.pause()
 
     def stop(self) -> None:
-        """Interrompe a reprodução atual."""
         self._audio_engine.stop()
 
     def set_position(self, position: int) -> None:
-        """Define a posição atual da reprodução em milissegundos."""
         self._audio_engine.set_position(position)
 
     def set_volume(self, volume: int | float) -> None:
-        """Define o volume usando a escala pública de 0 a 100."""
         self._audio_engine.set_volume(volume)
 
     def output_devices(self):
@@ -62,14 +56,17 @@ class PlaybackController(QObject):
     def set_configured_output_device_id(self, device_id: str) -> None:
         self._audio_engine.set_configured_output_device_id(device_id)
 
+    def set_mono_enabled(self, enabled: bool) -> None:
+        self._audio_engine.set_mono_enabled(enabled)
+
+    def mono_enabled(self) -> bool:
+        return self._audio_engine.mono_enabled()
+
     def position(self) -> int:
-        """Retorna a posição atual em milissegundos."""
         return self._audio_engine.position()
 
     def duration(self) -> int:
-        """Retorna a duração da faixa em milissegundos."""
         return self._audio_engine.duration()
 
     def is_playing(self) -> bool:
-        """Indica se o player está atualmente reproduzindo áudio."""
         return self._audio_engine.is_playing()
