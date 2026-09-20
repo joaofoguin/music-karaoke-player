@@ -45,6 +45,12 @@ class MainWindow(QMainWindow):
         self.config_manager = ConfigManager()
         self.queue_controller = QueueController()
         self.audio_engine = PlaybackController()
+        self.audio_engine.set_configured_output_device_id(
+            self.config_manager.get("audio/output_device_id", "")
+        )
+        self.audio_engine.set_output_device(
+            self.config_manager.get("audio/output_device_id", "")
+        )
         self.playback_coordinator = PlaybackCoordinator(self.audio_engine, self.queue_controller)
         self.playback_coordinator.track_changed.connect(self._ao_mudar_faixa)
         self.karaoke_window = None
@@ -234,7 +240,7 @@ class MainWindow(QMainWindow):
         self.karaoke_editor.activateWindow()
 
     def abrir_dialogo_configuracoes(self):
-        dialog = SettingsDialog(self.config_manager, self)
+        dialog = SettingsDialog(self.config_manager, self.audio_engine, self)
         if dialog.exec():
             self.aplicar_configuracoes()
 
