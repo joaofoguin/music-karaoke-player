@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QUrl, Signal
-from PySide6.QtMultimedia import QAudioOutput, QAudioDevice, QMediaDevices, QMediaPlayer
+from PySide6.QtMultimedia import QAudioOutput, QMediaDevices, QMediaPlayer
 
 
 class AudioEngine(QObject):
@@ -15,16 +15,22 @@ class AudioEngine(QObject):
     playback_paused = Signal()
     playback_stopped = Signal()
     playback_finished = Signal()
+    output_device_changed = Signal(str)
 
     def __init__(self):
         super().__init__()
 
-        default_device = QMediaDevices.defaultAudioOutput()
-        self.audio_output = QAudioOutput(default_device)
+        # Mantém uma instância viva de QMediaDevices para acompanhar
+        # mudanças de dispositivos e, principalmente, mudanças no
+        # dispositivo de saída padrão do Windows.
+        self.media_devices = QMediaDevices(self)
+
+        default_device = self.media_devices.defaultAudioOutput()
+        self.audio_output = QAudioOutput(default_device, self)
         self.audio_output.setMuted(False)
         self.audio_output.setVolume(1.0)
 
-        self.player = QMediaPlayer()
+        self.player = QMediaPlayer(self)
         self.player.setAudioOutput(self.audio_output)
 
         self.player.positionChanged.connect(self.position_changed.emit)
@@ -32,6 +38,13 @@ class AudioEngine(QObject):
         self.player.playbackStateChanged.connect(self._on_playback_state_changed)
         self.player.mediaStatusChanged.connect(self._on_media_status_changed)
         self.player.errorOccurred.connect(self._on_error)
+
+        # O Windows pode trocar o endpoint padrão ou invalidar um
+        # dispositivo (Bluetooth/headset/HDMI, por exemplo) enquanto o
+        # programa continua aberto. O Qt notifica essas alterações aqui.
+        self.media_devices.audioOutputsChanged.connect(
+            self._on_audio_outputs_changed
+        )
 
     def load(self, path: Path | str) -> None:
         """Carrega uma faixa sem iniciar sua reprodução."""
@@ -71,6 +84,38 @@ class AudioEngine(QObject):
             self.player.playbackState()
             == QMediaPlayer.PlaybackState.PlayingState
         )
+
+    def _on_audio_outputs_changed(self) -> None:
+        """Reata o player ao novo dispositivo de saída padrão do sistema."""
+        new_device = self.media_devices.defaultAudioOutput()
+        if new_device.isNull():
+            return
+
+        current_device = self.audio_output.device()
+        if (
+            not current_device.isNull()
+            and current_device.id() == new_device.id()
+        ):
+            return
+
+        was_playing = self.is_playing()
+        current_position = self.player.position()
+
+        # Pausar antes da troca evita que o QAudioOutput continue tentando
+        # usar um endpoint WASAPI que acabou de ser invalidado.
+        if was_playing:
+            self.player.pause()
+
+        self.audio_output.setDevice(new_device)
+
+        # Depois da troca, a posição do QMediaPlayer continua sendo a
+        # referência de sincronização. Retomamos somente se ele estava
+        # reproduzindo antes da alteração do dispositivo.
+        if was_playing:
+            self.player.setPosition(current_position)
+            self.player.play()
+
+        self.output_device_changed.emit(new_device.description())
 
     def _on_playback_state_changed(self, state) -> None:
         if state == QMediaPlayer.PlaybackState.PlayingState:
