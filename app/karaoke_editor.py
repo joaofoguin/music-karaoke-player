@@ -306,23 +306,23 @@ class KaraokeEditorWindow(QMainWindow):
 
     def _criar_atalhos(self):
         self.shortcut_play_pause = QShortcut(QKeySequence("Space"), self)
-        self.shortcut_play_pause.setContext(Qt.ShortcutContext.WindowShortcut)
+        self.shortcut_play_pause.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
         self.shortcut_play_pause.activated.connect(self._alternar_play_audio)
 
         self.shortcut_marcar = QShortcut(QKeySequence("F5"), self)
-        self.shortcut_marcar.setContext(Qt.ShortcutContext.WindowShortcut)
+        self.shortcut_marcar.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
         self.shortcut_marcar.activated.connect(self._gravar_tempo_linha_selecionada)
 
         self.shortcut_salvar = QShortcut(QKeySequence("Ctrl+S"), self)
-        self.shortcut_salvar.setContext(Qt.ShortcutContext.WindowShortcut)
+        self.shortcut_salvar.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
         self.shortcut_salvar.activated.connect(self.salvar_letra)
 
         self.shortcut_adicionar = QShortcut(QKeySequence("Insert"), self)
-        self.shortcut_adicionar.setContext(Qt.ShortcutContext.WindowShortcut)
+        self.shortcut_adicionar.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
         self.shortcut_adicionar.activated.connect(self._adicionar_linha)
 
         self.shortcut_remover = QShortcut(QKeySequence("Delete"), self)
-        self.shortcut_remover.setContext(Qt.ShortcutContext.WindowShortcut)
+        self.shortcut_remover.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
         self.shortcut_remover.activated.connect(self._remover_linhas_selecionadas)
 
     def carregar_faixa(self, track):
