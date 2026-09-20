@@ -219,12 +219,6 @@ class AudioEngine(QObject):
             self._sink_format = output_format
             self._audio_sink = QAudioSink(device, output_format, self)
             self._audio_sink.setVolume(self.audio_output.volume())
-            # PySide6 pode falhar ao converter QAudio::State ao despachar
-            # diretamente para um método Python tipado. A lambda mantém o
-            # argumento no lado Python e evita o erro de meta-função.
-            self._audio_sink.stateChanged.connect(
-                lambda state: self._on_sink_state_changed(state)
-            )
 
         raw_data = bytes(buffer.constData())
         sample_format = self._sample_format_name(source_format.sampleFormat())
