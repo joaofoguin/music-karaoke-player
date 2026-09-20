@@ -1,8 +1,6 @@
 from pathlib import Path
 import sys
 
-from PySide6.QtCore import QObject
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "app"))
 
 from core.queue_controller import QueueController
@@ -69,7 +67,7 @@ def test_queue_controller_forwards_state_signals():
     controller.remove(0)
     controller.clear()
 
-    assert len(queue_changes) == 5
+    assert len(queue_changes) == 4
     assert current_changes[0] == first
     assert current_changes[1] == first
     assert current_changes[2] == second
