@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import QIODevice, QObject, QUrl, Signal
+from PySide6.QtCore import QObject, QUrl, Signal
 from PySide6.QtMultimedia import (
     QAudioBufferOutput,
     QAudioFormat,
@@ -11,44 +11,6 @@ from PySide6.QtMultimedia import (
 )
 
 from core.audio_effects import AudioEffects
-
-
-class _AudioBufferDevice(QIODevice):
-    """QIODevice somente leitura alimentado por buffers PCM processados."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._buffer = bytearray()
-        self.open(QIODevice.OpenModeFlag.ReadOnly)
-
-    def append(self, data: bytes) -> None:
-        if not data:
-            return
-        self._buffer.extend(data)
-        self.readyRead.emit()
-
-    def has_data(self) -> bool:
-        return bool(self._buffer)
-
-    def bytesAvailable(self) -> int:
-        return len(self._buffer) + super().bytesAvailable()
-
-    def atEnd(self) -> bool:
-        return False
-
-    def readData(self, maxlen: int) -> bytes:
-        if maxlen <= 0 or not self._buffer:
-            return b""
-        size = min(maxlen, len(self._buffer))
-        data = bytes(self._buffer[:size])
-        del self._buffer[:size]
-        return data
-
-    def writeData(self, data: bytes) -> int:
-        return -1
-
-    def clear(self) -> None:
-        self._buffer.clear()
 
 
 class AudioEngine(QObject):
@@ -78,8 +40,8 @@ class AudioEngine(QObject):
 
         self._buffer_output = QAudioBufferOutput(self)
         self._buffer_output.audioBufferReceived.connect(self._on_audio_buffer_received)
-        self._buffer_device = _AudioBufferDevice(self)
         self._audio_sink = None
+        self._sink_io = None
         self._sink_format = None
         self._processed_output_device = default_device
 
@@ -281,18 +243,26 @@ class AudioEngine(QObject):
             print(f"Efeito mono indisponível: {exc}")
             return
 
-        self._buffer_device.append(processed)
+        # Escreve diretamente na QIODevice interna do QAudioSink.
+        # Isso evita que um QIODevice intermediário retorne zero bytes entre
+        # dois buffers do decoder e coloque o sink em IdleState.
+        if self._sink_io is None:
+            self._sink_io = self._audio_sink.start()
+            if self._sink_io is None:
+                print("Efeito mono indisponível: não foi possível iniciar a saída PCM")
+                return
 
-        # Inicia o sink somente depois que o primeiro bloco PCM está disponível.
-        # Isso evita que ele entre em Idle antes de o decoder entregar o áudio.
-        if self._audio_sink is not None and self._buffer_device.has_data():
-            sink_state = self._audio_sink.state()
-            if sink_state in (
-                QAudioSink.State.StoppedState,
-                QAudioSink.State.SuspendedState,
-                QAudioSink.State.IdleState,
-            ):
-                self._audio_sink.start(self._buffer_device)
+        written = self._sink_io.write(processed)
+        if written < 0:
+            print(
+                f"Erro ao enviar PCM mono para a saída: "
+                f"estado={self._audio_sink.state()}, erro={self._audio_sink.error()}"
+            )
+        elif written != len(processed):
+            print(
+                f"Saída PCM mono aceitou apenas {written} de "
+                f"{len(processed)} bytes"
+            )
 
     def _on_sink_state_changed(self, state) -> None:
         if self._audio_sink is None:
@@ -319,7 +289,7 @@ class AudioEngine(QObject):
             self._audio_sink.deleteLater()
             self._audio_sink = None
 
-        self._buffer_device.clear()
+        self._sink_io = None
         self._sink_format = None
 
         if not keep_pending_device:
