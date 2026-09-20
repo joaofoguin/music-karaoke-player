@@ -53,6 +53,18 @@ SVG_ICONS = {
 
     "fullscreen_exit": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M8 4h2v4h4v2H8V4zm6 16v-4h-4v-2h6v6h-2zM4 8h4v2H4V8zm12 6h4v2h-4v-2z"/></svg>""",
 
+
+    "rewind_5": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M11 5V2L6 6l5 4V7c3.31 0 6 2.69 6 6a6 6 0 0 1-11.2 3H3.7A8 8 0 1 0 11 5z"/></svg>""",
+    "forward_5": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M13 5V2l5 4-5 4V7c-3.31 0-6 2.69-6 6a6 6 0 0 0 11.2 3h2.1A8 8 0 1 1 13 5z"/></svg>""",
+    "timer": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M15 1H9v2h6V1zm-1 12h-4V8h2v3h2v2zm6.03-5.39 1.42-1.42a9.94 9.94 0 0 0-1.42-1.42l-1.42 1.42A9.96 9.96 0 1 0 19 17.03l1.42 1.42c.5-.42.99-.89 1.42-1.42l-1.42-1.42A9.96 9.96 0 0 0 20.03 7.61zM12 20a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg>""",
+    "paste": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M19 2h-4.18C14.4.84 13.3 0 12 0s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>""",
+    "plus": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6v-2z"/></svg>""",
+    "minus": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M5 11h14v2H5z"/></svg>""",
+    "arrow_up": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M12 4l-7 7 1.4 1.4L11 7.8V20h2V7.8l4.6 4.6L19 11l-7-7z"/></svg>""",
+    "arrow_down": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M12 20l7-7-1.4-1.4L13 16.2V4h-2v12.2l-4.6-4.6L5 13l7 7z"/></svg>""",
+    "settings": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65-2-3.46-2.49 1a7.45 7.45 0 0 0-1.69-.98L15 2h-4l-.38 2.93c-.6.24-1.17.57-1.69.98l-2.49-1-2 3.46 2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65 2 3.46 2.49-1c.52.41 1.09.74 1.69.98L11 22h4l.38-2.93c.6-.24 1.17-.57 1.69-.98l2.49 1 2-3.46-2.13-1.65zM13 16.5A4.5 4.5 0 1 1 13 7a4.5 4.5 0 0 1 0 9.5z"/></svg>""",
+    "save": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="{color}" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 5h8v4H6V5z"/></svg>""",
+
     "music": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
         <path fill="{color}" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
     </svg>""",

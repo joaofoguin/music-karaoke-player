@@ -34,7 +34,7 @@ from core.lyrics import (
     save_lrc,
 )
 from core.lyrics_storage import get_save_lyrics_path, resolve_lyrics_path
-from core.icons import get_svg_icon
+from core.icons import get_stateful_icon, get_svg_icon
 from core.clickable_slider import ClickableSlider
 
 
@@ -76,8 +76,9 @@ class KaraokeEditorWindow(QMainWindow):
                 QPushButton:hover { background: #374151; }
                 QPushButton#btnSync { background: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
                 QPushButton#btnSync:hover { background: #3b82f6; }
-                QPushButton#btnPaste { background: #047857; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
-                QPushButton#btnPaste:hover { background: #059669; }
+                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 4px; }
+                QPushButton#btnRowAction:hover { background: #1e3a8a; border: none; }\n                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 0; }\n                QPushButton#btnRowAction:hover { background: transparent; border: none; }\n                QPushButton#btnRowAction { background: transparent; border: none; padding: 0; border-radius: 0; }\n                QPushButton#btnRowAction:hover { background: transparent; border: none; }\n                QPushButton#btnTopAction { background: #047857; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
+                QPushButton#btnTopAction:hover { background: #059669; }
                 QPushButton#btnPlay { background: #2563eb; border-radius: 18px; min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px; }
                 QSlider::groove:horizontal { height: 6px; background: #1f2937; border-radius: 3px; }
                 QSlider::handle:horizontal { width: 14px; margin: -4px 0; background: #60a5fa; border-radius: 7px; }
@@ -93,8 +94,8 @@ class KaraokeEditorWindow(QMainWindow):
                 QPushButton:hover { background: #e5e7eb; }
                 QPushButton#btnSync { background: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
                 QPushButton#btnSync:hover { background: #1d4ed8; }
-                QPushButton#btnPaste { background: #059669; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
-                QPushButton#btnPaste:hover { background: #047857; }
+                QPushButton#btnTopAction { background: #059669; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
+                QPushButton#btnTopAction:hover { background: #047857; }
                 QPushButton#btnPlay { background: #2563eb; border-radius: 18px; min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px; }
                 QSlider::groove:horizontal { height: 6px; background: #e5e7eb; border-radius: 3px; }
                 QSlider::handle:horizontal { width: 14px; margin: -4px 0; background: #2563eb; border-radius: 7px; }
@@ -110,8 +111,8 @@ class KaraokeEditorWindow(QMainWindow):
                 QPushButton:hover { background: #4a4a4a; }
                 QPushButton#btnSync { background: #2563eb; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
                 QPushButton#btnSync:hover { background: #3b82f6; }
-                QPushButton#btnPaste { background: #059669; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; }
-                QPushButton#btnPaste:hover { background: #10b981; }
+                QPushButton#btnTopAction { background: #059669; color: #ffffff; font-weight: bold; font-size: 13px; border: 0; padding: 6px 14px; }
+                QPushButton#btnTopAction:hover { background: #10b981; }
                 QPushButton#btnPlay { background: #ffffff; border-radius: 18px; min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px; }
                 QSlider::groove:horizontal { height: 6px; background: #4a4a4a; border-radius: 3px; }
                 QSlider::handle:horizontal { width: 14px; margin: -4px 0; background: #e0e0e0; border-radius: 7px; }
@@ -138,13 +139,26 @@ class KaraokeEditorWindow(QMainWindow):
         self.lbl_faixa.setStyleSheet("font-size: 16px; font-weight: bold;")
         linha1.addWidget(self.lbl_faixa, 1)
 
-        self.btn_colar_musica = QPushButton("📋 Colar Música com Cifras e Letra...")
-        self.btn_colar_musica.setObjectName("btnPaste")
-        self.btn_colar_musica.setToolTip(
-            "Cole a música com cifras. O sistema separa as frases e os acordes para máxima legibilidade!"
-        )
+        linha1.addStretch()
+
+        self.btn_colar_musica = QPushButton("Importar")
+        self.btn_colar_musica.setObjectName("btnTopAction")
+        self.btn_colar_musica.setIcon(get_stateful_icon("paste", normal_color="#ffffff", hover_color="#ffffff"))
+        self.btn_colar_musica.setIconSize(QSize(18, 18))
+        self.btn_colar_musica.setFixedHeight(36)
+        self.btn_colar_musica.setToolTip("Importar letra e cifras")
         self.btn_colar_musica.clicked.connect(self._abrir_dialogo_colar_cifra_completa)
         linha1.addWidget(self.btn_colar_musica)
+
+        self.btn_sync = QPushButton("Marcar")
+        self.btn_sync.setIcon(get_stateful_icon("timer", normal_color="#ffffff", hover_color="#ffffff"))
+        self.btn_sync.setIconSize(QSize(18, 18))
+        self.btn_sync.setObjectName("btnSync")
+        self.btn_sync.setFixedHeight(36)
+        self.btn_sync.setMinimumWidth(104)
+        self.btn_sync.setToolTip("Marcar tempo da linha selecionada (F5)")
+        self.btn_sync.clicked.connect(self._gravar_tempo_linha_selecionada)
+        linha1.addWidget(self.btn_sync)
 
         layout_topo.addLayout(linha1)
 
@@ -152,7 +166,10 @@ class KaraokeEditorWindow(QMainWindow):
         linha2 = QHBoxLayout()
         linha2.setSpacing(10)
 
-        self.btn_voltar5 = QPushButton("⏪ -5s")
+        self.btn_voltar5 = QPushButton()
+        self.btn_voltar5.setIcon(get_svg_icon("rewind_5", color="#e5e7eb"))
+        self.btn_voltar5.setIconSize(QSize(18, 18))
+        self.btn_voltar5.setFixedSize(38, 36)
         self.btn_voltar5.setToolTip("Voltar 5 segundos")
         self.btn_voltar5.clicked.connect(lambda: self._avancar_tempo(-5000))
         linha2.addWidget(self.btn_voltar5)
@@ -163,7 +180,10 @@ class KaraokeEditorWindow(QMainWindow):
         self._atualizar_botao_play()
         linha2.addWidget(self.btn_play)
 
-        self.btn_avancar5 = QPushButton("+5s ⏩")
+        self.btn_avancar5 = QPushButton()
+        self.btn_avancar5.setIcon(get_svg_icon("forward_5", color="#e5e7eb"))
+        self.btn_avancar5.setIconSize(QSize(18, 18))
+        self.btn_avancar5.setFixedSize(38, 36)
         self.btn_avancar5.setToolTip("Avançar 5 segundos")
         self.btn_avancar5.clicked.connect(lambda: self._avancar_tempo(5000))
         linha2.addWidget(self.btn_avancar5)
@@ -178,19 +198,12 @@ class KaraokeEditorWindow(QMainWindow):
         self.slider_posicao.clicked_position.connect(self.audio_engine.set_position)
         linha2.addWidget(self.slider_posicao, 1)
 
-        self.btn_sync = QPushButton("⏱ Gravar Tempo no Verso (Espaço / F5)")
-        self.btn_sync.setObjectName("btnSync")
-        self.btn_sync.setFixedHeight(36)
-        self.btn_sync.setToolTip("Grava a posição atual do áudio na linha selecionada e avança")
-        self.btn_sync.clicked.connect(self._gravar_tempo_linha_selecionada)
-        linha2.addWidget(self.btn_sync)
-
         layout_topo.addLayout(linha2)
 
         # Dica / Opção de clique na linha
         linha_dica = QHBoxLayout()
         self.chk_click_to_sync = QCheckBox("Modo de Marcação Rápida: clicar em qualquer linha grava o tempo atual do áudio nela")
-        self.chk_click_to_sync.setChecked(True)
+        self.chk_click_to_sync.setChecked(False)
         self.chk_click_to_sync.setStyleSheet("color: #60a5fa; font-weight: bold;")
         linha_dica.addWidget(self.chk_click_to_sync)
         linha_dica.addStretch()
@@ -202,9 +215,8 @@ class KaraokeEditorWindow(QMainWindow):
         # ÁREA CENTRAL: TABELA DE VERSOS LIMPOS E CIFRAS SEPARADAS
         # ----------------------------------------------------
         self.tabela = QTableWidget()
-        self.tabela.setColumnCount(5)
+        self.tabela.setColumnCount(4)
         self.tabela.setHorizontalHeaderLabels([
-            "#",
             "Tempo (LRC)",
             "Cifras / Acordes",
             "Letra do Verso (Frase Limpa)",
@@ -212,10 +224,10 @@ class KaraokeEditorWindow(QMainWindow):
         ])
         self.tabela.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.tabela.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        self.tabela.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        self.tabela.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        self.tabela.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabela.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        self.tabela.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         self.tabela.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabela.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
         self.tabela.setAlternatingRowColors(True)
 
         self.tabela.cellClicked.connect(self._on_cell_clicked)
@@ -229,26 +241,45 @@ class KaraokeEditorWindow(QMainWindow):
         painel_linhas = QHBoxLayout()
         painel_linhas.setSpacing(8)
 
-        btn_add_linha = QPushButton("+ Adicionar Verso")
+        btn_add_linha = QPushButton()
+        btn_add_linha.setIcon(get_svg_icon("plus"))
+        btn_add_linha.setIconSize(QSize(18, 18))
+        btn_add_linha.setFixedSize(38, 34)
+        btn_add_linha.setToolTip("Adicionar verso")
         btn_add_linha.clicked.connect(self._adicionar_linha)
         painel_linhas.addWidget(btn_add_linha)
 
-        btn_remover_linha = QPushButton("× Remover Verso")
+        btn_remover_linha = QPushButton()
+        btn_remover_linha.setIcon(get_svg_icon("minus"))
+        btn_remover_linha.setIconSize(QSize(18, 18))
+        btn_remover_linha.setFixedSize(38, 34)
+        btn_remover_linha.setToolTip("Remover verso")
         btn_remover_linha.clicked.connect(self._remover_linha)
         painel_linhas.addWidget(btn_remover_linha)
 
-        btn_subir = QPushButton("↑ Mover Cima")
+        btn_subir = QPushButton()
+        btn_subir.setIcon(get_svg_icon("arrow_up"))
+        btn_subir.setIconSize(QSize(18, 18))
+        btn_subir.setFixedSize(38, 34)
+        btn_subir.setToolTip("Mover verso para cima")
         btn_subir.clicked.connect(lambda: self._mover_linha(-1))
         painel_linhas.addWidget(btn_subir)
 
-        btn_descer = QPushButton("↓ Mover Baixo")
+        btn_descer = QPushButton()
+        btn_descer.setIcon(get_svg_icon("arrow_down"))
+        btn_descer.setIconSize(QSize(18, 18))
+        btn_descer.setFixedSize(38, 34)
+        btn_descer.setToolTip("Mover verso para baixo")
         btn_descer.clicked.connect(lambda: self._mover_linha(1))
         painel_linhas.addWidget(btn_descer)
 
         painel_linhas.addStretch()
 
-        btn_ajustar_offset = QPushButton("⚙️ Ajustar Offset Geral...")
-        btn_ajustar_offset.setToolTip("Adiciona ou subtrai milissegundos de todas as linhas de uma vez")
+        btn_ajustar_offset = QPushButton()
+        btn_ajustar_offset.setIcon(get_svg_icon("settings"))
+        btn_ajustar_offset.setIconSize(QSize(18, 18))
+        btn_ajustar_offset.setFixedSize(38, 34)
+        btn_ajustar_offset.setToolTip("Ajustar offset geral")
         btn_ajustar_offset.clicked.connect(self._ajustar_offset_geral)
         painel_linhas.addWidget(btn_ajustar_offset)
 
@@ -267,16 +298,37 @@ class KaraokeEditorWindow(QMainWindow):
         self.lbl_destino.setStyleSheet("color: #9ca3af; font-size: 12px;")
         layout_rodape.addWidget(self.lbl_destino, 1)
 
-        self.btn_salvar = QPushButton("💾 Salvar Letra e Cifras na Pasta Central")
-        self.btn_salvar.setStyleSheet("font-weight: bold; padding: 6px 20px; font-size: 13px;")
+        self.btn_salvar = QPushButton()
+        self.btn_salvar.setIcon(get_svg_icon("save"))
+        self.btn_salvar.setIconSize(QSize(20, 20))
+        self.btn_salvar.setFixedSize(42, 36)
+        self.btn_salvar.setToolTip("Salvar letra e cifras (Ctrl+S)")
+        self.btn_salvar.setStyleSheet("font-weight: bold;")
         self.btn_salvar.clicked.connect(self.salvar_letra)
         layout_rodape.addWidget(self.btn_salvar)
 
         layout_principal.addWidget(painel_rodape)
 
     def _criar_atalhos(self):
-        QShortcut(QKeySequence("F5"), self, self._gravar_tempo_linha_selecionada)
-        QShortcut(QKeySequence("Ctrl+S"), self, self.salvar_letra)
+        self.shortcut_play_pause = QShortcut(QKeySequence("Space"), self)
+        self.shortcut_play_pause.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        self.shortcut_play_pause.activated.connect(self._alternar_play_audio)
+
+        self.shortcut_marcar = QShortcut(QKeySequence("F5"), self)
+        self.shortcut_marcar.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        self.shortcut_marcar.activated.connect(self._gravar_tempo_linha_selecionada)
+
+        self.shortcut_salvar = QShortcut(QKeySequence("Ctrl+S"), self)
+        self.shortcut_salvar.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        self.shortcut_salvar.activated.connect(self.salvar_letra)
+
+        self.shortcut_adicionar = QShortcut(QKeySequence("Insert"), self)
+        self.shortcut_adicionar.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        self.shortcut_adicionar.activated.connect(self._adicionar_linha)
+
+        self.shortcut_remover = QShortcut(QKeySequence("Delete"), self)
+        self.shortcut_remover.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        self.shortcut_remover.activated.connect(self._remover_linhas_selecionadas)
 
     def carregar_faixa(self, track):
         """Carrega a música atual e busca a letra existente na pasta central ou local."""
@@ -292,6 +344,10 @@ class KaraokeEditorWindow(QMainWindow):
         lrc_existente = resolve_lyrics_path(track, self.config_manager)
         self.target_lrc_path = get_save_lyrics_path(track, self.config_manager)
         self.lbl_destino.setText(f"Salvo em: {self.target_lrc_path}")
+
+        # Usa o caminho de salvamento como fallback para restaurar um LRC existente.
+        if not lrc_existente and self.target_lrc_path.is_file():
+            lrc_existente = self.target_lrc_path
 
         linhas = []
         if lrc_existente and lrc_existente.is_file():
@@ -313,46 +369,50 @@ class KaraokeEditorWindow(QMainWindow):
     def _inserir_linha_tabela(self, row: int, timestamp_ms: int, text: str, chords: str = ""):
         self.tabela.insertRow(row)
 
-        # Col 0: Número da linha
-        item_num = QTableWidgetItem(f"{row + 1:02d}")
-        item_num.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
-        item_num.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.tabela.setItem(row, 0, item_num)
-
-        # Col 1: Tempo
+        # Col 0: Tempo
         item_tempo = QTableWidgetItem(format_timestamp_ms(timestamp_ms))
         item_tempo.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         item_tempo.setData(Qt.ItemDataRole.UserRole, timestamp_ms)
         item_tempo.setToolTip("Clique aqui para carimbar o tempo atual da música neste verso")
-        self.tabela.setItem(row, 1, item_tempo)
+        self.tabela.setItem(row, 0, item_tempo)
 
         # Col 2: Cifras / Acordes separados
         item_cifras = QTableWidgetItem(chords)
         item_cifras.setForeground(QColor("#f59e0b"))
         item_cifras.setFont(QFont("Monospace", 10, QFont.Weight.Bold))
-        self.tabela.setItem(row, 2, item_cifras)
+        self.tabela.setItem(row, 1, item_cifras)
 
         # Col 3: Frase limpa do verso
         item_texto = QTableWidgetItem(text)
-        self.tabela.setItem(row, 3, item_texto)
+        self.tabela.setItem(row, 2, item_texto)
 
         # Col 4: Botões de ação
         widget_acoes = QWidget()
         layout_acoes = QHBoxLayout(widget_acoes)
         layout_acoes.setContentsMargins(4, 2, 4, 2)
-        layout_acoes.setSpacing(6)
+        layout_acoes.setSpacing(2)
 
-        btn_marcar = QPushButton("⏱ Marcar")
-        btn_marcar.setToolTip("Grava o tempo atual do áudio nesta linha")
+        btn_marcar = QPushButton()
+        btn_marcar.setObjectName("btnRowAction")
+        btn_marcar.setIcon(get_stateful_icon("timer", normal_color="#bdbdbd", hover_color="#60a5fa", active_color="#60a5fa"))
+        btn_marcar.setIconSize(QSize(17, 17))
+        btn_marcar.setFixedSize(28, 28)
+        btn_marcar.setFlat(True)
+        btn_marcar.setToolTip("Marcar tempo")
         btn_marcar.clicked.connect(lambda checked=False, r=row: self._gravar_tempo_linha(r))
         layout_acoes.addWidget(btn_marcar)
 
-        btn_ouvir = QPushButton("▶ Ouvir")
-        btn_ouvir.setToolTip("Pular a música para este verso")
+        btn_ouvir = QPushButton()
+        btn_ouvir.setObjectName("btnRowAction")
+        btn_ouvir.setIcon(get_stateful_icon("play", normal_color="#bdbdbd", hover_color="#60a5fa", active_color="#60a5fa"))
+        btn_ouvir.setIconSize(QSize(16, 16))
+        btn_ouvir.setFixedSize(28, 28)
+        btn_ouvir.setFlat(True)
+        btn_ouvir.setToolTip("Ouvir a partir desta linha")
         btn_ouvir.clicked.connect(lambda checked=False, r=row: self._ouvir_linha(r))
         layout_acoes.addWidget(btn_ouvir)
 
-        self.tabela.setCellWidget(row, 4, widget_acoes)
+        self.tabela.setCellWidget(row, 3, widget_acoes)
 
     def _on_cell_clicked(self, row: int, col: int):
         """Disparado quando o usuário clica em qualquer célula da tabela."""
@@ -370,7 +430,7 @@ class KaraokeEditorWindow(QMainWindow):
             return
 
         posicao_ms = self.audio_engine.position()
-        item_tempo = self.tabela.item(row, 1)
+        item_tempo = self.tabela.item(row, 0)
         if item_tempo:
             item_tempo.setText(format_timestamp_ms(posicao_ms))
             item_tempo.setData(Qt.ItemDataRole.UserRole, posicao_ms)
@@ -406,13 +466,19 @@ class KaraokeEditorWindow(QMainWindow):
             item.setData(Qt.ItemDataRole.UserRole, ms)
 
     def _ouvir_linha(self, row: int):
-        item_tempo = self.tabela.item(row, 1)
-        if item_tempo:
-            ms = item_tempo.data(Qt.ItemDataRole.UserRole)
-            if ms is not None:
-                self.audio_engine.set_position(ms)
-                if not self.audio_engine.is_playing():
-                    self.audio_engine.play()
+        if not (0 <= row < self.tabela.rowCount()):
+            return
+
+        item_tempo = self.tabela.item(row, 0)
+        if item_tempo is None:
+            return
+
+        ms = item_tempo.data(Qt.ItemDataRole.UserRole)
+        if ms is None:
+            return
+
+        self.audio_engine.set_position(int(ms))
+        self.audio_engine.play()
 
     def _adicionar_linha(self):
         row = self.tabela.currentRow()
@@ -432,13 +498,26 @@ class KaraokeEditorWindow(QMainWindow):
             self.tabela.removeRow(row)
             self._renumerar_e_reconstruir_acoes()
 
+    def _remover_linhas_selecionadas(self):
+        linhas = sorted({index.row() for index in self.tabela.selectionModel().selectedRows()}, reverse=True)
+        if not linhas:
+            return
+
+        for row in linhas:
+            self.tabela.removeRow(row)
+
+        self._renumerar_e_reconstruir_acoes()
+
+        if self.tabela.rowCount() > 0:
+            self.tabela.selectRow(min(linhas[-1], self.tabela.rowCount() - 1))
+
     def _mover_linha(self, delta: int):
         row = self.tabela.currentRow()
         destino = row + delta
         if 0 <= row < self.tabela.rowCount() and 0 <= destino < self.tabela.rowCount():
-            tempo_ms = self.tabela.item(row, 1).data(Qt.ItemDataRole.UserRole)
-            chords = self.tabela.item(row, 2).text()
-            texto = self.tabela.item(row, 3).text()
+            tempo_ms = self.tabela.item(row, 0).data(Qt.ItemDataRole.UserRole)
+            chords = self.tabela.item(row, 1).text()
+            texto = self.tabela.item(row, 2).text()
 
             self.tabela.removeRow(row)
             self._inserir_linha_tabela(destino, tempo_ms, texto, chords)
@@ -447,24 +526,32 @@ class KaraokeEditorWindow(QMainWindow):
 
     def _renumerar_e_reconstruir_acoes(self):
         for r in range(self.tabela.rowCount()):
-            item_num = self.tabela.item(r, 0)
-            if item_num:
-                item_num.setText(f"{r + 1:02d}")
-
             widget_acoes = QWidget()
             layout_acoes = QHBoxLayout(widget_acoes)
-            layout_acoes.setContentsMargins(4, 2, 4, 2)
-            layout_acoes.setSpacing(6)
+            layout_acoes.setContentsMargins(2, 1, 2, 1)
+            layout_acoes.setSpacing(2)
 
-            btn_marcar = QPushButton("⏱ Marcar")
+            btn_marcar = QPushButton()
+            btn_marcar.setObjectName("btnRowAction")
+            btn_marcar.setIcon(get_svg_icon("timer"))
+            btn_marcar.setIconSize(QSize(17, 17))
+            btn_marcar.setFixedSize(28, 28)
+            btn_marcar.setFlat(True)
+            btn_marcar.setToolTip("Marcar tempo")
             btn_marcar.clicked.connect(lambda checked=False, row_idx=r: self._gravar_tempo_linha(row_idx))
             layout_acoes.addWidget(btn_marcar)
 
-            btn_ouvir = QPushButton("▶ Ouvir")
+            btn_ouvir = QPushButton()
+            btn_ouvir.setObjectName("btnRowAction")
+            btn_ouvir.setIcon(get_svg_icon("play"))
+            btn_ouvir.setIconSize(QSize(16, 16))
+            btn_ouvir.setFixedSize(28, 28)
+            btn_ouvir.setFlat(True)
+            btn_ouvir.setToolTip("Ouvir a partir desta linha")
             btn_ouvir.clicked.connect(lambda checked=False, row_idx=r: self._ouvir_linha(row_idx))
             layout_acoes.addWidget(btn_ouvir)
 
-            self.tabela.setCellWidget(r, 4, widget_acoes)
+            self.tabela.setCellWidget(r, 3, widget_acoes)
 
     def _abrir_dialogo_colar_cifra_completa(self):
         """Abre caixa de diálogo para colar a música completa com cifras copiadas da internet."""
@@ -494,7 +581,9 @@ class KaraokeEditorWindow(QMainWindow):
         btn_cancel = QPushButton("Cancelar")
         btn_cancel.clicked.connect(dialog.reject)
 
-        btn_aplicar = QPushButton("✨ Processar Cifras e Carregar no Editor")
+        btn_aplicar = QPushButton("Importar")
+        btn_aplicar.setIcon(get_svg_icon("paste", color="#ffffff"))
+        btn_aplicar.setIconSize(QSize(18, 18))
         btn_aplicar.setStyleSheet("background: #059669; color: white; font-weight: bold; padding: 6px 16px;")
         btn_aplicar.setDefault(True)
 
@@ -534,7 +623,7 @@ class KaraokeEditorWindow(QMainWindow):
         )
         if ok and offset != 0:
             for r in range(self.tabela.rowCount()):
-                item_tempo = self.tabela.item(r, 1)
+                item_tempo = self.tabela.item(r, 0)
                 if item_tempo:
                     ms_atual = item_tempo.data(Qt.ItemDataRole.UserRole) or 0
                     novo_ms = max(0, ms_atual + offset)
@@ -549,13 +638,15 @@ class KaraokeEditorWindow(QMainWindow):
 
         linhas: list[LyricLine] = []
         for r in range(self.tabela.rowCount()):
-            item_tempo = self.tabela.item(r, 1)
-            item_chords = self.tabela.item(r, 2)
-            item_texto = self.tabela.item(r, 3)
+            item_tempo = self.tabela.item(r, 0)
+            item_chords = self.tabela.item(r, 1)
+            item_texto = self.tabela.item(r, 2)
             ms = item_tempo.data(Qt.ItemDataRole.UserRole) if item_tempo else 0
+            if ms is None:
+                ms = 0
             chords = item_chords.text().strip() if item_chords else ""
             texto = item_texto.text() if item_texto else ""
-            linhas.append(LyricLine(timestamp_ms=ms, text=texto, chords=chords))
+            linhas.append(LyricLine(timestamp_ms=int(ms), text=texto, chords=chords))
 
         destino = self.target_lrc_path or get_save_lyrics_path(self.current_track, self.config_manager)
         sucesso = save_lrc(
