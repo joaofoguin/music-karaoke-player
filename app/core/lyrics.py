@@ -298,8 +298,9 @@ def save_lrc(path: Path, lines: list[LyricLine], title: str = "", artist: str = 
         if artist:
             conteudo.append(f"[ar:{artist}]")
 
-        for line in sorted(lines, key=lambda l: l.timestamp_ms):
-            ts = format_timestamp_ms(line.timestamp_ms)
+        for line in sorted(lines, key=lambda l: int(l.timestamp_ms or 0)):
+            timestamp_ms = max(0, int(line.timestamp_ms or 0))
+            ts = format_timestamp_ms(timestamp_ms)
             if line.chords:
                 conteudo.append(f"[{ts}][chords:{line.chords}]{line.clean_lyrics}")
             else:
