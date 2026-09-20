@@ -38,61 +38,6 @@ from karaoke_editor import KaraokeEditorWindow
 from settings_dialog import SettingsDialog
 
 
-class MarqueeLabel(QLabel):
-    """Exibe uma única linha e desloca o texto quando ele não cabe no espaço disponível."""
-
-    def __init__(self, text="", parent=None):
-        super().__init__(text, parent)
-        self._texto_original = text or ""
-        self._offset = 0
-        self._timer = QTimer(self)
-        self._timer.setInterval(90)
-        self._timer.timeout.connect(self._avancar)
-        self.setMinimumWidth(0)
-        self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
-
-    def setText(self, text):
-        self._texto_original = text or ""
-        self._offset = 0
-        self._reiniciar()
-        self._atualizar()
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self._reiniciar()
-        self._atualizar()
-
-    def _cabe(self):
-        return self.fontMetrics().horizontalAdvance(self._texto_original) <= max(0, self.width())
-
-    def _reiniciar(self):
-        self._timer.stop()
-        if self._texto_original and not self._cabe():
-            self._timer.start()
-
-    def _avancar(self):
-        if self._cabe():
-            self._timer.stop()
-            self._offset = 0
-            self._atualizar()
-            return
-        ciclo = self._texto_original + "     "
-        self._offset = (self._offset + 1) % len(ciclo)
-        self._atualizar()
-
-    def _atualizar(self):
-        if not self._texto_original or self._cabe():
-            super().setText(self._texto_original)
-            return
-        ciclo = self._texto_original + "     "
-        rotacao = ciclo[self._offset:] + ciclo[:self._offset]
-        largura = max(1, self.width())
-        fim = 0
-        while fim < len(rotacao) and self.fontMetrics().horizontalAdvance(rotacao[:fim + 1]) <= largura:
-            fim += 1
-        super().setText(rotacao[:max(1, fim)])
-
-
 class QueueItemWidget(QFrame):
     """Widget de item de fila com suporte a duplo clique para reproduzir e menu de contexto."""
 
@@ -110,7 +55,7 @@ class QueueItemWidget(QFrame):
 
         self._montar_layout()
 
-    def _montar_layout(self):
+\n    def _limitar_texto(self, texto: str, widget: QLabel, sufixo: str = "...") -> str:\n        if not texto:\n            return ""\n        largura = max(1, widget.maximumWidth() if widget.maximumWidth() > 0 else widget.width())\n        if widget.fontMetrics().horizontalAdvance(texto) <= largura:\n            return texto\n        while len(texto) > 1 and widget.fontMetrics().horizontalAdvance(texto + sufixo) > largura:\n            texto = texto[:-1]\n        return texto + sufixo\n\n    def _montar_layout(self):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(6, 3, 6, 3)
         layout.setSpacing(6)
@@ -130,10 +75,10 @@ class QueueItemWidget(QFrame):
         else:
             tag = ""
 
-        lbl_titulo = MarqueeLabel(f"{self.index + 1:02d}. {titulo}{tag}")
+        lbl_titulo = QLabel(self._limitar_texto(f"{self.index + 1:02d}. {titulo}{tag}", QLabel()))
         lbl_titulo.setStyleSheet("font-weight: bold; font-size: 13px;")
 
-        lbl_sub = MarqueeLabel(f"{artista}  •  {duracao}")
+        lbl_sub = QLabel(f"{artista}  •  {duracao}")
         lbl_sub.setStyleSheet("font-size: 11px; opacity: 0.85;")
 
         info_layout.addWidget(lbl_titulo)
@@ -753,9 +698,9 @@ class MainWindow(QMainWindow):
         informacoes.setSpacing(0)
         informacoes.setContentsMargins(0, 0, 0, 0)
 
-        self.titulo_musica = MarqueeLabel("Nenhuma música selecionada")
-        self.artista_musica = MarqueeLabel("Artista")
-        self.album_musica = MarqueeLabel("Álbum")
+        self.titulo_musica = QLabel("Nenhuma música selecionada")
+        self.artista_musica = QLabel("Artista")
+        self.album_musica = QLabel("Álbum")
 
         self.titulo_musica.setObjectName("trackTitle")
         self.artista_musica.setObjectName("trackMetadata")
