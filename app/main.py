@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QDir, QPoint, QSize, Qt
+from PySide6.QtCore import QDir, QPoint, QTimer, QSize, Qt
 from PySide6.QtGui import QAction, QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
@@ -38,6 +38,61 @@ from karaoke_editor import KaraokeEditorWindow
 from settings_dialog import SettingsDialog
 
 
+class MarqueeLabel(QLabel):
+    """Exibe uma única linha e desloca o texto quando ele não cabe no espaço disponível."""
+
+    def __init__(self, text="", parent=None):
+        super().__init__(text, parent)
+        self._texto_original = text or ""
+        self._offset = 0
+        self._timer = QTimer(self)
+        self._timer.setInterval(90)
+        self._timer.timeout.connect(self._avancar)
+        self.setMinimumWidth(0)
+        self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+
+    def setText(self, text):
+        self._texto_original = text or ""
+        self._offset = 0
+        self._reiniciar()
+        self._atualizar()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._reiniciar()
+        self._atualizar()
+
+    def _cabe(self):
+        return self.fontMetrics().horizontalAdvance(self._texto_original) <= max(0, self.width())
+
+    def _reiniciar(self):
+        self._timer.stop()
+        if self._texto_original and not self._cabe():
+            self._timer.start()
+
+    def _avancar(self):
+        if self._cabe():
+            self._timer.stop()
+            self._offset = 0
+            self._atualizar()
+            return
+        ciclo = self._texto_original + "     "
+        self._offset = (self._offset + 1) % len(ciclo)
+        self._atualizar()
+
+    def _atualizar(self):
+        if not self._texto_original or self._cabe():
+            super().setText(self._texto_original)
+            return
+        ciclo = self._texto_original + "     "
+        rotacao = ciclo[self._offset:] + ciclo[:self._offset]
+        largura = max(1, self.width())
+        fim = 0
+        while fim < len(rotacao) and self.fontMetrics().horizontalAdvance(rotacao[:fim + 1]) <= largura:
+            fim += 1
+        super().setText(rotacao[:max(1, fim)])
+
+
 class QueueItemWidget(QFrame):
     """Widget de item de fila com suporte a duplo clique para reproduzir e menu de contexto."""
 
@@ -57,12 +112,12 @@ class QueueItemWidget(QFrame):
 
     def _montar_layout(self):
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(6, 4, 6, 4)
+        layout.setContentsMargins(6, 3, 6, 3)
         layout.setSpacing(6)
 
         # Informações da faixa
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(2)
+        info_layout.setSpacing(1)
 
         titulo = self.track.title
         artista = self.track.artist if self.track.artist else "Artista desconhecido"
@@ -75,10 +130,10 @@ class QueueItemWidget(QFrame):
         else:
             tag = ""
 
-        lbl_titulo = QLabel(f"{self.index + 1:02d}. {titulo}{tag}")
+        lbl_titulo = MarqueeLabel(f"{self.index + 1:02d}. {titulo}{tag}")
         lbl_titulo.setStyleSheet("font-weight: bold; font-size: 13px;")
 
-        lbl_sub = QLabel(f"{artista}  •  {duracao}")
+        lbl_sub = MarqueeLabel(f"{artista}  •  {duracao}")
         lbl_sub.setStyleSheet("font-size: 11px; opacity: 0.85;")
 
         info_layout.addWidget(lbl_titulo)
@@ -661,10 +716,11 @@ class MainWindow(QMainWindow):
         self.queue_content = QWidget()
         self.queue_layout = QVBoxLayout(self.queue_content)
         self.queue_layout.setContentsMargins(0, 0, 0, 0)
-        self.queue_layout.setSpacing(6)
+        self.queue_layout.setSpacing(4)
         self.queue_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.queue_scroll.setWidget(self.queue_content)
+        self.queue_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         layout_queue.addWidget(self.queue_scroll)
 
         # ==================================================
@@ -675,14 +731,14 @@ class MainWindow(QMainWindow):
         player.setFrameShape(QFrame.Shape.StyledPanel)
 
         layout_player = QHBoxLayout(player)
-        layout_player.setContentsMargins(12, 8, 12, 8)
-        layout_player.setSpacing(10)
+        layout_player.setContentsMargins(12, 6, 12, 6)
+        layout_player.setSpacing(8)
 
         # ==================================================
         # LATERAL ESQUERDA: CAPA E INFORMAÇÕES
         # ==================================================
         self.capa = QLabel()
-        self.capa.setFixedSize(58, 58)
+        self.capa.setFixedSize(54, 54)
         self.capa.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.capa.setText("CAPA")
         self.capa.setStyleSheet(
@@ -690,15 +746,16 @@ class MainWindow(QMainWindow):
         )
 
         faixa_atual = QHBoxLayout()
-        faixa_atual.setSpacing(8)
+        faixa_atual.setSpacing(6)
         faixa_atual.addWidget(self.capa)
 
         informacoes = QVBoxLayout()
         informacoes.setSpacing(0)
+        informacoes.setContentsMargins(0, 0, 0, 0)
 
-        self.titulo_musica = QLabel("Nenhuma música selecionada")
-        self.artista_musica = QLabel("Artista")
-        self.album_musica = QLabel("Álbum")
+        self.titulo_musica = MarqueeLabel("Nenhuma música selecionada")
+        self.artista_musica = MarqueeLabel("Artista")
+        self.album_musica = MarqueeLabel("Álbum")
 
         self.titulo_musica.setObjectName("trackTitle")
         self.artista_musica.setObjectName("trackMetadata")
@@ -715,12 +772,12 @@ class MainWindow(QMainWindow):
         # CENTRO: CONTROLES PRINCIPAIS E PROGRESSO
         # ==================================================
         player_central = QVBoxLayout()
-        player_central.setSpacing(2)
-        player_central.setContentsMargins(12, 0, 12, 0)
+        player_central.setSpacing(1)
+        player_central.setContentsMargins(8, 0, 8, 0)
         player_central.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         controles = QHBoxLayout()
-        controles.setSpacing(10)
+        controles.setSpacing(6)
         controles.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.botao_anterior = QPushButton()
@@ -758,11 +815,11 @@ class MainWindow(QMainWindow):
 
         # PROGRESSO COM CLIQUE DIRETO (ClickableSlider)
         progresso = QHBoxLayout()
-        progresso.setSpacing(6)
+        progresso.setSpacing(4)
 
         self.slider_progresso = ClickableSlider(Qt.Orientation.Horizontal)
-        self.slider_progresso.setMaximumWidth(520)
-        self.slider_progresso.setMinimumWidth(260)
+        self.slider_progresso.setMaximumWidth(400)
+        self.slider_progresso.setMinimumWidth(180)
         self.slider_progresso.sliderMoved.connect(self.audio_engine.set_position)
         self.slider_progresso.clicked_position.connect(self.audio_engine.set_position)
 
@@ -786,7 +843,7 @@ class MainWindow(QMainWindow):
         # LATERAL DIREITA: BOTÃO KARAOKE & VOLUME
         # ==================================================
         layout_direita = QHBoxLayout()
-        layout_direita.setSpacing(8)
+        layout_direita.setSpacing(5)
         layout_direita.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
         self.botao_karaoke = QPushButton()
@@ -801,7 +858,7 @@ class MainWindow(QMainWindow):
 
         self.volume = ClickableSlider(Qt.Orientation.Horizontal)
         self.volume.setRange(0, 100)
-        self.volume.setFixedWidth(82)
+        self.volume.setFixedWidth(72)
         self.volume.valueChanged.connect(self._on_volume_changed)
         self.volume.clicked_position.connect(self._on_volume_changed)
 
@@ -1154,6 +1211,30 @@ class MainWindow(QMainWindow):
             self.queue_layout.addWidget(item_widget)
 
         self.botao_limpar_fila.setEnabled(bool(self.queue_manager.tracks))
+        QTimer.singleShot(0, self._manter_faixas_atuais_visiveis)
+
+    def _manter_faixas_atuais_visiveis(self):
+        if not self.queue_manager.tracks or self.queue_manager.current_index < 0:
+            return
+
+        widgets = [self.queue_layout.itemAt(i).widget() for i in range(self.queue_layout.count())]
+        widgets = [w for w in widgets if w is not None]
+        indice = self.queue_manager.current_index
+        atual = widgets[indice] if indice < len(widgets) else None
+        proxima = widgets[indice + 1] if indice + 1 < len(widgets) else None
+        if atual is None:
+            return
+
+        barra = self.queue_scroll.verticalScrollBar()
+        topo = atual.geometry().top()
+        limite_inferior = proxima.geometry().bottom() if proxima is not None else atual.geometry().bottom()
+        viewport = self.queue_scroll.viewport().height()
+        valor = barra.value()
+        if topo < valor:
+            valor = topo
+        elif limite_inferior > valor + viewport:
+            valor = limite_inferior - viewport
+        barra.setValue(max(0, min(valor, barra.maximum())))
 
     def mover_faixa(self, index, destino):
         if self.queue_manager.move(index, destino):
