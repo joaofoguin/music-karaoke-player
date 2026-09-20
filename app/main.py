@@ -593,9 +593,10 @@ class MainWindow(QMainWindow):
             self.file_list.setRootIndex(self.file_model.index(pasta))
             self.config_manager.set("general/last_opened_folder", pasta)
 
-    def _on_repeat_clicked(self):
-        self.playback_coordinator.repeat = self.botao_repetir.isChecked()
-        self.config_manager.set("playback/repeat_enabled", self.botao_repetir.isChecked())
+    def _on_repeat_clicked(self, checked=None):
+        ativo = self.botao_repetir.isChecked() if checked is None else checked
+        self.playback_coordinator.repeat = ativo
+        self.config_manager.set("playback/repeat_enabled", ativo)
 
     def _on_volume_changed(self, valor):
         self.audio_engine.set_volume(valor)
