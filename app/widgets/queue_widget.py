@@ -21,7 +21,6 @@ class QueueWidget(QFrame):
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self._theme = "dark"
         self._build_ui()
-        self.queue_controller.queue_changed.connect(self.atualizar_fila)
 
     def _build_ui(self):
         layout_queue = QVBoxLayout(self)
