@@ -466,13 +466,19 @@ class KaraokeEditorWindow(QMainWindow):
             item.setData(Qt.ItemDataRole.UserRole, ms)
 
     def _ouvir_linha(self, row: int):
-        item_tempo = self.tabela.item(row, 1)
-        if item_tempo:
-            ms = item_tempo.data(Qt.ItemDataRole.UserRole)
-            if ms is not None:
-                self.audio_engine.set_position(ms)
-                if not self.audio_engine.is_playing():
-                    self.audio_engine.play()
+        if not (0 <= row < self.tabela.rowCount()):
+            return
+
+        item_tempo = self.tabela.item(row, 0)
+        if item_tempo is None:
+            return
+
+        ms = item_tempo.data(Qt.ItemDataRole.UserRole)
+        if ms is None:
+            return
+
+        self.audio_engine.set_position(int(ms))
+        self.audio_engine.play()
 
     def _adicionar_linha(self):
         row = self.tabela.currentRow()
