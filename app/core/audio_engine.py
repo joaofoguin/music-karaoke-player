@@ -34,6 +34,7 @@ class AudioEngine(QObject):
         self._configured_output_device_id = ""
         self._mono_enabled = False
         self._gain_db = 0.0
+        self._buffer_callback_count = 0
 
         default_device = self.media_devices.defaultAudioOutput()
         self.audio_output = QAudioOutput(default_device, self)
@@ -225,7 +226,7 @@ class AudioEngine(QObject):
 
         self._buffer_callback_count += 1
         if self._buffer_callback_count == 1:
-            print("Modo mono: QAudioBufferOutput recebeu o primeiro buffer PCM")
+            print("Pipeline de efeitos: QAudioBufferOutput recebeu o primeiro buffer PCM")
 
         source_format = buffer.format()
         channel_count = source_format.channelCount()
