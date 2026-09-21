@@ -132,6 +132,11 @@ class KaraokeEditorWindow(QMainWindow):
         self.lbl_tempo.setStyleSheet(
             f'font-size: 13px; font-family: "Poppins", monospace; font-weight: 600; color: {cor_tempo};'
         )
+        cor_destino = "#6b7280" if tema == "light" else "#9ca3af"
+        self.lbl_destino.setStyleSheet(f"color: {cor_destino}; font-size: 12px;")
+        self.chk_click_to_sync.setStyleSheet(
+            f"color: {'#2563eb' if tema == 'light' else '#60a5fa'}; font-weight: bold;"
+        )
         self._atualizar_icones()
 
     def _atualizar_icones(self):
