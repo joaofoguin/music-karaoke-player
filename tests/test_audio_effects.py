@@ -99,3 +99,34 @@ def test_normalize_peak_rejects_invalid_target():
         assert "Pico-alvo inválido" in str(exc)
     else:
         raise AssertionError("Era esperado ValueError")
+
+
+def test_apply_noise_reduction_float32_attenuates_low_level_signal():
+    data = struct.pack("<3f", 0.005, 0.02, -0.005)
+    result = AudioEffects.apply_noise_reduction(
+        data, "float32", threshold_db=-40.0, reduction_db=20.0
+    )
+    samples = struct.unpack("<3f", result)
+    assert abs(samples[0] - 0.00275) < 1e-6
+    assert abs(samples[1] - 0.02) < 1e-7
+    assert abs(samples[2] + 0.00275) < 1e-6
+
+
+def test_apply_noise_reduction_zero_reduction_keeps_data():
+    data = struct.pack("<2f", 0.005, -0.002)
+    assert AudioEffects.apply_noise_reduction(
+        data, "float32", threshold_db=-40.0, reduction_db=0.0
+    ) == data
+
+
+def test_apply_noise_reduction_rejects_invalid_parameters():
+    data = struct.pack("<f", 0.001)
+    for threshold, reduction in [(-90.0, 18.0), (-45.0, 70.0)]:
+        try:
+            AudioEffects.apply_noise_reduction(
+                data, "float32", threshold_db=threshold, reduction_db=reduction
+            )
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Era esperado ValueError")

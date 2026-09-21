@@ -64,6 +64,13 @@ class MainWindow(QMainWindow):
         self.audio_engine.set_mono_enabled(
             self.config_manager.get("audio/effects/mono_enabled", False)
         )
+        self.audio_engine.set_noise_reduction_settings(
+            self.config_manager.get("audio/effects/noise_threshold_db", -45.0),
+            self.config_manager.get("audio/effects/noise_reduction_db", 18.0),
+        )
+        self.audio_engine.set_noise_reduction_enabled(
+            self.config_manager.get("audio/effects/noise_reduction_enabled", False)
+        )
         self.playback_coordinator = PlaybackCoordinator(self.audio_engine, self.queue_controller)
         self.playback_coordinator.track_changed.connect(self._ao_mudar_faixa)
         self.karaoke_window = None
@@ -110,6 +117,13 @@ class MainWindow(QMainWindow):
         )
         self.audio_engine.set_mono_enabled(
             self.config_manager.get("audio/effects/mono_enabled", False)
+        )
+        self.audio_engine.set_noise_reduction_settings(
+            self.config_manager.get("audio/effects/noise_threshold_db", -45.0),
+            self.config_manager.get("audio/effects/noise_reduction_db", 18.0),
+        )
+        self.audio_engine.set_noise_reduction_enabled(
+            self.config_manager.get("audio/effects/noise_reduction_enabled", False)
         )
         self.aplicar_estilo()
 

@@ -157,6 +157,66 @@ class AudioEffects:
         raise ValueError(f"Formato PCM não suportado: {sample_format}")
 
     @staticmethod
+    def apply_noise_reduction(
+        data: bytes,
+        sample_format: str,
+        threshold_db: float = -45.0,
+        reduction_db: float = 18.0,
+    ) -> bytes:
+        """Atenua sinais de baixo nível com uma expansão descendente suave."""
+        if not data:
+            return data
+
+        threshold_db = float(threshold_db)
+        reduction_db = float(reduction_db)
+        if not -80.0 <= threshold_db <= -10.0:
+            raise ValueError("Limiar de redução de ruído inválido")
+        if not 0.0 <= reduction_db <= 60.0:
+            raise ValueError("Redução de ruído inválida")
+
+        threshold = 10.0 ** (threshold_db / 20.0)
+        floor_gain = 10.0 ** (-reduction_db / 20.0)
+
+        def process_sample(sample: float) -> float:
+            magnitude = abs(sample)
+            if magnitude >= threshold:
+                return sample
+            ratio = magnitude / threshold
+            gain = floor_gain + (1.0 - floor_gain) * ratio
+            return sample * gain
+
+        if sample_format == "float32":
+            samples = struct.unpack(f"<{len(data) // 4}f", data)
+            processed = [max(-1.0, min(1.0, process_sample(sample))) for sample in samples]
+            return struct.pack(f"<{len(processed)}f", *processed)
+
+        if sample_format == "int16":
+            samples = struct.unpack(f"<{len(data) // 2}h", data)
+            processed = [
+                max(-32768, min(32767, round(process_sample(sample / 32767.0) * 32767.0)))
+                for sample in samples
+            ]
+            return struct.pack(f"<{len(processed)}h", *processed)
+
+        if sample_format == "int32":
+            samples = struct.unpack(f"<{len(data) // 4}i", data)
+            processed = [
+                max(-2147483648, min(2147483647, round(process_sample(sample / 2147483647.0) * 2147483647.0)))
+                for sample in samples
+            ]
+            return struct.pack(f"<{len(processed)}i", *processed)
+
+        if sample_format == "uint8":
+            processed = []
+            for sample in data:
+                normalized = (sample - 128) / 127.0
+                reduced = process_sample(normalized)
+                processed.append(max(0, min(255, round(128 + reduced * 127.0))))
+            return bytes(processed)
+
+        raise ValueError(f"Formato PCM não suportado: {sample_format}")
+
+    @staticmethod
     def apply_gain(data: bytes, sample_format: str, gain_db: float) -> bytes:
         """Aplica ganho linear em decibéis ao PCM, com limitação por formato."""
         if not data or gain_db == 0:

@@ -21,6 +21,9 @@ class AudioProcessingPipeline:
         mono_enabled: bool,
         normalize_enabled: bool,
         gain_db: float,
+        noise_reduction_enabled: bool = False,
+        noise_threshold_db: float = -45.0,
+        noise_reduction_db: float = 18.0,
     ) -> bytes:
         source_sample_format = self._sample_format_name(source_format.sampleFormat())
         if source_sample_format == "unknown":
@@ -43,6 +46,14 @@ class AudioProcessingPipeline:
         if normalize_enabled:
             processed = AudioEffects.normalize_peak(
                 processed, source_sample_format
+            )
+
+        if noise_reduction_enabled:
+            processed = AudioEffects.apply_noise_reduction(
+                processed,
+                source_sample_format,
+                noise_threshold_db,
+                noise_reduction_db,
             )
 
         processed = AudioEffects.apply_gain(

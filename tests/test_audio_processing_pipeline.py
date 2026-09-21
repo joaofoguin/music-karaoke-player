@@ -105,3 +105,26 @@ def test_audio_processing_pipeline_applies_gain_before_conversion():
 
     sample = struct.unpack("<f", result)[0]
     assert abs(sample - (16384 / 32767.0)) < 1e-5
+
+
+def test_audio_processing_pipeline_applies_noise_reduction():
+    source = make_format(44100, 1, QAudioFormat.SampleFormat.Float)
+    target = make_format(44100, 1, QAudioFormat.SampleFormat.Float)
+    data = struct.pack("<2f", 0.005, 0.02)
+
+    pipeline = AudioProcessingPipeline()
+    result = pipeline.process(
+        data,
+        source,
+        target,
+        mono_enabled=False,
+        normalize_enabled=False,
+        gain_db=0.0,
+        noise_reduction_enabled=True,
+        noise_threshold_db=-40.0,
+        noise_reduction_db=20.0,
+    )
+
+    samples = struct.unpack("<2f", result)
+    assert abs(samples[0] - 0.00275) < 1e-6
+    assert abs(samples[1] - 0.02) < 1e-7

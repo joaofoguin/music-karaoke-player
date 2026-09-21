@@ -74,6 +74,21 @@ class PlaybackController(QObject):
     def normalize_enabled(self) -> bool:
         return self._audio_engine.normalize_enabled()
 
+    def set_noise_reduction_enabled(self, enabled: bool) -> None:
+        self._audio_engine.set_noise_reduction_enabled(enabled)
+
+    def noise_reduction_enabled(self) -> bool:
+        return self._audio_engine.noise_reduction_enabled()
+
+    def set_noise_reduction_settings(self, threshold_db: float, reduction_db: float) -> None:
+        self._audio_engine.set_noise_reduction_settings(threshold_db, reduction_db)
+
+    def noise_threshold_db(self) -> float:
+        return self._audio_engine.noise_threshold_db()
+
+    def noise_reduction_db(self) -> float:
+        return self._audio_engine.noise_reduction_db()
+
     def position(self) -> int:
         return self._audio_engine.position()
 

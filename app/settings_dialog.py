@@ -118,6 +118,32 @@ class SettingsDialog(QDialog):
         )
         form_audio.addRow("", self.chk_normalize_enabled)
 
+        self.chk_noise_reduction_enabled = QCheckBox("Redução de ruído")
+        self.chk_noise_reduction_enabled.setToolTip(
+            "Atenua sinais de baixo nível para reduzir ruído de fundo constante."
+        )
+        form_audio.addRow("", self.chk_noise_reduction_enabled)
+
+        self.spin_noise_threshold_db = QDoubleSpinBox()
+        self.spin_noise_threshold_db.setRange(-80.0, -10.0)
+        self.spin_noise_threshold_db.setDecimals(1)
+        self.spin_noise_threshold_db.setSingleStep(1.0)
+        self.spin_noise_threshold_db.setSuffix(" dB")
+        self.spin_noise_threshold_db.setToolTip(
+            "Nível abaixo do qual a redução começa a atuar."
+        )
+        form_audio.addRow("Limiar de ruído:", self.spin_noise_threshold_db)
+
+        self.spin_noise_reduction_db = QDoubleSpinBox()
+        self.spin_noise_reduction_db.setRange(0.0, 60.0)
+        self.spin_noise_reduction_db.setDecimals(1)
+        self.spin_noise_reduction_db.setSingleStep(1.0)
+        self.spin_noise_reduction_db.setSuffix(" dB")
+        self.spin_noise_reduction_db.setToolTip(
+            "Quanto o sinal de baixo nível será atenuado."
+        )
+        form_audio.addRow("Redução:", self.spin_noise_reduction_db)
+
         self.chk_remember_volume = QCheckBox("Lembrar o último volume ao fechar")
         form_audio.addRow("", self.chk_remember_volume)
 
@@ -351,6 +377,15 @@ class SettingsDialog(QDialog):
         self.chk_normalize_enabled.setChecked(
             self.config_manager.get("audio/effects/normalize_enabled", False)
         )
+        self.chk_noise_reduction_enabled.setChecked(
+            self.config_manager.get("audio/effects/noise_reduction_enabled", False)
+        )
+        self.spin_noise_threshold_db.setValue(
+            self.config_manager.get("audio/effects/noise_threshold_db", -45.0)
+        )
+        self.spin_noise_reduction_db.setValue(
+            self.config_manager.get("audio/effects/noise_reduction_db", 18.0)
+        )
         self.chk_remember_volume.setChecked(self.config_manager.get("playback/remember_volume", True))
         self.chk_repeat_default.setChecked(self.config_manager.get("playback/repeat_enabled", False))
         self.chk_autoplay.setChecked(self.config_manager.get("playback/auto_play_on_add", False))
@@ -400,6 +435,9 @@ class SettingsDialog(QDialog):
             "audio/effects/mono_enabled": self.chk_mono_enabled.isChecked(),
             "audio/effects/gain_db": self.spin_gain_db.value(),
             "audio/effects/normalize_enabled": self.chk_normalize_enabled.isChecked(),
+            "audio/effects/noise_reduction_enabled": self.chk_noise_reduction_enabled.isChecked(),
+            "audio/effects/noise_threshold_db": self.spin_noise_threshold_db.value(),
+            "audio/effects/noise_reduction_db": self.spin_noise_reduction_db.value(),
             "karaoke/lyrics_directory": self.edit_lyrics_dir.text().strip(),
             "karaoke/save_to_central_dir": self.chk_save_central.isChecked(),
             "karaoke/show_chords": self.chk_show_chords.isChecked(),
