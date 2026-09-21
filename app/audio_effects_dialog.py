@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import (
+    QAbstractSpinBox,
     QCheckBox,
     QDialog,
     QDoubleSpinBox,
@@ -46,7 +47,7 @@ class AudioEffectsDialog(QDialog):
         self.chk_mono_enabled = QCheckBox("Reproduzir em mono (mesclar canais)")
         form_ajustes.addRow("", self.chk_mono_enabled)
 
-        self.spin_gain_db = QDoubleSpinBox()
+        self.spin_gain_db = self._configurar_spinbox(QDoubleSpinBox())
         self.spin_gain_db.setRange(-60.0, 24.0)
         self.spin_gain_db.setDecimals(1)
         self.spin_gain_db.setSingleStep(0.5)
@@ -64,14 +65,14 @@ class AudioEffectsDialog(QDialog):
         self.chk_noise_reduction_enabled = QCheckBox("Ativar redução de ruído")
         form_reducao.addRow("", self.chk_noise_reduction_enabled)
 
-        self.spin_noise_threshold_db = QDoubleSpinBox()
+        self.spin_noise_threshold_db = self._configurar_spinbox(QDoubleSpinBox())
         self.spin_noise_threshold_db.setRange(-80.0, -10.0)
         self.spin_noise_threshold_db.setDecimals(1)
         self.spin_noise_threshold_db.setSingleStep(1.0)
         self.spin_noise_threshold_db.setSuffix(" dB")
         form_reducao.addRow("Limiar de ruído:", self.spin_noise_threshold_db)
 
-        self.spin_noise_reduction_db = QDoubleSpinBox()
+        self.spin_noise_reduction_db = self._configurar_spinbox(QDoubleSpinBox())
         self.spin_noise_reduction_db.setRange(0.0, 60.0)
         self.spin_noise_reduction_db.setDecimals(1)
         self.spin_noise_reduction_db.setSingleStep(1.0)
@@ -103,21 +104,21 @@ class AudioEffectsDialog(QDialog):
         self.chk_reverb_delay_enabled = QCheckBox("Ativar Reverb / Delay")
         form_reverb_delay.addRow("", self.chk_reverb_delay_enabled)
 
-        self.spin_reverb_delay_ms = QDoubleSpinBox()
+        self.spin_reverb_delay_ms = self._configurar_spinbox(QDoubleSpinBox())
         self.spin_reverb_delay_ms.setRange(10.0, 2000.0)
         self.spin_reverb_delay_ms.setDecimals(0)
         self.spin_reverb_delay_ms.setSingleStep(10.0)
         self.spin_reverb_delay_ms.setSuffix(" ms")
         form_reverb_delay.addRow("Delay:", self.spin_reverb_delay_ms)
 
-        self.spin_reverb_feedback = QDoubleSpinBox()
+        self.spin_reverb_feedback = self._configurar_spinbox(QDoubleSpinBox())
         self.spin_reverb_feedback.setRange(0.0, 95.0)
         self.spin_reverb_feedback.setDecimals(0)
         self.spin_reverb_feedback.setSingleStep(5.0)
         self.spin_reverb_feedback.setSuffix(" %")
         form_reverb_delay.addRow("Feedback:", self.spin_reverb_feedback)
 
-        self.spin_reverb_mix = QDoubleSpinBox()
+        self.spin_reverb_mix = self._configurar_spinbox(QDoubleSpinBox())
         self.spin_reverb_mix.setRange(0.0, 100.0)
         self.spin_reverb_mix.setDecimals(0)
         self.spin_reverb_mix.setSingleStep(5.0)
@@ -143,14 +144,14 @@ class AudioEffectsDialog(QDialog):
 
     @staticmethod
     def _criar_spin_eq():
-        spin = QDoubleSpinBox()
+        spin = AudioEffectsDialog._configurar_spinbox(QDoubleSpinBox())
         spin.setRange(-12.0, 12.0)
         spin.setDecimals(1)
         spin.setSingleStep(0.5)
         spin.setSuffix(" dB")
         return spin
 
-    def _carregar_valores(self):
+    @staticmethod\n    def _configurar_spinbox(spin):\n        """Mantém os controles de incremento/decremento clicáveis e estáveis."""\n        spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.UpDownArrows)\n        spin.setKeyboardTracking(False)\n        spin.setFocusPolicy(Qt.FocusPolicy.StrongFocus)\n        spin.lineEdit().setFocusPolicy(Qt.FocusPolicy.StrongFocus)\n        return spin\n\n    def _carregar_valores(self):
         self.chk_mono_enabled.setChecked(
             self.config_manager.get("audio/effects/mono_enabled", False)
         )
