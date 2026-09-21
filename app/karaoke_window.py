@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 from core.lyrics import current_line_index, load_lrc, render_chord_line_html
 from core.lyrics_storage import resolve_lyrics_path
 from core.icons import get_svg_icon
+from core.theme_manager import ThemeManager
 
 
 class MarqueeLabel(QLabel):
@@ -352,6 +353,7 @@ class KaraokeWindow(QMainWindow):
 
     def aplicar_estilo(self):
         tema = self._theme
+        ThemeManager.aplicar_barra_titulo(self, tema)
         text_header = "#111827" if tema == "light" else "#f3f4f6"
         btn_bg = "#ffffff" if tema == "light" else "#242424" if tema == "midnight" else "#2e2e2e"
         btn_color = "#1f2937" if tema == "light" else "#f5f5f5"
