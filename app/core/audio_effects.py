@@ -119,7 +119,7 @@ class AudioEffects:
             peak = max((abs(sample) for sample in samples), default=0)
             if peak == 0:
                 return data
-            scale = min(1.0, target_peak * 32767.0 / peak)
+            scale = target_peak * 32767.0 / peak
             return struct.pack(
                 f"<{len(samples)}h",
                 *(max(-32768, min(32767, round(sample * scale))) for sample in samples),
@@ -129,7 +129,7 @@ class AudioEffects:
             peak = max((abs(sample) for sample in samples), default=0)
             if peak == 0:
                 return data
-            scale = min(1.0, target_peak * 2147483647.0 / peak)
+            scale = target_peak * 2147483647.0 / peak
             return struct.pack(
                 f"<{len(samples)}i",
                 *(max(-2147483648, min(2147483647, round(sample * scale))) for sample in samples),
@@ -139,7 +139,7 @@ class AudioEffects:
             peak = max((abs(sample) for sample in samples), default=0.0)
             if peak == 0:
                 return data
-            scale = min(1.0, target_peak / peak)
+            scale = target_peak / peak
             return struct.pack(
                 f"<{len(samples)}f",
                 *(max(-1.0, min(1.0, sample * scale)) for sample in samples),
@@ -148,7 +148,7 @@ class AudioEffects:
             peak = max((abs(sample - 128) for sample in data), default=0)
             if peak == 0:
                 return data
-            scale = min(1.0, target_peak * 127.0 / peak)
+            scale = target_peak * 127.0 / peak
             return bytes(
                 max(0, min(255, round(128 + (sample - 128) * scale)))
                 for sample in data
