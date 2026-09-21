@@ -94,6 +94,14 @@ class MainWindow(QMainWindow):
         )
         self.track_loader.set_audio_extensions(self.audio_extensions)
         self.explorer_widget.set_audio_extensions(self.audio_extensions)
+
+        output_device_id = self.config_manager.get("audio/output_device_id", "")
+        self.audio_engine.set_configured_output_device_id(output_device_id)
+        if not self.audio_engine.set_output_device(output_device_id):
+            self.config_manager.set("audio/output_device_id", "")
+            self.audio_engine.set_configured_output_device_id("")
+            self.audio_engine.set_output_device("")
+
         self.audio_engine.set_gain_db(
             self.config_manager.get("audio/effects/gain_db", 0.0)
         )
