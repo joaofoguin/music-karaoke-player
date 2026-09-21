@@ -121,6 +121,10 @@ class KaraokeEditorWindow(QMainWindow):
         self.lbl_faixa.setStyleSheet(
             f"font-size: 16px; font-weight: bold; color: {cor_titulo};"
         )
+        cor_tempo = "#111827" if tema == "light" else "#e5e7eb"
+        self.lbl_tempo.setStyleSheet(
+            f"font-size: 13px; font-family: monospace; font-weight: bold; color: {cor_tempo};"
+        )
         self._atualizar_icones()
 
     def _atualizar_icones(self):
@@ -223,7 +227,10 @@ class KaraokeEditorWindow(QMainWindow):
         linha2.addWidget(self.btn_avancar5)
 
         self.lbl_tempo = QLabel("00:00.00 / 00:00.00")
-        self.lbl_tempo.setStyleSheet("font-size: 13px; font-family: monospace; font-weight: bold;")
+        cor_tempo = "#111827" if (self.config_manager and self.config_manager.get("appearance/theme", "dark") == "light") else "#e5e7eb"
+        self.lbl_tempo.setStyleSheet(
+            f"font-size: 13px; font-family: monospace; font-weight: bold; color: {cor_tempo};"
+        )
         linha2.addWidget(self.lbl_tempo)
 
         # Barra de reprodução com clique direto!
