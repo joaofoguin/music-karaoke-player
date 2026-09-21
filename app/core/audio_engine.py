@@ -51,6 +51,7 @@ class AudioEngine(QObject):
         self._sink_format = None
         self._audio_pipeline.reset()
         self._processed_output_device = default_device
+        self._pending_sink_device = default_device
 
         self.player = QMediaPlayer(self)
         self.player.setAudioOutput(self.audio_output)
@@ -239,17 +240,10 @@ class AudioEngine(QObject):
         self.audio_output.setMuted(False)
         self.player.setAudioOutput(self.audio_output)
 
-    def _configure_buffer_output(self, device) -> None:
-        # O QAudioBufferOutput não depende do dispositivo de saída.
-        # Mantemos a mesma instância para não interromper o vínculo com o player
-        # durante uma troca de modo ou de dispositivo.
-        return
-
     def _recreate_processed_output(self, device) -> None:
         self._reset_processed_output()
         self._pending_sink_device = device
         self._processed_output_device = device
-        self._configure_buffer_output(device)
         if self._processing_enabled():
             self.player.setAudioBufferOutput(self._buffer_output)
 
@@ -311,22 +305,13 @@ class AudioEngine(QObject):
         written = self._sink_io.write(processed)
         if written < 0:
             print(
-                f"Erro ao enviar PCM mono para a saída: "
+                f"Erro ao enviar PCM processado para a saída: "
                 f"estado={self._audio_sink.state()}, erro={self._audio_sink.error()}"
             )
         elif written != len(processed):
             print(
-                f"Saída PCM mono aceitou apenas {written} de "
+                f"Saída PCM processada aceitou apenas {written} de "
                 f"{len(processed)} bytes"
-            )
-
-    def _on_sink_state_changed(self, state) -> None:
-        if self._audio_sink is None:
-            return
-        if self._audio_sink.error().value != 0:
-            print(
-                f"Erro na saída PCM mono: estado={state}, "
-                f"erro={self._audio_sink.error()}"
             )
 
     def _reset_processed_output(self, keep_pending_device: bool = False) -> None:
