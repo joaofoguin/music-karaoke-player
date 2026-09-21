@@ -103,6 +103,7 @@ class KaraokeWindow(QMainWindow):
         self.setMinimumSize(700, 480)
 
         self.font_size = 32
+        self._theme = "dark"
         self.highlight_color = "#ffffff"
         self.context_color = "#8f8f8f"
         self.chords_color = "#f59e0b"
@@ -298,6 +299,7 @@ class KaraokeWindow(QMainWindow):
             self.show_chords = self.config_manager.get("karaoke/show_chords", True)
             self.context_lines = self.config_manager.get("karaoke/context_lines", 2)
             theme = self.config_manager.get("appearance/theme", "dark")
+            self._theme = theme
             if theme == "midnight":
                 self.bg_color = "#0e1117"
             elif theme == "light":
@@ -349,34 +351,37 @@ class KaraokeWindow(QMainWindow):
             return fallback
 
     def aplicar_estilo(self):
-        text_header = "#222222" if self.bg_color == "#f5f5f7" else "#bcbcbc"
-        btn_bg = "#e0e0e0" if self.bg_color == "#f5f5f7" else "#2e2e2e"
-        btn_color = "#111111" if self.bg_color == "#f5f5f7" else "#f5f5f5"
-        cor_icone = "#374151" if self.bg_color == "#f5f5f7" else "#e5e7eb"
-        painel_bg = "#ffffff" if self.bg_color == "#f5f5f7" else "rgba(0, 0, 0, 0.25)"
-        painel_border = "#d1d5db" if self.bg_color == "#f5f5f7" else "#383838"
+        tema = self._theme
+        text_header = "#111827" if tema == "light" else "#f3f4f6"
+        btn_bg = "#ffffff" if tema == "light" else "#242424" if tema == "midnight" else "#2e2e2e"
+        btn_color = "#1f2937" if tema == "light" else "#f5f5f5"
+        cor_icone = "#374151" if tema == "light" else "#e5e7eb"
+        painel_bg = "#ffffff" if tema == "light" else "#131720" if tema == "midnight" else "#242424"
+        painel_border = "#d1d5db" if tema == "light" else "#1f2937" if tema == "midnight" else "#383838"
+        border = "#d1d5db" if tema == "light" else "#374151" if tema == "midnight" else "#4a4a4a"
+        slider_bg = "#e5e7eb" if tema == "light" else "#1f2937" if tema == "midnight" else "#3a3a3a"
 
         self.setStyleSheet(
             f"""
-            QMainWindow {{ background: {self.bg_color}; }}
+            QMainWindow {{ background: {self.bg_color}; color: {text_header}; }}
             QFrame#topPanel {{ background: {painel_bg}; border: 1px solid {painel_border}; border-radius: 8px; }}
             QLabel#trackTitle {{ color: {text_header}; font-size: 15px; font-weight: 600; }}
             QLabel#lyrics {{ line-height: 1.8; }}
-            QPushButton {{ background: {btn_bg}; color: {btn_color}; border: 1px solid #4a4a4a; border-radius: 4px; padding: 5px 12px; font-size: 13px; font-weight: 600; }}
+            QPushButton {{ background: {btn_bg}; color: {btn_color}; border: 1px solid {border}; border-radius: 4px; padding: 5px 12px; font-size: 13px; font-weight: 600; }}
             QPushButton:hover {{ opacity: 0.85; }}
             QPushButton#mediaBtn {{ background: transparent; border: 0; min-width: 32px; max-width: 32px; min-height: 32px; max-height: 32px; border-radius: 16px; padding: 2px; }}
-            QPushButton#mediaBtn:hover {{ background: rgba(255, 255, 255, 0.12); }}
+            QPushButton#mediaBtn:hover {{ background: {("#e5e7eb" if tema == "light" else "#1f2937")}; }}
             QPushButton#iconBtn {{ background: transparent; border: 0; min-width: 32px; max-width: 32px; min-height: 32px; max-height: 32px; border-radius: 6px; padding: 2px; }}
-            QPushButton#iconBtn:hover {{ background: rgba(255, 255, 255, 0.10); }}
-            QPushButton#iconBtn:pressed {{ background: rgba(255, 255, 255, 0.16); }}
+            QPushButton#iconBtn:hover {{ background: {("#e5e7eb" if tema == "light" else "#1f2937")}; }}
+            QPushButton#iconBtn:pressed {{ background: {("#d1d5db" if tema == "light" else "#374151")}; }}
             QPushButton#playBtn {{ background: #2563eb; color: #ffffff; border: 0; border-radius: 17px; min-width: 34px; max-width: 34px; min-height: 34px; max-height: 34px; padding: 0; }}
             QPushButton#playBtn:hover {{ background: #3b82f6; }}
-            QFrame#nextTrackPopup {{ background: rgba(24, 24, 27, 0.96); border: 1px solid #f59e0b; border-radius: 10px; }}
+            QFrame#nextTrackPopup {{ background: {painel_bg}; border: 1px solid #f59e0b; border-radius: 10px; }}
             QLabel#nextTrackLabel {{ color: #f59e0b; font-size: 11px; font-weight: 700; }}
-            QLabel#nextTrackTitle {{ color: #ffffff; font-size: 14px; font-weight: 700; }}
-            QLabel#nextTrackArtist {{ color: #a1a1aa; font-size: 11px; }}
+            QLabel#nextTrackTitle {{ color: {text_header}; font-size: 14px; font-weight: 700; }}
+            QLabel#nextTrackArtist {{ color: {("#6b7280" if tema == "light" else "#9ca3af")}; font-size: 11px; }}
 
-            QSlider::groove:horizontal {{ height: 5px; background: #3a3a3a; border-radius: 2px; }}
+            QSlider::groove:horizontal {{ height: 5px; background: {slider_bg}; border-radius: 2px; }}
             QSlider::handle:horizontal {{ width: 12px; margin: -4px 0; background: #3b82f6; border-radius: 6px; }}
             """
         )
