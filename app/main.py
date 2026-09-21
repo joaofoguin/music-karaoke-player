@@ -31,6 +31,7 @@ from core.clickable_slider import ClickableSlider
 from karaoke_window import KaraokeWindow
 from karaoke_editor import KaraokeEditorWindow
 from settings_dialog import SettingsDialog
+from audio_effects_dialog import AudioEffectsDialog
 from widgets.queue_widget import QueueWidget
 from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
@@ -83,6 +84,7 @@ class MainWindow(QMainWindow):
         self.playback_coordinator.track_changed.connect(self._ao_mudar_faixa)
         self.karaoke_window = None
         self.karaoke_editor = None
+        self.audio_effects_dialog = None
         self._volume_anterior_mudo = None
 
         self.config_manager.settings_changed.connect(self.aplicar_configuracoes)
@@ -177,6 +179,7 @@ class MainWindow(QMainWindow):
         self.main_menu.karaoke_requested.connect(self.abrir_tela_karaoke)
         self.main_menu.fullscreen_requested.connect(self.alternar_tela_cheia)
         self.main_menu.karaoke_editor_requested.connect(self.abrir_editor_karaoke)
+        self.main_menu.audio_effects_requested.connect(self.abrir_ajustes_efeitos_audio)
         self.main_menu.play_pause_requested.connect(self.alternar_reproducao)
         self.main_menu.previous_requested.connect(self.faixa_anterior)
         self.main_menu.next_requested.connect(self.faixa_proxima)
@@ -303,6 +306,16 @@ class MainWindow(QMainWindow):
         dialog = SettingsDialog(self.config_manager, self.audio_engine, self)
         if dialog.exec():
             self.aplicar_configuracoes()
+
+    def abrir_ajustes_efeitos_audio(self):
+        """Abre a janela centralizada de ajustes e efeitos de áudio."""
+        if self.audio_effects_dialog is None:
+            self.audio_effects_dialog = AudioEffectsDialog(self.config_manager, self)
+
+        self.audio_effects_dialog._carregar_valores()
+        self.audio_effects_dialog.show()
+        self.audio_effects_dialog.raise_()
+        self.audio_effects_dialog.activateWindow()
 
     def abrir_arquivos_dialogo(self):
         filtro_exts = " ".join(f"*{ext}" for ext in sorted(self.audio_extensions))
@@ -542,6 +555,9 @@ class MainWindow(QMainWindow):
 
         if self.karaoke_editor is not None:
             self.karaoke_editor.close()
+
+        if self.audio_effects_dialog is not None:
+            self.audio_effects_dialog.close()
 
         super().closeEvent(event)
 
