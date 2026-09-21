@@ -244,6 +244,7 @@ def test_audio_processing_pipeline_applies_reverb_delay_between_buffers():
         mono_enabled=False,
         normalize_enabled=False,
         gain_db=0.0,
+        reverb_delay_enabled=True,
         reverb_delay_ms=10.0,
         reverb_feedback=0.0,
         reverb_mix=1.0,
