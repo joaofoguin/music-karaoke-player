@@ -228,3 +228,79 @@ def test_audio_processing_pipeline_resets_equalizer_state():
     )
 
     assert after_reset == fresh
+
+
+def test_audio_processing_pipeline_applies_reverb_delay_between_buffers():
+    source = make_format(1000, 1, QAudioFormat.SampleFormat.Float)
+    target = make_format(1000, 1, QAudioFormat.SampleFormat.Float)
+    first = struct.pack("<10f", *([0.0] * 9 + [1.0]))
+    second = struct.pack("<10f", *([0.0] * 10))
+
+    pipeline = AudioProcessingPipeline()
+    first_result = pipeline.process(
+        first,
+        source,
+        target,
+        mono_enabled=False,
+        normalize_enabled=False,
+        gain_db=0.0,
+        reverb_delay_enabled=True,
+        reverb_delay_ms=10.0,
+        reverb_feedback=0.0,
+        reverb_mix=1.0,
+    )
+    second_result = pipeline.process(
+        second,
+        source,
+        target,
+        mono_enabled=False,
+        normalize_enabled=False,
+        gain_db=0.0,
+        reverb_delay_enabled=True,
+        reverb_delay_ms=10.0,
+        reverb_feedback=0.0,
+        reverb_mix=1.0,
+    )
+
+    assert struct.unpack("<10f", first_result) == (0.0,) * 10
+    second_samples = struct.unpack("<10f", second_result)
+    assert second_samples[9] == 1.0
+    assert all(
+        sample == 0.0
+        for index, sample in enumerate(second_samples)
+        if index != 9
+    )
+
+
+def test_audio_processing_pipeline_resets_reverb_delay_state():
+    source = make_format(1000, 1, QAudioFormat.SampleFormat.Float)
+    target = make_format(1000, 1, QAudioFormat.SampleFormat.Float)
+    first = struct.pack("<10f", *([0.0] * 9 + [1.0]))
+    second = struct.pack("<10f", *([0.0] * 10))
+
+    pipeline = AudioProcessingPipeline()
+    pipeline.process(
+        first,
+        source,
+        target,
+        mono_enabled=False,
+        normalize_enabled=False,
+        gain_db=0.0,
+        reverb_delay_ms=10.0,
+        reverb_feedback=0.0,
+        reverb_mix=1.0,
+    )
+    pipeline.reset()
+    result = pipeline.process(
+        second,
+        source,
+        target,
+        mono_enabled=False,
+        normalize_enabled=False,
+        gain_db=0.0,
+        reverb_delay_ms=10.0,
+        reverb_feedback=0.0,
+        reverb_mix=1.0,
+    )
+
+    assert struct.unpack("<10f", result) == (0.0,) * 10

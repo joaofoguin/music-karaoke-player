@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "app"))
 
 from core.audio_effects import AudioEffects
 from core.audio_equalizer import AudioEqualizer
+from core.audio_reverb import AudioReverbDelay
 
 
 def test_mix_to_mono_int16_average_channels():
@@ -186,6 +187,61 @@ def test_equalizer_rejects_invalid_configuration():
                 channels,
                 bass_db=gain,
             )
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Era esperado ValueError")
+
+
+def test_reverb_delay_applies_delayed_signal():
+    effect = AudioReverbDelay()
+    effect.configure(1000, 1, delay_ms=10.0, feedback=0.0, mix=1.0)
+
+    first = struct.pack("<10f", *([0.0] * 9 + [1.0]))
+    second = struct.pack("<10f", *([0.0] * 10))
+
+    first_result = effect.process(first, "float32", 1)
+    second_result = effect.process(second, "float32", 1)
+
+    assert struct.unpack("<10f", first_result) == (0.0,) * 10
+    second_samples = struct.unpack("<10f", second_result)
+    assert second_samples[9] == 1.0
+    assert all(sample == 0.0 for index, sample in enumerate(second_samples) if index != 9)
+
+
+def test_reverb_delay_preserves_state_between_buffers():
+    first = struct.pack("<10f", *([0.0] * 9 + [0.5]))
+    second = struct.pack("<10f", *([0.0] * 10))
+    effect = AudioReverbDelay()
+    effect.configure(1000, 1, delay_ms=10.0, feedback=0.0, mix=1.0)
+
+    first_result = effect.process(first, "float32", 1)
+    second_result = effect.process(second, "float32", 1)
+    output = struct.unpack("<20f", first_result + second_result)
+
+    assert output[9] == 0.0
+    assert output[19] == 0.5
+
+
+def test_reverb_delay_zero_mix_keeps_data():
+    data = struct.pack("<3f", 0.1, -0.2, 0.3)
+    effect = AudioReverbDelay()
+    effect.configure(44100, 1, mix=0.0)
+    assert effect.process(data, "float32", 1) == data
+
+
+def test_reverb_delay_rejects_invalid_configuration():
+    effect = AudioReverbDelay()
+    invalid = [
+        (0, 1, 120.0, 0.35, 0.25),
+        (44100, 0, 120.0, 0.35, 0.25),
+        (44100, 1, 5.0, 0.35, 0.25),
+        (44100, 1, 120.0, 1.0, 0.25),
+        (44100, 1, 120.0, 0.35, 1.1),
+    ]
+    for config in invalid:
+        try:
+            effect.configure(*config)
         except ValueError:
             pass
         else:

@@ -2,6 +2,7 @@ from PySide6.QtMultimedia import QAudioFormat
 
 from core.audio_effects import AudioEffects
 from core.audio_equalizer import AudioEqualizer
+from core.audio_reverb import AudioReverbDelay
 from core.pcm_converter import PcmConverter
 
 
@@ -12,10 +13,13 @@ class AudioProcessingPipeline:
         self._pcm_converter = PcmConverter()
         self._equalizer = AudioEqualizer()
         self._equalizer_configuration = None
+        self._reverb_delay = AudioReverbDelay()
+        self._reverb_delay_configuration = None
 
     def reset(self):
         self._pcm_converter.reset()
         self._equalizer.reset()
+        self._reverb_delay.reset()
 
     def process(
         self,
@@ -31,6 +35,10 @@ class AudioProcessingPipeline:
         equalizer_bass_db: float = 0.0,
         equalizer_mid_db: float = 0.0,
         equalizer_treble_db: float = 0.0,
+        reverb_delay_enabled: bool = False,
+        reverb_delay_ms: float = 120.0,
+        reverb_feedback: float = 0.35,
+        reverb_mix: float = 0.25,
     ) -> bytes:
         source_sample_format = self._sample_format_name(source_format.sampleFormat())
         if source_sample_format == "unknown":
@@ -60,6 +68,18 @@ class AudioProcessingPipeline:
         processed = self._equalizer.process(
             processed, source_sample_format, channels
         )
+
+        if reverb_delay_enabled:
+            self._configure_reverb_delay(
+                source_format.sampleRate(),
+                channels,
+                reverb_delay_ms,
+                reverb_feedback,
+                reverb_mix,
+            )
+            processed = self._reverb_delay.process(
+                processed, source_sample_format, channels
+            )
 
         if normalize_enabled:
             processed = AudioEffects.normalize_peak(
@@ -110,6 +130,27 @@ class AudioProcessingPipeline:
 
         self._equalizer.configure(*configuration)
         self._equalizer_configuration = configuration
+
+    def _configure_reverb_delay(
+        self,
+        sample_rate: int,
+        channels: int,
+        delay_ms: float,
+        feedback: float,
+        mix: float,
+    ) -> None:
+        configuration = (
+            int(sample_rate),
+            int(channels),
+            float(delay_ms),
+            float(feedback),
+            float(mix),
+        )
+        if configuration == self._reverb_delay_configuration:
+            return
+
+        self._reverb_delay.configure(*configuration)
+        self._reverb_delay_configuration = configuration
 
     @staticmethod
     def _sample_format_name(sample_format) -> str:

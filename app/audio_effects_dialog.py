@@ -17,7 +17,7 @@ class AudioEffectsDialog(QDialog):
         super().__init__(parent)
         self.config_manager = config_manager
         self.setWindowTitle("Ajustes e Efeitos de Áudio")
-        self.resize(520, 520)
+        self.resize(520, 620)
         self.setModal(False)
 
         self._criar_interface()
@@ -83,6 +83,35 @@ class AudioEffectsDialog(QDialog):
         form_equalizador.addRow("Agudos (10 kHz):", self.spin_equalizer_treble_db)
 
         layout_principal.addWidget(grupo_equalizador)
+
+        grupo_reverb_delay = QGroupBox("Reverb / Delay")
+        form_reverb_delay = QFormLayout(grupo_reverb_delay)
+
+        self.chk_reverb_delay_enabled = QCheckBox("Ativar Reverb / Delay")
+        form_reverb_delay.addRow("", self.chk_reverb_delay_enabled)
+
+        self.spin_reverb_delay_ms = QDoubleSpinBox()
+        self.spin_reverb_delay_ms.setRange(10.0, 2000.0)
+        self.spin_reverb_delay_ms.setDecimals(0)
+        self.spin_reverb_delay_ms.setSingleStep(10.0)
+        self.spin_reverb_delay_ms.setSuffix(" ms")
+        form_reverb_delay.addRow("Delay:", self.spin_reverb_delay_ms)
+
+        self.spin_reverb_feedback = QDoubleSpinBox()
+        self.spin_reverb_feedback.setRange(0.0, 95.0)
+        self.spin_reverb_feedback.setDecimals(0)
+        self.spin_reverb_feedback.setSingleStep(5.0)
+        self.spin_reverb_feedback.setSuffix(" %")
+        form_reverb_delay.addRow("Feedback:", self.spin_reverb_feedback)
+
+        self.spin_reverb_mix = QDoubleSpinBox()
+        self.spin_reverb_mix.setRange(0.0, 100.0)
+        self.spin_reverb_mix.setDecimals(0)
+        self.spin_reverb_mix.setSingleStep(5.0)
+        self.spin_reverb_mix.setSuffix(" %")
+        form_reverb_delay.addRow("Mix:", self.spin_reverb_mix)
+
+        layout_principal.addWidget(grupo_reverb_delay)
         layout_principal.addStretch()
 
         layout_botoes = QHBoxLayout()
@@ -139,6 +168,18 @@ class AudioEffectsDialog(QDialog):
         self.spin_equalizer_treble_db.setValue(
             self.config_manager.get("audio/effects/equalizer_treble_db", 0.0)
         )
+        self.chk_reverb_delay_enabled.setChecked(
+            self.config_manager.get("audio/effects/reverb_delay_enabled", False)
+        )
+        self.spin_reverb_delay_ms.setValue(
+            self.config_manager.get("audio/effects/reverb_delay_ms", 120.0)
+        )
+        self.spin_reverb_feedback.setValue(
+            self.config_manager.get("audio/effects/reverb_feedback", 0.35) * 100.0
+        )
+        self.spin_reverb_mix.setValue(
+            self.config_manager.get("audio/effects/reverb_mix", 0.25) * 100.0
+        )
 
     def _aplicar_configuracoes(self):
         self.config_manager.update_multiple(
@@ -153,5 +194,9 @@ class AudioEffectsDialog(QDialog):
                 "audio/effects/equalizer_bass_db": self.spin_equalizer_bass_db.value(),
                 "audio/effects/equalizer_mid_db": self.spin_equalizer_mid_db.value(),
                 "audio/effects/equalizer_treble_db": self.spin_equalizer_treble_db.value(),
+                "audio/effects/reverb_delay_enabled": self.chk_reverb_delay_enabled.isChecked(),
+                "audio/effects/reverb_delay_ms": self.spin_reverb_delay_ms.value(),
+                "audio/effects/reverb_feedback": self.spin_reverb_feedback.value() / 100.0,
+                "audio/effects/reverb_mix": self.spin_reverb_mix.value() / 100.0,
             }
         )

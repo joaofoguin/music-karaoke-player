@@ -41,6 +41,10 @@ class ConfigManager(QObject):
         "audio/effects/equalizer_bass_db": 0.0,
         "audio/effects/equalizer_mid_db": 0.0,
         "audio/effects/equalizer_treble_db": 0.0,
+        "audio/effects/reverb_delay_enabled": False,
+        "audio/effects/reverb_delay_ms": 120.0,
+        "audio/effects/reverb_feedback": 0.35,
+        "audio/effects/reverb_mix": 0.25,
         "appearance/theme": "dark",  # "dark", "midnight", "light"
         "karaoke/lyrics_directory": _DEFAULT_KARAOKE_DIR,
         "karaoke/save_to_central_dir": True,
