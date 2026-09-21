@@ -42,6 +42,7 @@ class ExplorerWidget(QFrame):
 
         title = QLabel("EXPLORADOR DE ARQUIVOS")
         title.setObjectName("sectionTitle")
+        title.setStyleSheet("font-weight: 600;")
         header.addWidget(title, 1)
 
         self.btn_abrir_pasta = QToolButton()
