@@ -108,7 +108,7 @@ def test_apply_noise_reduction_float32_attenuates_low_level_signal():
     )
     samples = struct.unpack("<3f", result)
     assert abs(samples[0] - 0.00275) < 1e-6
-    assert samples[1] == 0.02
+    assert abs(samples[1] - 0.02) < 1e-7
     assert abs(samples[2] + 0.00275) < 1e-6
 
 
