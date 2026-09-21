@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from PySide6.QtCore import QDir, QSize, Signal
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
     QFileSystemModel,
@@ -113,6 +114,13 @@ class ExplorerWidget(QFrame):
 
     def set_audio_extensions(self, extensions):
         self.audio_extensions = set(extensions or [])
+
+    def set_font_size(self, size: float):
+        """Define o tamanho da fonte dos nomes e detalhes do explorador."""
+        font = self.file_tree.font()
+        font.setPointSizeF(float(size))
+        self.file_tree.setFont(font)
+        self.file_list.setFont(font)
 
     def definir_diretorio(self, pasta: str):
         caminho = Path(pasta)
