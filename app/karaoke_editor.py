@@ -123,7 +123,7 @@ class KaraokeEditorWindow(QMainWindow):
         )
         cor_tempo = "#111827" if tema == "light" else "#e5e7eb"
         self.lbl_tempo.setStyleSheet(
-            f"font-size: 13px; font-family: "Poppins", monospace; font-weight: 600; color: {cor_tempo};"
+            f'font-size: 13px; font-family: "Poppins", monospace; font-weight: 600; color: {cor_tempo};'
         )
         self._atualizar_icones()
 
