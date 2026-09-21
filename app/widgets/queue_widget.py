@@ -54,7 +54,8 @@ class QueueWidget(QFrame):
         self.queue_scroll.setWidgetResizable(True)
         self.queue_scroll.setFrameShape(QFrame.Shape.NoFrame)
 
-        self.queue_content = QWidget()\n        self.queue_content.setObjectName("queueContent")
+        self.queue_content = QWidget()
+        self.queue_content.setObjectName("queueContent")
         self.queue_layout = QVBoxLayout(self.queue_content)
         self.queue_layout.setContentsMargins(0, 0, 0, 0)
         self.queue_layout.setSpacing(4)
