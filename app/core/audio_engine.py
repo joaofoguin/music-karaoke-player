@@ -201,6 +201,27 @@ class AudioEngine(QObject):
     def noise_reduction_db(self) -> float:
         return self._noise_reduction_db
 
+    def set_equalizer_enabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled == self._equalizer_enabled:
+            return
+        self._reconfigure_processing(lambda: setattr(self, "_equalizer_enabled", enabled))
+        self.equalizer_changed.emit(enabled)
+
+    def equalizer_enabled(self) -> bool:
+        return self._equalizer_enabled
+
+    def set_equalizer_settings(self, bass_db: float, mid_db: float, treble_db: float) -> None:
+        values = tuple(max(-12.0, min(12.0, float(value))) for value in (bass_db, mid_db, treble_db))
+        if values == (self._equalizer_bass_db, self._equalizer_mid_db, self._equalizer_treble_db):
+            return
+        def update():
+            self._equalizer_bass_db, self._equalizer_mid_db, self._equalizer_treble_db = values
+        self._reconfigure_processing(update, refresh_when_inactive=False)
+
+    def equalizer_settings(self) -> tuple[float, float, float]:
+        return self._equalizer_bass_db, self._equalizer_mid_db, self._equalizer_treble_db
+
     def _processing_enabled(self) -> bool:
         return (
             self._mono_enabled
@@ -321,6 +342,10 @@ class AudioEngine(QObject):
                 self._noise_reduction_enabled,
                 self._noise_threshold_db,
                 self._noise_reduction_db,
+                self._equalizer_enabled,
+                self._equalizer_bass_db,
+                self._equalizer_mid_db,
+                self._equalizer_treble_db,
             )
         except ValueError as exc:
             print(f"Efeito de áudio indisponível: {exc}")
