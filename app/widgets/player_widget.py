@@ -36,9 +36,7 @@ class PlayerWidget(QFrame):
         self.capa = QLabel("CAPA")
         self.capa.setFixedSize(68, 68)
         self.capa.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.capa.setStyleSheet(
-            "background: #2b2b2b; border: 1px solid #444444; border-radius: 6px; font-size: 11px;"
-        )
+        self.capa.setObjectName("coverPlaceholder")
 
         info_layout = QVBoxLayout()
         info_layout.setSpacing(1)
