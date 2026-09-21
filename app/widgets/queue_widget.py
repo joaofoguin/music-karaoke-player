@@ -93,6 +93,7 @@ class QueueWidget(QFrame):
                 on_remove=self.remove_requested.emit,
                 track_count=len(self.queue_controller.tracks),
             )
+            item_widget.aplicar_tema(self._theme)
             self.queue_layout.addWidget(item_widget)
 
         self.botao_limpar_fila.setEnabled(bool(self.queue_controller.tracks))
