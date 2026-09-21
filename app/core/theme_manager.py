@@ -16,7 +16,7 @@ class ThemeManager:
             QLabel#trackMetadata { color: #9ca3af; font-size: 12px; }
             QTreeView, QScrollArea { background: #0b0d11; border: 1px solid #1f2937; color: #e5e7eb; border-radius: 4px; }
             QTreeView::item:selected { background: #2563eb; color: #ffffff; }
-            QHeaderView::section { background: #131720; color: #9ca3af; border: 0; border-bottom: 1px solid #1f2937; padding: 6px; }
+            QHeaderView::section { background: #131720; color: #9ca3af; border: 0; border-bottom: 1px solid #1f2937; font-size: 10px; padding: 3px 5px; }
             QPushButton { background: #1f2937; color: #f3f4f6; border: 1px solid #374151; border-radius: 4px; min-height: 28px; padding: 2px 10px; font-weight: 500; }
             QPushButton:hover { background: #374151; border-color: #4b5563; }
             QPushButton:pressed { background: #111827; }
@@ -48,12 +48,12 @@ class ThemeManager:
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
             QFrame#playerBar { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
-            QLabel#sectionTitle { color: #2563eb; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
+            QLabel#sectionTitle { color: #2563eb; font-size: 14px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
             QLabel#trackTitle { color: #111827; font-size: 16px; font-weight: 700; }
             QLabel#trackMetadata { color: #6b7280; font-size: 12px; }
             QTreeView, QScrollArea { background: #f9fafb; border: 1px solid #e5e7eb; color: #111827; border-radius: 4px; }
             QTreeView::item:selected { background: #2563eb; color: #ffffff; }
-            QHeaderView::section { background: #f3f4f6; color: #4b5563; border: 0; border-bottom: 1px solid #e5e7eb; padding: 6px; }
+            QHeaderView::section { background: #f3f4f6; color: #4b5563; border: 0; border-bottom: 1px solid #e5e7eb; font-size: 10px; padding: 3px 5px; }
             QPushButton { background: #f9fafb; color: #1f2937; border: 1px solid #d1d5db; border-radius: 4px; min-height: 28px; padding: 2px 10px; font-weight: 500; }
             QPushButton:hover { background: #e5e7eb; }
             QPushButton:pressed { background: #d1d5db; }
@@ -80,12 +80,12 @@ class ThemeManager:
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #242424; border: 1px solid #3f3f3f; border-radius: 6px; }
             QFrame#playerBar { background: #181818; border: 1px solid #303030; border-radius: 6px; }
-            QLabel#sectionTitle { color: #f0f0f0; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
+            QLabel#sectionTitle { color: #f0f0f0; font-size: 14px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
             QLabel#trackTitle { color: #ffffff; font-size: 16px; font-weight: 700; }
             QLabel#trackMetadata { color: #a8a8a8; font-size: 12px; }
             QTreeView, QScrollArea { background: #1d1d1d; border: 1px solid #393939; color: #d8d8d8; }
             QTreeView::item:selected { background: #365d8d; color: #ffffff; }
-            QHeaderView::section { background: #2c2c2c; color: #bdbdbd; border: 0; border-bottom: 1px solid #454545; padding: 5px; }
+            QHeaderView::section { background: #2c2c2c; color: #bdbdbd; border: 0; border-bottom: 1px solid #454545; font-size: 10px; padding: 3px 5px; }
             QPushButton { background: #363636; color: #f2f2f2; border: 1px solid #4d4d4d; border-radius: 4px; min-height: 26px; padding: 2px 8px; }
             QPushButton:hover { background: #4a4a4a; }
             QPushButton:pressed { background: #2b2b2b; }
