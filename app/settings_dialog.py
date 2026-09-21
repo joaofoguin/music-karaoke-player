@@ -175,7 +175,6 @@ class SettingsDialog(QDialog):
         self.btn_chords_color.clicked.connect(self._escolher_cor_cifras)
         form_karaoke.addRow("Cor das cifras / acordes:", self.btn_chords_color)
 
-        self.spin_font_size = QSpinBox()
         self.spin_font_size = self._configurar_spinbox(QSpinBox())
         self.spin_font_size.setRange(14, 52)
         self.spin_font_size.setValue(26)
