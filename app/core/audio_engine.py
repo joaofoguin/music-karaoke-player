@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Callable
 
 from PySide6.QtCore import QObject, QUrl, Signal
 from PySide6.QtMultimedia import (
@@ -183,13 +184,11 @@ class AudioEngine(QObject):
         ):
             return
 
-        self._reconfigure_processing(
-            lambda: (
-                setattr(self, "_noise_threshold_db", threshold_db),
-                setattr(self, "_noise_reduction_db", reduction_db),
-            ),
-            refresh_when_inactive=False,
-        )
+        def update():
+            self._noise_threshold_db = threshold_db
+            self._noise_reduction_db = reduction_db
+
+        self._reconfigure_processing(update, refresh_when_inactive=False)
 
     def noise_threshold_db(self) -> float:
         return self._noise_threshold_db
@@ -205,7 +204,9 @@ class AudioEngine(QObject):
             or self._noise_reduction_enabled
         )
 
-    def _reconfigure_processing(self, update, refresh_when_inactive: bool = True) -> None:
+    def _reconfigure_processing(
+        self, update: Callable[[], None], refresh_when_inactive: bool = True
+    ) -> None:
         was_playing = self.is_playing()
         current_position = self.player.position()
         if was_playing:
