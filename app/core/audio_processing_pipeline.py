@@ -8,11 +8,10 @@ class AudioProcessingPipeline:
     """Aplica efeitos PCM e entrega dados no formato exigido pela saída."""
 
     def __init__(self):
-        self.reset()
+        self._pcm_converter = PcmConverter()
 
     def reset(self):
-        self._source_format = None
-        self._target_format = None
+        self._pcm_converter.reset()
 
     def process(
         self,
@@ -54,9 +53,11 @@ class AudioProcessingPipeline:
         effect_format.setChannelCount(channels)
 
         if effect_format != target_format:
-            processed = PcmConverter.convert(
+            processed = self._pcm_converter.convert(
                 processed, effect_format, target_format
             )
+        else:
+            self._pcm_converter.reset()
 
         return processed
 

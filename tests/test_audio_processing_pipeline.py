@@ -23,7 +23,8 @@ def test_pcm_converter_int16_to_float32():
     target = make_format(44100, 2, QAudioFormat.SampleFormat.Float)
     data = struct.pack("<2h", 32767, -32767)
 
-    result = PcmConverter.convert(data, source, target)
+    converter = PcmConverter()
+    result = converter.convert(data, source, target)
 
     assert struct.unpack("<2f", result) == (1.0, -1.0)
 
@@ -33,7 +34,8 @@ def test_pcm_converter_downmixes_channels():
     target = make_format(44100, 1, QAudioFormat.SampleFormat.Int16)
     data = struct.pack("<4h", 1000, -2000, 3000, 5000)
 
-    result = PcmConverter.convert(data, source, target)
+    converter = PcmConverter()
+    result = converter.convert(data, source, target)
 
     assert struct.unpack("<2h", result) == (-500, 4000)
 
@@ -43,9 +45,27 @@ def test_pcm_converter_resamples_frame_count():
     target = make_format(48000, 1, QAudioFormat.SampleFormat.Float)
     data = struct.pack("<4f", 0.0, 0.25, 0.5, 0.75)
 
-    result = PcmConverter.convert(data, source, target)
+    converter = PcmConverter()
+    result = converter.convert(data, source, target)
 
-    assert len(result) == 4 * 48000 // 44100 * 4 or len(result) == round(4 * 48000 / 44100) * 4
+    assert len(result) == round(4 * 48000 / 44100) * 4
+
+
+def test_pcm_converter_keeps_resampling_phase_between_buffers():
+    source = make_format(44100, 1, QAudioFormat.SampleFormat.Float)
+    target = make_format(48000, 1, QAudioFormat.SampleFormat.Float)
+    first = struct.pack("<4f", 0.0, 0.25, 0.5, 0.75)
+    second = struct.pack("<4f", 1.0, 1.25, 1.5, 1.75)
+
+    converter = PcmConverter()
+    first_result = converter.convert(first, source, target)
+    second_result = converter.convert(second, source, target)
+
+    first_samples = struct.unpack("<%df" % (len(first_result) // 4), first_result)
+    second_samples = struct.unpack("<%df" % (len(second_result) // 4), second_result)
+
+    assert first_samples[-1] < second_samples[0]
+    assert abs(second_samples[0] - 0.91875) < 0.01
 
 
 def test_audio_processing_pipeline_outputs_target_format():
