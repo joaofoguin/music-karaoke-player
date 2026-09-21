@@ -127,4 +127,4 @@ def test_audio_processing_pipeline_applies_noise_reduction():
 
     samples = struct.unpack("<2f", result)
     assert abs(samples[0] - 0.00275) < 1e-6
-    assert samples[1] == 0.02
+    assert abs(samples[1] - 0.02) < 1e-7
