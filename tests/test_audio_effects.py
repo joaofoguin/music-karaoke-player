@@ -217,7 +217,7 @@ def test_reverb_delay_preserves_state_between_buffers():
 
     first_result = effect.process(first, "float32", 1)
     second_result = effect.process(second, "float32", 1)
-    output = struct.unpack("<10f", first_result + second_result)
+    output = struct.unpack("<20f", first_result + second_result)
 
     assert output[9] == 0.0
     assert output[19] == 0.5
