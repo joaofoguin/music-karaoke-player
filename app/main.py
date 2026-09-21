@@ -6,6 +6,7 @@ from pathlib import Path
 os.environ.setdefault("QT_MEDIA_BACKEND", "ffmpeg")
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -37,13 +38,15 @@ from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
 from widgets.main_menu import MainMenu
 from widgets.main_content_widget import MainContentWidget
+from core.branding import APP_DISPLAY_NAME, load_branding, resource_path, set_interface_font_size
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Music Player")
+        self.setWindowTitle(APP_DISPLAY_NAME)
+        self.setWindowIcon(QIcon(str(resource_path("assets/logo.svg"))))
         self.resize(1200, 720)
         self.setMinimumSize(900, 560)
 
@@ -95,7 +98,10 @@ class MainWindow(QMainWindow):
         self.audio_effects_dialog = None
         self._volume_anterior_mudo = None
 
-        self.config_manager.settings_changed.connect(self.aplicar_configuracoes)
+        self.config_manager.settings_changed.connect(
+            self.aplicar_configuracoes,
+            Qt.ConnectionType.QueuedConnection,
+        )
 
         self.audio_extensions = set(
             self.config_manager.get(
@@ -111,6 +117,10 @@ class MainWindow(QMainWindow):
 
     def aplicar_configuracoes(self):
         """Atualiza o comportamento e aparência do player conforme as configurações salvas."""
+        # Aplica primeiro as mudanças visuais para que o usuário veja o resultado
+        # imediatamente ao salvar, antes das reconfigurações de áudio.
+        self.aplicar_estilo()
+
         self.audio_extensions = set(
             self.config_manager.get(
                 "playback/audio_extensions",
@@ -164,6 +174,16 @@ class MainWindow(QMainWindow):
     def aplicar_estilo(self):
         tema = self.config_manager.get("appearance/theme", "dark")
         self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+
+        tamanho_fonte = self.config_manager.get(
+            "appearance/font_size",
+            self.config_manager.get("appearance/explorer_font_size", 9.0),
+        )
+        app = QApplication.instance()
+        if app is not None:
+            set_interface_font_size(app, tamanho_fonte)
+        self.setFont(app.font() if app is not None else self.font())
+        self.explorer_widget.set_font_size(tamanho_fonte)
         self.atualizar_icones()
 
     def atualizar_icones(self):
@@ -415,7 +435,7 @@ class MainWindow(QMainWindow):
 
     def mostrar_sobre(self):
         texto = """
-        <h3>Music Player</h3>
+        <h3>StageBox (Beta)</h3>
         <p>Um reprodutor de áudio moderno e elegante desenvolvido com Python e PySide6 (Qt).</p>
         <p><b>Recursos:</b></p>
         <ul>
@@ -426,7 +446,7 @@ class MainWindow(QMainWindow):
             <li>Fila dinâmica com duplo clique para reproduzir e recurso 'Tocar a Seguir'</li>
         </ul>
         """
-        QMessageBox.about(self, "Sobre o Music Player", texto)
+        QMessageBox.about(self, "Sobre o StageBox", texto)
 
     # ==================================================
     # REPRODUÇÃO & KARAOKE
@@ -580,6 +600,7 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    load_branding(app)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

@@ -46,6 +46,7 @@ class ConfigManager(QObject):
         "audio/effects/reverb_feedback": 0.35,
         "audio/effects/reverb_mix": 0.25,
         "appearance/theme": "dark",  # "dark", "midnight", "light"
+        "appearance/font_size": 9.0,
         "karaoke/lyrics_directory": _DEFAULT_KARAOKE_DIR,
         "karaoke/save_to_central_dir": True,
         "karaoke/show_chords": True,
