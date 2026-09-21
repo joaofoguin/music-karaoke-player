@@ -43,6 +43,7 @@ class SettingsDialog(QDialog):
         # Aplica o tema atual ao diálogo
         tema = self.config_manager.get("appearance/theme", "dark")
         self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+        ThemeManager.aplicar_barra_titulo(self, tema)
         self.combo_tema.currentIndexChanged.connect(self._previsualizar_tema)
         self.config_manager.settings_changed.connect(self._atualizar_tema_salvo)
 
