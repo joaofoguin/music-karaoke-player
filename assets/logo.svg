@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Gradiente da Moldura Externa -->
+    <linearGradient id="blueFrameGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#00ADFF" />
+      <stop offset="50%" stop-color="#0066FF" />
+      <stop offset="100%" stop-color="#0038FF" />
+    </linearGradient>
+
+    <!-- Gradiente do Painel Central -->
+    <linearGradient id="darkPanelGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#1C212B" />
+      <stop offset="100%" stop-color="#0A0C10" />
+    </linearGradient>
+
+    <!-- Gradiente da Onda Sonora -->
+    <linearGradient id="soundWaveGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#00D5FF" />
+      <stop offset="45%" stop-color="#0088FF" />
+      <stop offset="100%" stop-color="#004CFF" />
+    </linearGradient>
+
+    <!-- Gradiente Metálico dos Botões (Knobs) -->
+    <linearGradient id="ringMetalGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#E2EAFA" />
+      <stop offset="100%" stop-color="#8898B5" />
+    </linearGradient>
+
+    <linearGradient id="knobInnerGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#28303F" />
+      <stop offset="100%" stop-color="#121620" />
+    </linearGradient>
+
+    <!-- Gradiente dos Parafusos dos Cantos -->
+    <linearGradient id="screwHeadGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#8C9DB9" />
+      <stop offset="100%" stop-color="#4B586B" />
+    </linearGradient>
+
+    <!-- Sombra Projetada Suave -->
+    <filter id="mainShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+
+    <!-- Brilho Neon da Onda Sonora -->
+    <filter id="waveGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0099FF" flood-opacity="0.5" />
+    </filter>
+
+    <!-- Sombra dos Botões -->
+    <filter id="knobShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Base e Moldura Externa Azul (Raio de Canto Ajustado) -->
+  <rect x="56" y="56" width="400" height="400" rx="90" fill="url(#blueFrameGrad)" filter="url(#mainShadow)" />
+
+  <!-- Painel Interior Escuro (Margem uniforme de 18px) -->
+  <rect x="74" y="74" width="364" height="364" rx="72" fill="url(#darkPanelGrad)" />
+
+  <!-- Parafusos dos Cantos (Alinhamento Simétrico a 112px das bordas) -->
+  <circle cx="112" cy="112" r="11" fill="url(#screwHeadGrad)" />
+  <circle cx="400" cy="112" r="11" fill="url(#screwHeadGrad)" />
+  <circle cx="112" cy="400" r="11" fill="url(#screwHeadGrad)" />
+  <circle cx="400" cy="400" r="11" fill="url(#screwHeadGrad)" />
+
+  <!-- Onda Sonora Equalizada (10 Barras Otimizadas, Largura 16px, Espaçamento 12px) -->
+  <!-- Centro Geométrico X = 256px, Y centralizado em 216px -->
+  <g filter="url(#waveGlow)">
+    <!-- Barra 1 (X: 122) -->
+    <rect x="122" y="198" width="16" height="36" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 2 (X: 150) -->
+    <rect x="150" y="180" width="16" height="72" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 3 (X: 178) -->
+    <rect x="178" y="158" width="16" height="116" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 4 (X: 206) -->
+    <rect x="206" y="142" width="16" height="148" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 5 (X: 234) -->
+    <rect x="234" y="128" width="16" height="176" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 6 (X: 262 - Central Mais Longa com Cabo Inferior) -->
+    <rect x="262" y="122" width="16" height="188" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 7 (X: 290) -->
+    <rect x="290" y="138" width="16" height="156" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 8 (X: 318) -->
+    <rect x="318" y="152" width="16" height="128" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 9 (X: 346) -->
+    <rect x="346" y="172" width="16" height="88" rx="8" fill="url(#soundWaveGrad)" />
+    <!-- Barra 10 (X: 374) -->
+    <rect x="374" y="198" width="16" height="36" rx="8" fill="url(#soundWaveGrad)" />
+  </g>
+
+  <!-- Botões Seletores Inferiores (Knobs em Y=356px com espaçamento idêntico de 96px entre centros) -->
+  <!-- Botão Esquerdo (X: 160) -->
+  <g id="knobLeft" filter="url(#knobShadow)">
+    <circle cx="160" cy="356" r="38" fill="url(#ringMetalGrad)" />
+    <circle cx="160" cy="356" r="26" fill="#0A0C10" />
+    <circle cx="160" cy="356" r="21" fill="url(#knobInnerGrad)" />
+    <circle cx="160" cy="356" r="8" fill="#0A0D14" opacity="0.8" />
+  </g>
+
+  <!-- Botão Central (X: 256) -->
+  <g id="knobCenter" filter="url(#knobShadow)">
+    <circle cx="256" cy="356" r="38" fill="url(#ringMetalGrad)" />
+    <circle cx="256" cy="356" r="26" fill="#0A0C10" />
+    <circle cx="256" cy="356" r="21" fill="url(#knobInnerGrad)" />
+    <circle cx="256" cy="356" r="8" fill="#0A0D14" opacity="0.8" />
+  </g>
+
+  <!-- Botão Direito (X: 352) -->
+  <g id="knobRight" filter="url(#knobShadow)">
+    <circle cx="352" cy="356" r="38" fill="url(#ringMetalGrad)" />
+    <circle cx="352" cy="356" r="26" fill="#0A0C10" />
+    <circle cx="352" cy="356" r="21" fill="url(#knobInnerGrad)" />
+    <circle cx="352" cy="356" r="8" fill="#0A0D14" opacity="0.8" />
+  </g>
+</svg>
