@@ -74,6 +74,18 @@ class PlaybackController(QObject):
     def normalize_enabled(self) -> bool:
         return self._audio_engine.normalize_enabled()
 
+    def set_equalizer_enabled(self, enabled: bool) -> None:
+        self._audio_engine.set_equalizer_enabled(enabled)
+
+    def equalizer_enabled(self) -> bool:
+        return self._audio_engine.equalizer_enabled()
+
+    def set_equalizer_settings(self, bass_db: float, mid_db: float, treble_db: float) -> None:
+        self._audio_engine.set_equalizer_settings(bass_db, mid_db, treble_db)
+
+    def equalizer_settings(self) -> tuple[float, float, float]:
+        return self._audio_engine.equalizer_settings()
+
     def set_noise_reduction_enabled(self, enabled: bool) -> None:
         self._audio_engine.set_noise_reduction_enabled(enabled)
 
