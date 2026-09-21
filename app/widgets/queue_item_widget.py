@@ -66,7 +66,12 @@ class QueueItemWidget(QFrame):
 
     def aplicar_tema(self, tema: str) -> None:
         self._theme = tema
+        self._icon_color = "#374151" if tema == "light" else "#e5e7eb"
         self._aplicar_tema(tema)
+        for button in self.findChildren(QPushButton, "queueActionButton"):
+            icon_name = button.property("queueIconName")
+            if icon_name:
+                button.setIcon(get_svg_icon(icon_name, color=self._icon_color, size=48))
 
     def _aplicar_tema(self, tema: str) -> None:
         if tema == "light":
@@ -106,6 +111,7 @@ class QueueItemWidget(QFrame):
         button = QPushButton()
         button.setToolTip(tooltip)
         button.setObjectName("queueActionButton")
+        button.setProperty("queueIconName", icon_name)
         button.setIcon(get_svg_icon(icon_name, color=self._icon_color, size=48))
         button.setIconSize(QSize(17, 17))
         button.setFixedSize(30, 30)
