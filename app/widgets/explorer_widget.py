@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import QDir, QSize, Signal
+from PySide6.QtCore import QDir, QSize, Qt, Signal
 from PySide6.QtWidgets import (
     QFrame,
     QFileSystemModel,
@@ -87,10 +87,11 @@ class ExplorerWidget(QFrame):
         self.file_tree.setRootIndex(self.file_model.index(""))
         self.file_tree.setAlternatingRowColors(True)
         self.file_tree.setSortingEnabled(True)
-        self.file_tree.setColumnWidth(0, 300)
-        self.file_tree.setColumnWidth(1, 90)
-        self.file_tree.setColumnWidth(2, 130)
-        self.file_tree.setColumnWidth(3, 165)
+        self.file_tree.setColumnWidth(0, 220)
+        self.file_tree.setColumnWidth(1, 70)
+        self.file_tree.setColumnWidth(2, 90)
+        self.file_tree.setColumnWidth(3, 120)
+        self.file_tree.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         self.file_tree.doubleClicked.connect(self._arquivo_selecionado)
 
         self.file_list = QListView()
@@ -139,7 +140,7 @@ class ExplorerWidget(QFrame):
             self.file_tree.setColumnHidden(1, False)
             self.file_tree.setColumnHidden(2, False)
             self.file_tree.setColumnHidden(3, False)
-            self.file_tree.setColumnWidth(0, max(300, self.file_tree.width() // 2))
+            self.file_tree.setColumnWidth(0, max(220, self.file_tree.width() // 2))
         else:
             self.file_stack.setCurrentWidget(self.file_list)
             self.file_tree.setColumnHidden(1, True)
