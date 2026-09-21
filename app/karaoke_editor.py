@@ -36,6 +36,7 @@ from core.lyrics import (
 from core.lyrics_storage import get_save_lyrics_path, resolve_lyrics_path
 from core.icons import get_stateful_icon, get_svg_icon
 from core.clickable_slider import ClickableSlider
+from core.theme_manager import ThemeManager
 
 
 class KaraokeEditorWindow(QMainWindow):
@@ -72,6 +73,7 @@ class KaraokeEditorWindow(QMainWindow):
 
     def _aplicar_estilo(self):
         tema = self.config_manager.get("appearance/theme", "dark") if self.config_manager else "dark"
+        ThemeManager.aplicar_barra_titulo(self, tema)
         if tema == "midnight":
             self.setStyleSheet("""
                 QMainWindow { background: #0b0d11; color: #f3f4f6; }
