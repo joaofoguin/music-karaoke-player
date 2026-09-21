@@ -166,7 +166,6 @@ class MainWindow(QMainWindow):
         self.audio_engine.set_reverb_delay_enabled(
             self.config_manager.get("audio/effects/reverb_delay_enabled", False)
         )
-        self.aplicar_estilo()
 
     def aplicar_estilo(self):
         tema = self.config_manager.get("appearance/theme", "dark")
