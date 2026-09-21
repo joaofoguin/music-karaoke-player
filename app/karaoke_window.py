@@ -359,7 +359,7 @@ class KaraokeWindow(QMainWindow):
         self.setStyleSheet(
             f"""
             QMainWindow {{ background: {self.bg_color}; }}
-            QFrame#topPanel {{ background: rgba(0, 0, 0, 0.25); border: 1px solid #383838; border-radius: 8px; }}
+            QFrame#topPanel {{ background: {painel_bg}; border: 1px solid {painel_border}; border-radius: 8px; }}
             QLabel#trackTitle {{ color: {text_header}; font-size: 15px; font-weight: 600; }}
             QLabel#lyrics {{ line-height: 1.8; }}
             QPushButton {{ background: {btn_bg}; color: {btn_color}; border: 1px solid #4a4a4a; border-radius: 4px; padding: 5px 12px; font-size: 13px; font-weight: 600; }}
