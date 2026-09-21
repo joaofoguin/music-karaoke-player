@@ -80,6 +80,14 @@ class MainWindow(QMainWindow):
         self.audio_engine.set_equalizer_enabled(
             self.config_manager.get("audio/effects/equalizer_enabled", False)
         )
+        self.audio_engine.set_reverb_delay_settings(
+            self.config_manager.get("audio/effects/reverb_delay_ms", 120.0),
+            self.config_manager.get("audio/effects/reverb_feedback", 0.35),
+            self.config_manager.get("audio/effects/reverb_mix", 0.25),
+        )
+        self.audio_engine.set_reverb_delay_enabled(
+            self.config_manager.get("audio/effects/reverb_delay_enabled", False)
+        )
         self.playback_coordinator = PlaybackCoordinator(self.audio_engine, self.queue_controller)
         self.playback_coordinator.track_changed.connect(self._ao_mudar_faixa)
         self.karaoke_window = None
@@ -142,6 +150,14 @@ class MainWindow(QMainWindow):
         )
         self.audio_engine.set_equalizer_enabled(
             self.config_manager.get("audio/effects/equalizer_enabled", False)
+        )
+        self.audio_engine.set_reverb_delay_settings(
+            self.config_manager.get("audio/effects/reverb_delay_ms", 120.0),
+            self.config_manager.get("audio/effects/reverb_feedback", 0.35),
+            self.config_manager.get("audio/effects/reverb_mix", 0.25),
+        )
+        self.audio_engine.set_reverb_delay_enabled(
+            self.config_manager.get("audio/effects/reverb_delay_enabled", False)
         )
         self.aplicar_estilo()
 
