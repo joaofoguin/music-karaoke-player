@@ -101,6 +101,20 @@ class PlaybackController(QObject):
     def noise_reduction_db(self) -> float:
         return self._audio_engine.noise_reduction_db()
 
+    def set_reverb_delay_enabled(self, enabled: bool) -> None:
+        self._audio_engine.set_reverb_delay_enabled(enabled)
+
+    def reverb_delay_enabled(self) -> bool:
+        return self._audio_engine.reverb_delay_enabled()
+
+    def set_reverb_delay_settings(
+        self, delay_ms: float, feedback: float, mix: float
+    ) -> None:
+        self._audio_engine.set_reverb_delay_settings(delay_ms, feedback, mix)
+
+    def reverb_delay_settings(self) -> tuple[float, float, float]:
+        return self._audio_engine.reverb_delay_settings()
+
     def position(self) -> int:
         return self._audio_engine.position()
 
