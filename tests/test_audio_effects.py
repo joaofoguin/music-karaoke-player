@@ -49,3 +49,53 @@ def test_mix_to_mono_rejects_unknown_format():
         assert "Formato PCM não suportado" in str(exc)
     else:
         raise AssertionError("Era esperado ValueError")
+
+
+def test_apply_gain_int16():
+    data = struct.pack("<3h", 1000, -1000, 30000)
+    result = AudioEffects.apply_gain(data, "int16", 6.0206)
+    samples = struct.unpack("<3h", result)
+    assert samples[0] == 2000
+    assert samples[1] == -2000
+    assert samples[2] == 32767
+
+
+def test_apply_gain_float32():
+    data = struct.pack("<2f", 0.25, -0.5)
+    result = AudioEffects.apply_gain(data, "float32", 6.0206)
+    assert struct.unpack("<2f", result) == (0.5, -1.0)
+
+
+def test_apply_gain_zero_keeps_data():
+    data = struct.pack("<2h", 100, -200)
+    assert AudioEffects.apply_gain(data, "int16", 0) == data
+
+
+def test_normalize_peak_float32():
+    data = struct.pack("<3f", 0.25, -0.5, 0.75)
+    result = AudioEffects.normalize_peak(data, "float32")
+    samples = struct.unpack("<3f", result)
+    assert abs(samples[0] - 0.297083646) < 1e-6
+    assert abs(samples[1] + 0.594167292) < 1e-6
+    assert abs(samples[2] - 0.891250938) < 1e-6
+
+
+def test_normalize_peak_int16():
+    data = struct.pack("<3h", 1000, -2000, 16000)
+    result = AudioEffects.normalize_peak(data, "int16")
+    samples = struct.unpack("<3h", result)
+    assert samples[2] in range(29202, 29206)
+
+
+def test_normalize_peak_silence_keeps_data():
+    data = struct.pack("<3h", 0, 0, 0)
+    assert AudioEffects.normalize_peak(data, "int16") == data
+
+
+def test_normalize_peak_rejects_invalid_target():
+    try:
+        AudioEffects.normalize_peak(b"\x00\x00", "int16", 0)
+    except ValueError as exc:
+        assert "Pico-alvo inválido" in str(exc)
+    else:
+        raise AssertionError("Era esperado ValueError")
