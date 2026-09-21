@@ -6,12 +6,16 @@ class ThemeManager:
             return """
             QMainWindow { background: #0b0d11; color: #f3f4f6; }
             QDialog { background: #0b0d11; color: #f3f4f6; }
+            QDialog QWidget, QDialog QLabel, QDialog QCheckBox, QDialog QRadioButton, QDialog QGroupBox { color: #f3f4f6; }
+            QDialog QLineEdit, QDialog QPlainTextEdit, QDialog QTextEdit, QDialog QSpinBox, QDialog QDoubleSpinBox, QDialog QComboBox { background: #131720; color: #f3f4f6; border: 1px solid #374151; }
+            QDialog QAbstractItemView { background: #131720; color: #f3f4f6; selection-background-color: #2563eb; selection-color: #ffffff; }
             QMenuBar { background: #131720; color: #e5e7eb; border-bottom: 1px solid #1f2937; padding: 4px 8px; }\n            QMenuBar::item { padding: 4px 8px; margin: 0; min-height: 20px; }
             QMenuBar::item:hover, QMenuBar::item:selected { background: #2563eb; color: #ffffff; padding: 4px 8px; margin: 0; min-height: 20px; }\n            QMenu::item:selected { background: #2563eb; color: #ffffff; }
             QMenu { background: #131720; color: #f3f4f6; border: 1px solid #374151; }
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #131720; border: 1px solid #1f2937; border-radius: 8px; }
             QFrame#playerBar { background: #0f131a; border: 1px solid #1f2937; border-radius: 8px; }
+            QLabel#coverPlaceholder { background: #131720; color: #9ca3af; border: 1px solid #374151; border-radius: 6px; font-size: 11px; }
             QLabel#sectionTitle { color: #60a5fa; font-size: 14px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
             QLabel#trackTitle { color: #ffffff; font-size: 16px; font-weight: 700; }
             QLabel#trackMetadata { color: #9ca3af; font-size: 12px; }
@@ -44,12 +48,16 @@ class ThemeManager:
             return """
             QMainWindow { background: #f3f4f6; color: #111827; }
             QDialog { background: #f3f4f6; color: #111827; }
+            QDialog QWidget, QDialog QLabel, QDialog QCheckBox, QDialog QRadioButton, QDialog QGroupBox { color: #111827; }
+            QDialog QLineEdit, QDialog QPlainTextEdit, QDialog QTextEdit, QDialog QSpinBox, QDialog QDoubleSpinBox, QDialog QComboBox { background: #ffffff; color: #111827; border: 1px solid #d1d5db; }
+            QDialog QAbstractItemView { background: #ffffff; color: #111827; selection-background-color: #2563eb; selection-color: #ffffff; }
             QMenuBar { background: #ffffff; color: #374151; border-bottom: 1px solid #e5e7eb; padding: 4px 8px; }\n            QMenuBar::item { padding: 4px 8px; margin: 0; min-height: 20px; }
             QMenuBar::item:hover, QMenuBar::item:selected { background: #e5e7eb; padding: 4px 8px; margin: 0; min-height: 20px; }\n            QMenu::item:selected { background: #e5e7eb; }
             QMenu { background: #ffffff; color: #111827; border: 1px solid #d1d5db; }
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
             QFrame#playerBar { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
+            QLabel#coverPlaceholder { background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db; border-radius: 6px; font-size: 11px; }
             QLabel#sectionTitle { color: #2563eb; font-size: 14px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
             QLabel#trackTitle { color: #111827; font-size: 16px; font-weight: 700; }
             QLabel#trackMetadata { color: #6b7280; font-size: 12px; }
@@ -77,12 +85,16 @@ class ThemeManager:
             return """
             QMainWindow { background: #171717; color: #f4f4f4; }
             QDialog { background: #171717; color: #f4f4f4; }
+            QDialog QWidget, QDialog QLabel, QDialog QCheckBox, QDialog QRadioButton, QDialog QGroupBox { color: #f4f4f4; }
+            QDialog QLineEdit, QDialog QPlainTextEdit, QDialog QTextEdit, QDialog QSpinBox, QDialog QDoubleSpinBox, QDialog QComboBox { background: #242424; color: #f4f4f4; border: 1px solid #4d4d4d; }
+            QDialog QAbstractItemView { background: #242424; color: #f4f4f4; selection-background-color: #3c3c3c; selection-color: #ffffff; }
             QMenuBar { background: #242424; color: #d8d8d8; border-bottom: 1px solid #3c3c3c; padding: 3px 8px; }\n            QMenuBar::item { padding: 3px 8px; margin: 0; min-height: 20px; }
             QMenuBar::item:hover, QMenuBar::item:selected { background: #3c3c3c; padding: 3px 8px; margin: 0; min-height: 20px; }\n            QMenu::item:selected { background: #3c3c3c; }
             QMenu { background: #242424; color: #f4f4f4; border: 1px solid #4a4a4a; }
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #242424; border: 1px solid #3f3f3f; border-radius: 6px; }
             QFrame#playerBar { background: #181818; border: 1px solid #303030; border-radius: 6px; }
+            QLabel#coverPlaceholder { background: #2b2b2b; color: #a8a8a8; border: 1px solid #444444; border-radius: 6px; font-size: 11px; }
             QLabel#sectionTitle { color: #f0f0f0; font-size: 14px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
             QLabel#trackTitle { color: #ffffff; font-size: 16px; font-weight: 700; }
             QLabel#trackMetadata { color: #a8a8a8; font-size: 12px; }
