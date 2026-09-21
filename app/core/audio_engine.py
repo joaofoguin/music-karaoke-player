@@ -31,6 +31,7 @@ class AudioEngine(QObject):
     normalize_changed = Signal(bool)
     noise_reduction_changed = Signal(bool)
     equalizer_changed = Signal(bool)
+    reverb_delay_changed = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -46,6 +47,10 @@ class AudioEngine(QObject):
         self._equalizer_bass_db = 0.0
         self._equalizer_mid_db = 0.0
         self._equalizer_treble_db = 0.0
+        self._reverb_delay_enabled = False
+        self._reverb_delay_ms = 120.0
+        self._reverb_feedback = 0.35
+        self._reverb_mix = 0.25
         self._buffer_callback_count = 0
         self._audio_pipeline = AudioProcessingPipeline()
 
@@ -222,6 +227,46 @@ class AudioEngine(QObject):
     def equalizer_settings(self) -> tuple[float, float, float]:
         return self._equalizer_bass_db, self._equalizer_mid_db, self._equalizer_treble_db
 
+    def set_reverb_delay_enabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled == self._reverb_delay_enabled:
+            return
+
+        self._reconfigure_processing(
+            lambda: setattr(self, "_reverb_delay_enabled", enabled)
+        )
+        self.reverb_delay_changed.emit(enabled)
+
+    def reverb_delay_enabled(self) -> bool:
+        return self._reverb_delay_enabled
+
+    def set_reverb_delay_settings(
+        self,
+        delay_ms: float,
+        feedback: float,
+        mix: float,
+    ) -> None:
+        delay_ms = max(10.0, min(2000.0, float(delay_ms)))
+        feedback = max(0.0, min(0.95, float(feedback)))
+        mix = max(0.0, min(1.0, float(mix)))
+
+        if (
+            delay_ms == self._reverb_delay_ms
+            and feedback == self._reverb_feedback
+            and mix == self._reverb_mix
+        ):
+            return
+
+        def update():
+            self._reverb_delay_ms = delay_ms
+            self._reverb_feedback = feedback
+            self._reverb_mix = mix
+
+        self._reconfigure_processing(update, refresh_when_inactive=False)
+
+    def reverb_delay_settings(self) -> tuple[float, float, float]:
+        return self._reverb_delay_ms, self._reverb_feedback, self._reverb_mix
+
     def _processing_enabled(self) -> bool:
         return (
             self._mono_enabled
@@ -229,6 +274,7 @@ class AudioEngine(QObject):
             or self._normalize_enabled
             or self._noise_reduction_enabled
             or self._equalizer_enabled
+            or self._reverb_delay_enabled
         )
 
     def _reconfigure_processing(
@@ -345,6 +391,10 @@ class AudioEngine(QObject):
                 self._equalizer_bass_db if self._equalizer_enabled else 0.0,
                 self._equalizer_mid_db if self._equalizer_enabled else 0.0,
                 self._equalizer_treble_db if self._equalizer_enabled else 0.0,
+                self._reverb_delay_enabled,
+                self._reverb_delay_ms,
+                self._reverb_feedback,
+                self._reverb_mix,
             )
         except ValueError as exc:
             print(f"Efeito de áudio indisponível: {exc}")
