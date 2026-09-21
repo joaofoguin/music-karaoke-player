@@ -110,6 +110,9 @@ class MainWindow(QMainWindow):
 
         self.criar_interface()
         self.aplicar_estilo()
+        self.explorer_widget.set_font_size(
+            self.config_manager.get("appearance/explorer_font_size", 9.0)
+        )
         self.carregar_estado_inicial()
 
     def aplicar_configuracoes(self):
@@ -122,6 +125,9 @@ class MainWindow(QMainWindow):
         )
         self.track_loader.set_audio_extensions(self.audio_extensions)
         self.explorer_widget.set_audio_extensions(self.audio_extensions)
+        self.explorer_widget.set_font_size(
+            self.config_manager.get("appearance/explorer_font_size", 9.0)
+        )
 
         output_device_id = self.config_manager.get("audio/output_device_id", "")
         self.audio_engine.set_configured_output_device_id(output_device_id)
