@@ -117,6 +117,10 @@ class KaraokeEditorWindow(QMainWindow):
                 QSlider::groove:horizontal { height: 6px; background: #4a4a4a; border-radius: 3px; }
                 QSlider::handle:horizontal { width: 14px; margin: -4px 0; background: #e0e0e0; border-radius: 7px; }
             """)
+        cor_titulo = "#111827" if tema == "light" else "#f3f4f6"
+        self.lbl_faixa.setStyleSheet(
+            f"font-size: 16px; font-weight: bold; color: {cor_titulo};"
+        )
         self._atualizar_icones()
 
     def _atualizar_icones(self):
@@ -164,7 +168,9 @@ class KaraokeEditorWindow(QMainWindow):
 
         linha1 = QHBoxLayout()
         self.lbl_faixa = QLabel("Nenhuma música carregada")
-        self.lbl_faixa.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.lbl_faixa.setStyleSheet(
+            "font-size: 16px; font-weight: bold; color: #111827;"
+        )
         linha1.addWidget(self.lbl_faixa, 1)
 
         linha1.addStretch()
