@@ -29,6 +29,7 @@ class QueueWidget(QFrame):
 
         titulo_queue = QLabel("FILA DE REPRODUÇÃO")
         titulo_queue.setObjectName("sectionTitle")
+        titulo_queue.setStyleSheet("font-weight: 600;")
 
         cabecalho_fila = QHBoxLayout()
         cabecalho_fila.setSpacing(4)
