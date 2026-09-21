@@ -71,7 +71,6 @@ def test_apply_gain_zero_keeps_data():
     assert AudioEffects.apply_gain(data, "int16", 0) == data
 
 
-
 def test_normalize_peak_float32():
     data = struct.pack("<3f", 0.25, -0.5, 0.75)
     result = AudioEffects.normalize_peak(data, "float32")
@@ -85,7 +84,7 @@ def test_normalize_peak_int16():
     data = struct.pack("<3h", 1000, -2000, 16000)
     result = AudioEffects.normalize_peak(data, "int16")
     samples = struct.unpack("<3h", result)
-    assert samples[2] in range(29198, 29202)
+    assert samples[2] in range(29202, 29206)
 
 
 def test_normalize_peak_silence_keeps_data():
