@@ -46,10 +46,15 @@ class ThemeManager:
             QMainWindow { background: #0b0d11; color: #f3f4f6; }
             QDialog { background: #0b0d11; color: #f3f4f6; }\n            QDialog QWidget { background: #0b0d11; color: #f3f4f6; }\n            QDialog QTabWidget::pane { background: #0b0d11; border: 1px solid #1f2937; }\n            QDialog QTabBar::tab { background: #131720; color: #9ca3af; padding: 5px 12px; font-size: 9pt; }\n            QDialog QTabBar::tab:selected { background: #2563eb; color: #ffffff; }
             QDialog QWidget, QDialog QLabel, QDialog QCheckBox, QDialog QRadioButton, QDialog QGroupBox { color: #f3f4f6; }
+            QGroupBox { margin-top: 10px; padding-top: 12px; }
+            QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 8px; padding: 0 5px; }
+            QDialog QComboBox, QComboBox { min-height: 30px; padding: 3px 28px 3px 8px; }
+            QDialog QComboBox::drop-down, QComboBox::drop-down { width: 24px; border: 0; }
+            QDialog QComboBox::down-arrow, QComboBox::down-arrow { width: 8px; height: 8px; }
             QDialog QAbstractSpinBox { min-height: 28px; }\n            QDialog QAbstractSpinBox::up-button, QDialog QAbstractSpinBox::down-button { width: 18px; min-width: 18px; }\n            QDialog QAbstractSpinBox::up-arrow, QDialog QAbstractSpinBox::down-arrow { width: 8px; height: 8px; }\n            QDialog QLineEdit, QDialog QPlainTextEdit, QDialog QTextEdit, QDialog QSpinBox, QDialog QDoubleSpinBox, QDialog QComboBox { background: #131720; color: #f3f4f6; border: 1px solid #374151; }
             QDialog QAbstractItemView { background: #131720; color: #f3f4f6; selection-background-color: #2563eb; selection-color: #ffffff; }
-            QMenuBar { background: #131720; color: #e5e7eb; border-bottom: 1px solid #1f2937; padding: 4px 8px; }\n            QMenuBar::item { padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; font-size: 9pt; }
-            QMenuBar::item:hover, QMenuBar::item:selected { background: #2563eb; color: #ffffff; padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; }\n            QMenu::item:selected { background: #2563eb; color: #ffffff; }
+            QMenuBar { background: #131720; color: #e5e7eb; border-bottom: 1px solid #1f2937; padding: 4px 8px; }\n            QMenuBar::item { padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; font-size: 9pt; font-weight: normal; }
+            QMenuBar::item:hover, QMenuBar::item:selected { background: #2563eb; color: #ffffff; font-weight: normal; padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; }\n            QMenu::item:selected { background: #2563eb; color: #ffffff; }
             QMenu { background: #131720; color: #f3f4f6; border: 1px solid #374151; }
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #131720; border: 1px solid #1f2937; border-radius: 8px; }
@@ -88,10 +93,15 @@ class ThemeManager:
             QMainWindow { background: #f3f4f6; color: #111827; }
             QDialog { background: #f3f4f6; color: #111827; }\n            QDialog QWidget { background: #f3f4f6; color: #111827; }\n            QDialog QTabWidget::pane { background: #f3f4f6; border: 1px solid #d1d5db; }\n            QDialog QTabBar::tab { background: #e5e7eb; color: #4b5563; padding: 5px 12px; font-size: 9pt; }\n            QDialog QTabBar::tab:selected { background: #2563eb; color: #ffffff; }
             QDialog QWidget, QDialog QLabel, QDialog QCheckBox, QDialog QRadioButton, QDialog QGroupBox { color: #111827; }
+            QGroupBox { margin-top: 10px; padding-top: 12px; }
+            QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 8px; padding: 0 5px; }
+            QDialog QComboBox, QComboBox { min-height: 30px; padding: 3px 28px 3px 8px; }
+            QDialog QComboBox::drop-down, QComboBox::drop-down { width: 24px; border: 0; }
+            QDialog QComboBox::down-arrow, QComboBox::down-arrow { width: 8px; height: 8px; }
             QDialog QAbstractSpinBox { min-height: 28px; }\n            QDialog QAbstractSpinBox::up-button, QDialog QAbstractSpinBox::down-button { width: 18px; min-width: 18px; }\n            QDialog QAbstractSpinBox::up-arrow, QDialog QAbstractSpinBox::down-arrow { width: 8px; height: 8px; }\n            QDialog QLineEdit, QDialog QPlainTextEdit, QDialog QTextEdit, QDialog QSpinBox, QDialog QDoubleSpinBox, QDialog QComboBox { background: #ffffff; color: #111827; border: 1px solid #d1d5db; }
             QDialog QAbstractItemView { background: #ffffff; color: #111827; selection-background-color: #2563eb; selection-color: #ffffff; }
             QMenuBar { background: #ffffff; color: #374151; border-bottom: 1px solid #e5e7eb; padding: 4px 8px; }\n            QMenuBar::item { padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; font-size: 9pt; }
-            QMenuBar::item:hover, QMenuBar::item:selected { background: #e5e7eb; padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; }\n            QMenu::item:selected { background: #e5e7eb; }
+            QMenuBar::item:hover, QMenuBar::item:selected { background: #e5e7eb; font-weight: normal; padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; }\n            QMenu::item:selected { background: #e5e7eb; }
             QMenu { background: #ffffff; color: #111827; border: 1px solid #d1d5db; }
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
@@ -125,10 +135,15 @@ class ThemeManager:
             QMainWindow { background: #171717; color: #f4f4f4; }
             QDialog { background: #171717; color: #f4f4f4; }\n            QDialog QWidget { background: #171717; color: #f4f4f4; }\n            QDialog QTabWidget::pane { background: #171717; border: 1px solid #3c3c3c; }\n            QDialog QTabBar::tab { background: #242424; color: #bdbdbd; padding: 5px 12px; font-size: 9pt; }\n            QDialog QTabBar::tab:selected { background: #3c3c3c; color: #ffffff; }
             QDialog QWidget, QDialog QLabel, QDialog QCheckBox, QDialog QRadioButton, QDialog QGroupBox { color: #f4f4f4; }
+            QGroupBox { margin-top: 10px; padding-top: 12px; }
+            QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 8px; padding: 0 5px; }
+            QDialog QComboBox, QComboBox { min-height: 30px; padding: 3px 28px 3px 8px; }
+            QDialog QComboBox::drop-down, QComboBox::drop-down { width: 24px; border: 0; }
+            QDialog QComboBox::down-arrow, QComboBox::down-arrow { width: 8px; height: 8px; }
             QDialog QAbstractSpinBox { min-height: 28px; }\n            QDialog QAbstractSpinBox::up-button, QDialog QAbstractSpinBox::down-button { width: 18px; min-width: 18px; }\n            QDialog QAbstractSpinBox::up-arrow, QDialog QAbstractSpinBox::down-arrow { width: 8px; height: 8px; }\n            QDialog QLineEdit, QDialog QPlainTextEdit, QDialog QTextEdit, QDialog QSpinBox, QDialog QDoubleSpinBox, QDialog QComboBox { background: #242424; color: #f4f4f4; border: 1px solid #4d4d4d; }
             QDialog QAbstractItemView { background: #242424; color: #f4f4f4; selection-background-color: #3c3c3c; selection-color: #ffffff; }
             QMenuBar { background: #242424; color: #d8d8d8; border-bottom: 1px solid #3c3c3c; padding: 3px 8px; }\n            QMenuBar::item { padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; font-size: 9pt; }
-            QMenuBar::item:hover, QMenuBar::item:selected { background: #3c3c3c; padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; }\n            QMenu::item:selected { background: #3c3c3c; }
+            QMenuBar::item:hover, QMenuBar::item:selected { background: #3c3c3c; font-weight: normal; padding: 0 8px; margin: 0; min-height: 20px; max-height: 20px; height: 20px; }\n            QMenu::item:selected { background: #3c3c3c; }
             QMenu { background: #242424; color: #f4f4f4; border: 1px solid #4a4a4a; }
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #242424; border: 1px solid #3f3f3f; border-radius: 6px; }

@@ -1,6 +1,6 @@
-from PySide6.QtCore import Signal
-from PySide6.QtGui import QAction, QKeySequence
-from PySide6.QtWidgets import QMenuBar
+from PySide6.QtCore import QEvent, Signal
+from PySide6.QtGui import QAction, QFont, QKeySequence
+from PySide6.QtWidgets import QMenuBar, QSizePolicy
 
 
 class MainMenu(QMenuBar):
@@ -28,6 +28,14 @@ class MainMenu(QMenuBar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Mantém a barra e as ações com métricas estáveis desde a abertura.
+        self._fixando_fonte = False
+        self.setFixedHeight(28)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        fonte = QFont(self.font())
+        fonte.setPointSizeF(9.0)
+        fonte.setWeight(QFont.Weight.Normal)
+        self.setFont(fonte)
         self._criar_menus()
 
     def _criar_menus(self):
@@ -65,6 +73,23 @@ class MainMenu(QMenuBar):
         menu_ajuda = self.addMenu("&Ajuda")
         self._adicionar_acao(menu_ajuda, "Atalhos do Teclado", None, self.shortcuts_requested)
         self._adicionar_acao(menu_ajuda, "Sobre o Music Player", None, self.about_requested)
+
+    def changeEvent(self, event):
+        if event.type() == QEvent.Type.FontChange and not self._fixando_fonte:
+            self._fixando_fonte = True
+            try:
+                fonte = QFont(self.font())
+                fonte.setPointSizeF(9.0)
+                fonte.setWeight(QFont.Weight.Normal)
+                self.setFont(fonte)
+            finally:
+                self._fixando_fonte = False
+        super().changeEvent(event)
+
+    def resizeEvent(self, event):
+        if self.height() != 28:
+            self.setFixedHeight(28)
+        super().resizeEvent(event)
 
     @staticmethod
     def _adicionar_acao(menu, texto, atalho, sinal):
