@@ -1,5 +1,5 @@
-import math
 import struct
+import sys
 
 from PySide6.QtMultimedia import QAudioFormat
 
@@ -8,19 +8,28 @@ class PcmConverter:
     """Converte PCM intercalado entre formatos QAudioFormat."""
 
     _FORMATS = {
-        QAudioFormat.SampleFormat.UInt8: ("<B", 1, 128.0, 127.0),
-        QAudioFormat.SampleFormat.Int16: ("<h", 2, 0.0, 32767.0),
-        QAudioFormat.SampleFormat.Int32: ("<i", 4, 0.0, 2147483647.0),
-        QAudioFormat.SampleFormat.Float: ("<f", 4, 0.0, 1.0),
+        QAudioFormat.SampleFormat.UInt8: ("B", 1, 127.0),
+        QAudioFormat.SampleFormat.Int16: ("h", 2, 32767.0),
+        QAudioFormat.SampleFormat.Int32: ("i", 4, 2147483647.0),
+        QAudioFormat.SampleFormat.Float: ("f", 4, 1.0),
     }
 
-    @classmethod
-    def convert(cls, data: bytes, source_format: QAudioFormat, target_format: QAudioFormat) -> bytes:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self._resample_source_rate = None
+        self._resample_target_rate = None
+        self._resample_channels = None
+        self._resample_phase = 0.0
+        self._resample_previous_frame = None
+
+    def convert(self, data: bytes, source_format: QAudioFormat, target_format: QAudioFormat) -> bytes:
         if source_format == target_format:
             return data
 
-        source_info = cls._FORMATS.get(source_format.sampleFormat())
-        target_info = cls._FORMATS.get(target_format.sampleFormat())
+        source_info = self._FORMATS.get(source_format.sampleFormat())
+        target_info = self._FORMATS.get(target_format.sampleFormat())
         if source_info is None or target_info is None:
             raise ValueError("Formato PCM não suportado para conversão")
 
@@ -29,7 +38,7 @@ class PcmConverter:
         if source_channels <= 0 or target_channels <= 0:
             raise ValueError("Quantidade de canais inválida")
 
-        source_samples = cls._decode(data, source_format.sampleFormat())
+        source_samples = self._decode(data, source_format.sampleFormat())
         if len(source_samples) % source_channels:
             source_samples = source_samples[:len(source_samples) - (len(source_samples) % source_channels)]
 
@@ -37,31 +46,32 @@ class PcmConverter:
             source_samples[index:index + source_channels]
             for index in range(0, len(source_samples), source_channels)
         ]
-        frames = cls._convert_channels(frames, target_channels)
+        frames = self._convert_channels(frames, target_channels)
 
         if source_format.sampleRate() != target_format.sampleRate():
-            frames = cls._resample(
+            frames = self._resample(
                 frames,
                 source_format.sampleRate(),
                 target_format.sampleRate(),
             )
+        else:
+            self.reset()
 
         samples = [sample for frame in frames for sample in frame]
-        return cls._encode(samples, target_format.sampleFormat())
+        return self._encode(samples, target_format.sampleFormat())
 
-    @classmethod
-    def _decode(cls, data, sample_format):
-        fmt = cls._FORMATS[sample_format][0]
-        size = cls._FORMATS[sample_format][1]
+    def _decode(self, data, sample_format):
+        fmt = self._struct_format(sample_format)
+        size = self._FORMATS[sample_format][1]
         count = len(data) // size
         return [
-            cls._to_float(struct.unpack_from(fmt, data, index * size)[0], sample_format)
+            self._to_float(struct.unpack_from(fmt, data, index * size)[0], sample_format)
             for index in range(count)
         ]
 
-    @classmethod
-    def _encode(cls, samples, sample_format):
-        fmt, _, offset, scale = cls._FORMATS[sample_format]
+    def _encode(self, samples, sample_format):
+        fmt = self._struct_format(sample_format)
+        _, _, scale = self._FORMATS[sample_format]
         output = bytearray()
         for sample in samples:
             sample = max(-1.0, min(1.0, float(sample)))
@@ -80,6 +90,11 @@ class PcmConverter:
                 value = max(low, min(high, value))
             output.extend(struct.pack(fmt, value))
         return bytes(output)
+
+    @classmethod
+    def _struct_format(cls, sample_format):
+        fmt = cls._FORMATS[sample_format][0]
+        return ("<" if sys.byteorder == "little" else ">") + fmt
 
     @staticmethod
     def _to_float(value, sample_format):
@@ -118,24 +133,44 @@ class PcmConverter:
                 ])
         return converted
 
-    @staticmethod
-    def _resample(frames, source_rate, target_rate):
+    def _resample(self, frames, source_rate, target_rate):
         if not frames or source_rate <= 0 or target_rate <= 0:
             return frames
         if source_rate == target_rate:
+            self.reset()
             return frames
 
-        output_count = max(1, round(len(frames) * target_rate / source_rate))
+        channels = len(frames[0])
+        state = (source_rate, target_rate, channels)
+        if state != (
+            self._resample_source_rate,
+            self._resample_target_rate,
+            self._resample_channels,
+        ):
+            self.reset()
+            self._resample_source_rate = source_rate
+            self._resample_target_rate = target_rate
+            self._resample_channels = channels
+
+        if self._resample_previous_frame is not None:
+            frames = [self._resample_previous_frame] + frames
+
+        ratio = source_rate / target_rate
+        position = self._resample_phase
+        last_index = len(frames) - 1
         result = []
-        max_index = len(frames) - 1
-        for output_index in range(output_count):
-            position = output_index * source_rate / target_rate
-            left = min(max_index, int(math.floor(position)))
-            right = min(max_index, left + 1)
+
+        while position < last_index:
+            left = int(position)
+            right = min(last_index, left + 1)
             fraction = position - left
             result.append([
                 frames[left][channel] * (1.0 - fraction)
                 + frames[right][channel] * fraction
-                for channel in range(len(frames[0]))
+                for channel in range(channels)
             ])
+            position += ratio
+
+        self._resample_previous_frame = frames[-1]
+        self._resample_phase = position - last_index
         return result
