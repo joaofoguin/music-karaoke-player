@@ -422,6 +422,8 @@ class AudioEngine(QObject):
             )
 
     def _reset_processed_output(self, keep_pending_device: bool = False) -> None:
+        self._audio_pipeline.reset()
+
         if self._audio_sink is not None:
             self._audio_sink.reset()
             self._audio_sink.stop()
