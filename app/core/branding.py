@@ -21,8 +21,6 @@ def load_branding(app) -> None:
     font_id = QFontDatabase.addApplicationFont(str(font_path))
     if font_id != -1:
         app.setFont(QFont("Poppins"))
-    else:
-        app.setFont(QFont("Poppins"))
 
     logo_path = resource_path("assets/logo.svg")
     if logo_path.is_file():

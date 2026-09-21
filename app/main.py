@@ -6,6 +6,7 @@ from pathlib import Path
 os.environ.setdefault("QT_MEDIA_BACKEND", "ffmpeg")
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle(APP_DISPLAY_NAME)
+        self.setWindowIcon(QIcon(str(resource_path("assets/logo.svg"))))
         self.resize(1200, 720)
         self.setMinimumSize(900, 560)
 
@@ -581,6 +583,7 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    load_branding(app)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
