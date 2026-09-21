@@ -109,7 +109,7 @@ class KaraokeWindow(QMainWindow):
         self.chords_color = "#f59e0b"
         self.show_chords = True
         self.context_lines = 2
-        self.bg_color = "#1d1d1d"
+        self.bg_color = "#171717"
 
         self.lines = []
         self.current_index = -1
@@ -301,9 +301,9 @@ class KaraokeWindow(QMainWindow):
             theme = self.config_manager.get("appearance/theme", "dark")
             self._theme = theme
             if theme == "midnight":
-                self.bg_color = "#0e1117"
+                self.bg_color = "#0b0d11"
             elif theme == "light":
-                self.bg_color = "#f5f5f7"
+                self.bg_color = "#f3f4f6"
             else:
                 self.bg_color = "#1d1d1d"
 
@@ -364,9 +364,11 @@ class KaraokeWindow(QMainWindow):
         self.setStyleSheet(
             f"""
             QMainWindow {{ background: {self.bg_color}; color: {text_header}; }}
+            QWidget {{ color: {text_header}; }}
+            QLabel {{ color: {text_header}; }}
             QFrame#topPanel {{ background: {painel_bg}; border: 1px solid {painel_border}; border-radius: 8px; }}
             QLabel#trackTitle {{ color: {text_header}; font-size: 15px; font-weight: 600; }}
-            QLabel#lyrics {{ line-height: 1.8; }}
+            QLabel#lyrics {{ color: {self.highlight_color}; line-height: 1.8; }}
             QPushButton {{ background: {btn_bg}; color: {btn_color}; border: 1px solid {border}; border-radius: 4px; padding: 5px 12px; font-size: 13px; font-weight: 600; }}
             QPushButton:hover {{ opacity: 0.85; }}
             QPushButton#mediaBtn {{ background: transparent; border: 0; min-width: 32px; max-width: 32px; min-height: 32px; max-height: 32px; border-radius: 16px; padding: 2px; }}
@@ -510,11 +512,11 @@ class KaraokeWindow(QMainWindow):
     def alternar_tela_cheia(self):
         if self.isFullScreen():
             self.showNormal()
-            self.botao_tela_cheia.setIcon(get_svg_icon("fullscreen", color="#e5e7eb", size=48))
+            self.aplicar_estilo()
             self.botao_tela_cheia.setIconSize(QSize(18, 18))
             self.botao_tela_cheia.setToolTip("Tela cheia")
         else:
             self.showFullScreen()
-            self.botao_tela_cheia.setIcon(get_svg_icon("fullscreen_exit", color="#e5e7eb", size=48))
+            self.aplicar_estilo()
             self.botao_tela_cheia.setIconSize(QSize(18, 18))
             self.botao_tela_cheia.setToolTip("Sair da tela cheia")
