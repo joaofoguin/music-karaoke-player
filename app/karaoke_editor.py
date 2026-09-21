@@ -57,11 +57,18 @@ class KaraokeEditorWindow(QMainWindow):
         self._criar_atalhos()
         self._aplicar_estilo()
 
+        if self.config_manager is not None:
+            self.config_manager.settings_changed.connect(self._atualizar_tema)
+
         # Conexões com o motor de áudio
         self.audio_engine.position_changed.connect(self._on_audio_position_changed)
         self.audio_engine.playback_started.connect(self._atualizar_botao_play)
         self.audio_engine.playback_paused.connect(self._atualizar_botao_play)
         self.audio_engine.playback_stopped.connect(self._atualizar_botao_play)
+
+    def _atualizar_tema(self):
+        """Atualiza o tema do editor enquanto ele permanece aberto."""
+        self._aplicar_estilo()
 
     def _aplicar_estilo(self):
         tema = self.config_manager.get("appearance/theme", "dark") if self.config_manager else "dark"
