@@ -99,7 +99,7 @@ class QueueItemWidget(QFrame):
             f"QueueItemWidget:hover {{ background-color: {hover}; border-color: {border}; }} "
             f"QueueItemWidget QPushButton#queueActionButton {{ background: transparent; border: 0; padding: 0; }} "
             f"QueueItemWidget QPushButton#queueActionButton:hover {{ background: transparent; border: 0; }} "
-            f"QueueItemWidget QLabel {{ color: {text}; }}"
+            f"QueueItemWidget QLabel {{ color: {text}; background: transparent; }}"
         )
 
     def _criar_botao(self, icon_name: str, tooltip: str) -> QPushButton:
