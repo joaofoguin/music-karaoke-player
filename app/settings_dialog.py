@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QColorDialog,
     QComboBox,
+    QAbstractSpinBox,
     QDialog,
     QDoubleSpinBox,
     QFileDialog,
@@ -175,12 +176,13 @@ class SettingsDialog(QDialog):
         form_karaoke.addRow("Cor das cifras / acordes:", self.btn_chords_color)
 
         self.spin_font_size = QSpinBox()
+        self.spin_font_size = self._configurar_spinbox(QSpinBox())
         self.spin_font_size.setRange(14, 52)
         self.spin_font_size.setValue(26)
         self.spin_font_size.setSuffix(" px")
         form_karaoke.addRow("Tamanho da fonte dos versos:", self.spin_font_size)
 
-        self.spin_context_lines = QSpinBox()
+        self.spin_context_lines = self._configurar_spinbox(QSpinBox())
         self.spin_context_lines.setRange(1, 6)
         self.spin_context_lines.setValue(2)
         self.spin_context_lines.setSuffix(" linhas")
@@ -220,7 +222,7 @@ class SettingsDialog(QDialog):
         self.combo_tema.addItem("Claro Suave", "light")
         form_tema.addRow("Estilo visual:", self.combo_tema)
 
-        self.spin_interface_font_size = QDoubleSpinBox()
+        self.spin_interface_font_size = self._configurar_spinbox(QDoubleSpinBox())
         self.spin_interface_font_size.setRange(8.0, 16.0)
         self.spin_interface_font_size.setSingleStep(0.5)
         self.spin_interface_font_size.setDecimals(1)
@@ -253,7 +255,7 @@ class SettingsDialog(QDialog):
 
         layout_principal.addLayout(layout_botoes)
 
-    def _procurar_pasta_padrao(self):
+    @staticmethod\n    def _configurar_spinbox(spin):\n        """Mantém os controles de incremento/decremento clicáveis e estáveis."""\n        spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.UpDownArrows)\n        spin.setKeyboardTracking(False)\n        spin.setFocusPolicy(Qt.FocusPolicy.StrongFocus)\n        spin.lineEdit().setFocusPolicy(Qt.FocusPolicy.StrongFocus)\n        return spin\n\n    def _procurar_pasta_padrao(self):
         caminho = QFileDialog.getExistingDirectory(
             self,
             "Selecione o diretório padrão de músicas",
