@@ -412,21 +412,9 @@ class SettingsDialog(QDialog):
         }
 
         self.config_manager.update_multiple(novas_configuracoes)
-        if self.audio_engine is not None:
-            device_id = novas_configuracoes["audio/output_device_id"]
-            self.audio_engine.set_configured_output_device_id(device_id)
-            if not self.audio_engine.set_output_device(device_id):
-                # Se o dispositivo deixou de existir, volta ao modo automático.
-                self.config_manager.set("audio/output_device_id", "")
-                self.audio_engine.set_configured_output_device_id("")
-                self.audio_engine.set_output_device("")
-            self.audio_engine.set_gain_db(novas_configuracoes["audio/effects/gain_db"])
-            self.audio_engine.set_normalize_enabled(
-                novas_configuracoes["audio/effects/normalize_enabled"]
-            )
-            self.audio_engine.set_mono_enabled(
-                novas_configuracoes["audio/effects/mono_enabled"]
-            )
+        # A aplicação das configurações ocorre em um único ponto:
+        # MainWindow reage ao sinal settings_changed e atualiza o áudio/UI.
+        # O diálogo permanece responsável apenas por editar e persistir valores.
         # O botão Salvar aplica as alterações sem fechar esta janela.
         # O usuário pode continuar ajustando as configurações ou fechá-la
         # explicitamente pelo botão Cancelar ou pelo X da janela.
