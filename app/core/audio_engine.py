@@ -10,7 +10,7 @@ from PySide6.QtMultimedia import (
     QMediaPlayer,
 )
 
-from core.audio_effects import AudioEffects
+from core.audio_processing_pipeline import AudioProcessingPipeline
 
 
 class AudioEngine(QObject):
@@ -37,6 +37,7 @@ class AudioEngine(QObject):
         self._gain_db = 0.0
         self._normalize_enabled = False
         self._buffer_callback_count = 0
+        self._audio_pipeline = AudioProcessingPipeline()
 
         default_device = self.media_devices.defaultAudioOutput()
         self.audio_output = QAudioOutput(default_device, self)
@@ -48,6 +49,7 @@ class AudioEngine(QObject):
         self._audio_sink = None
         self._sink_io = None
         self._sink_format = None
+        self._audio_pipeline.reset()
         self._processed_output_device = default_device
 
         self.player = QMediaPlayer(self)
@@ -284,25 +286,14 @@ class AudioEngine(QObject):
             self._audio_sink.setVolume(self.audio_output.volume())
 
         raw_data = bytes(buffer.constData())
-        sample_format = self._sample_format_name(source_format.sampleFormat())
         try:
-            processed = raw_data
-            if self._mono_enabled:
-                processed = AudioEffects.mix_to_mono(
-                    processed, sample_format, channel_count
-                )
-                if output_format.channelCount() > 1:
-                    processed = AudioEffects.mono_to_channels(
-                        processed,
-                        sample_format,
-                        output_format.channelCount(),
-                    )
-            if self._normalize_enabled:
-                processed = AudioEffects.normalize_peak(
-                    processed, sample_format
-                )
-            processed = AudioEffects.apply_gain(
-                processed, sample_format, self._gain_db
+            processed = self._audio_pipeline.process(
+                raw_data,
+                source_format,
+                output_format,
+                self._mono_enabled,
+                self._normalize_enabled,
+                self._gain_db,
             )
         except ValueError as exc:
             print(f"Efeito de áudio indisponível: {exc}")
@@ -337,15 +328,6 @@ class AudioEngine(QObject):
                 f"Erro na saída PCM mono: estado={state}, "
                 f"erro={self._audio_sink.error()}"
             )
-
-    def _sample_format_name(self, sample_format) -> str:
-        mapping = {
-            QAudioFormat.SampleFormat.UInt8: "uint8",
-            QAudioFormat.SampleFormat.Int16: "int16",
-            QAudioFormat.SampleFormat.Int32: "int32",
-            QAudioFormat.SampleFormat.Float: "float32",
-        }
-        return mapping.get(sample_format, "unknown")
 
     def _reset_processed_output(self, keep_pending_device: bool = False) -> None:
         if self._audio_sink is not None:
