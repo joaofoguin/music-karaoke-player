@@ -153,7 +153,16 @@ class AudioEffectsDialog(QDialog):
         spin.setSuffix(" dB")
         return spin
 
-    @staticmethod\n    def _configurar_spinbox(spin):\n        """Mantém os controles de incremento/decremento clicáveis e estáveis."""\n        spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.UpDownArrows)\n        spin.setKeyboardTracking(False)\n        spin.setFocusPolicy(Qt.FocusPolicy.StrongFocus)\n        spin.lineEdit().setFocusPolicy(Qt.FocusPolicy.StrongFocus)\n        return spin\n\n    def _carregar_valores(self):
+    @staticmethod
+    def _configurar_spinbox(spin):
+        """Mantém os controles de incremento/decremento clicáveis e estáveis."""
+        spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.UpDownArrows)
+        spin.setKeyboardTracking(False)
+        spin.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        spin.lineEdit().setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        return spin
+
+    def _carregar_valores(self):
         self.chk_mono_enabled.setChecked(
             self.config_manager.get("audio/effects/mono_enabled", False)
         )
