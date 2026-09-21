@@ -193,6 +193,7 @@ class MainWindow(QMainWindow):
 
         self.player_widget.atualizar_icones(tema)
         self.explorer_widget.atualizar_icones(tema)
+        self.queue_widget.atualizar_icones(tema)
 
         if hasattr(self, "btn_add_arquivos"):
             self.btn_add_arquivos.setIcon(get_svg_icon("plus", color=cor_icone, size=64))

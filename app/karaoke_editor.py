@@ -117,6 +117,34 @@ class KaraokeEditorWindow(QMainWindow):
                 QSlider::groove:horizontal { height: 6px; background: #4a4a4a; border-radius: 3px; }
                 QSlider::handle:horizontal { width: 14px; margin: -4px 0; background: #e0e0e0; border-radius: 7px; }
             """)
+        self._atualizar_icones()
+
+    def _atualizar_icones(self):
+        tema = self.config_manager.get("appearance/theme", "dark") if self.config_manager else "dark"
+        cor = "#374151" if tema == "light" else "#e5e7eb"
+        self.btn_voltar5.setIcon(get_svg_icon("rewind_5", color=cor))
+        self.btn_avancar5.setIcon(get_svg_icon("forward_5", color=cor))
+        self.btn_play.setIcon(get_svg_icon("pause" if self.audio_engine.is_playing() else "play", color="#ffffff" if tema != "dark" else "#171717"))
+        self.btn_play.setIconSize(QSize(18, 18))
+        for row in range(self.tabela.rowCount()):
+            widget = self.tabela.cellWidget(row, 3)
+            if widget is None:
+                continue
+            for button in widget.findChildren(QPushButton):
+                icon_name = "timer" if button.toolTip() == "Marcar tempo" else "play"
+                button.setIcon(get_stateful_icon(icon_name, normal_color=cor, hover_color="#2563eb", active_color="#2563eb"))
+        self.btn_salvar.setIcon(get_svg_icon("save", color=cor))
+        icones = {
+            "Adicionar verso": "plus",
+            "Remover verso": "minus",
+            "Mover verso para cima": "arrow_up",
+            "Mover verso para baixo": "arrow_down",
+            "Ajustar offset geral": "settings",
+        }
+        for button in self.findChildren(QPushButton):
+            nome_icone = icones.get(button.toolTip())
+            if nome_icone:
+                button.setIcon(get_svg_icon(nome_icone, color=cor))
 
     def _criar_interface(self):
         central = QWidget()
@@ -299,7 +327,7 @@ class KaraokeEditorWindow(QMainWindow):
         layout_rodape.addWidget(self.lbl_destino, 1)
 
         self.btn_salvar = QPushButton()
-        self.btn_salvar.setIcon(get_svg_icon("save"))
+        self.btn_salvar.setIcon(get_svg_icon("save", color="#e5e7eb"))
         self.btn_salvar.setIconSize(QSize(20, 20))
         self.btn_salvar.setFixedSize(42, 36)
         self.btn_salvar.setToolTip("Salvar letra e cifras (Ctrl+S)")
@@ -533,7 +561,7 @@ class KaraokeEditorWindow(QMainWindow):
 
             btn_marcar = QPushButton()
             btn_marcar.setObjectName("btnRowAction")
-            btn_marcar.setIcon(get_svg_icon("timer"))
+            btn_marcar.setIcon(get_svg_icon("timer", color="#e5e7eb"))
             btn_marcar.setIconSize(QSize(17, 17))
             btn_marcar.setFixedSize(28, 28)
             btn_marcar.setFlat(True)
@@ -543,7 +571,7 @@ class KaraokeEditorWindow(QMainWindow):
 
             btn_ouvir = QPushButton()
             btn_ouvir.setObjectName("btnRowAction")
-            btn_ouvir.setIcon(get_svg_icon("play"))
+            btn_ouvir.setIcon(get_svg_icon("play", color="#e5e7eb"))
             btn_ouvir.setIconSize(QSize(16, 16))
             btn_ouvir.setFixedSize(28, 28)
             btn_ouvir.setFlat(True)

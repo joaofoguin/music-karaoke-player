@@ -16,6 +16,7 @@ a = Analysis(
     datas=[
         (str(PROJECT_DIR / "assets"), "assets"),
     ],
+    icon=str(PROJECT_DIR / "assets" / "logo.png"),
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
