@@ -15,7 +15,7 @@ DefaultDirName={autopf}\StageBox
 DefaultGroupName={#MyAppName}
 OutputDir=installer\output
 OutputBaseFilename=StageBox-Beta-Setup
-SetupIconFile=assets\logo.ico
+SetupIconFile=C:\Users\joaop\Documents\Code\Music_player\assets\logo.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
 SolidCompression=yes
@@ -31,7 +31,7 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 Name: "desktopicon"; Description: "Criar atalho na Área de Trabalho"; GroupDescription: "Atalhos:"
 
 [Files]
-Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\joaop\Documents\Code\Music_player\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
