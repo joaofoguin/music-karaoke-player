@@ -20,6 +20,7 @@ class QueueItemWidget(QFrame):
         self._on_move = on_move
         self._on_remove = on_remove
         self._track_count = track_count
+        self._theme = "dark"
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._mostrar_menu_contexto)
@@ -46,12 +47,7 @@ class QueueItemWidget(QFrame):
         info_layout.addWidget(lbl_titulo)
         info_layout.addWidget(lbl_sub)
         layout.addLayout(info_layout, 1)
-        if self.is_current:
-            self.setStyleSheet("QueueItemWidget { background-color: #1f7300; color: #ffffff; border-radius: 6px; border-left: 5px solid #4ade80; } QLabel { color: #ffffff; }")
-        elif self.is_next:
-            self.setStyleSheet("QueueItemWidget { background-color: #735600; color: #ffffff; border-radius: 6px; border-left: 5px solid #f59e0b; } QLabel { color: #ffffff; }")
-        else:
-            self.setStyleSheet("QueueItemWidget { background-color: #242424; color: #d8d8d8; border: 1px solid #383838; border-radius: 6px; } QueueItemWidget:hover { background-color: #2e2e2e; border-color: #4b5563; } QLabel { color: #e5e7eb; }")
+        self._aplicar_tema(self._theme)
         if not self.is_current:
             btn_next = self._criar_botao("next", "Tocar a seguir (Definir como próxima na fila)")
             btn_next.clicked.connect(lambda: self._on_play_next(self.index))
@@ -67,6 +63,44 @@ class QueueItemWidget(QFrame):
         btn_remover = self._criar_botao("trash", "Remover da fila")
         btn_remover.clicked.connect(lambda: self._on_remove(self.index))
         layout.addWidget(btn_remover)
+
+    def aplicar_tema(self, tema: str) -> None:
+        self._theme = tema
+        self._aplicar_tema(tema)
+
+    def _aplicar_tema(self, tema: str) -> None:
+        if tema == "light":
+            if self.is_current:
+                background, border, text = "#dcfce7", "#86efac", "#166534"
+            elif self.is_next:
+                background, border, text = "#fef3c7", "#f59e0b", "#92400e"
+            else:
+                background, border, text = "#ffffff", "#d1d5db", "#1f2937"
+            hover = "#f3f4f6"
+        elif tema == "midnight":
+            if self.is_current:
+                background, border, text = "#1f7300", "#4ade80", "#ffffff"
+            elif self.is_next:
+                background, border, text = "#735600", "#f59e0b", "#ffffff"
+            else:
+                background, border, text = "#242424", "#383838", "#e5e7eb"
+            hover = "#2e2e2e"
+        else:
+            if self.is_current:
+                background, border, text = "#1f7300", "#4ade80", "#ffffff"
+            elif self.is_next:
+                background, border, text = "#735600", "#f59e0b", "#ffffff"
+            else:
+                background, border, text = "#242424", "#383838", "#e5e7eb"
+            hover = "#2e2e2e"
+
+        self.setStyleSheet(
+            f"QueueItemWidget {{ background-color: {background}; color: {text}; border: 1px solid {border}; border-left: 5px solid {border}; border-radius: 6px; }} "
+            f"QueueItemWidget:hover {{ background-color: {hover}; border-color: {border}; }} "
+            f"QueueItemWidget QPushButton#queueActionButton {{ background: transparent; border: 0; padding: 0; }} "
+            f"QueueItemWidget QPushButton#queueActionButton:hover {{ background: transparent; border: 0; }} "
+            f"QueueItemWidget QLabel {{ color: {text}; }}"
+        )
 
     def _criar_botao(self, icon_name: str, tooltip: str) -> QPushButton:
         button = QPushButton()
