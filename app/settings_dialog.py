@@ -383,11 +383,13 @@ class SettingsDialog(QDialog):
         tema = self.combo_tema.currentData()
         if tema:
             self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+            ThemeManager.aplicar_barra_titulo(self, tema)
 
     def _atualizar_tema_salvo(self):
         """Sincroniza o diálogo quando o tema for alterado em outra janela."""
         tema = self.config_manager.get("appearance/theme", "dark")
         self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+        ThemeManager.aplicar_barra_titulo(self, tema)
 
     def _salvar_configuracoes(self):
         exts_raw = self.edit_extensions.text().split(",")
