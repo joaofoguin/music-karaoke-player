@@ -8,6 +8,7 @@ class ThemeManager:
             QMenuBar { background: #131720; color: #e5e7eb; border-bottom: 1px solid #1f2937; padding: 4px 8px; }
             QMenuBar::item:selected, QMenu::item:selected { background: #2563eb; color: #ffffff; }
             QMenu { background: #131720; color: #f3f4f6; border: 1px solid #374151; }
+            QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #131720; border: 1px solid #1f2937; border-radius: 8px; }
             QFrame#playerBar { background: #0f131a; border: 1px solid #1f2937; border-radius: 8px; }
             QLabel#sectionTitle { color: #60a5fa; font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 4px; }
@@ -44,6 +45,7 @@ class ThemeManager:
             QMenuBar { background: #ffffff; color: #374151; border-bottom: 1px solid #e5e7eb; padding: 4px 8px; }
             QMenuBar::item:selected, QMenu::item:selected { background: #e5e7eb; }
             QMenu { background: #ffffff; color: #111827; border: 1px solid #d1d5db; }
+            QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
             QFrame#playerBar { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
             QLabel#sectionTitle { color: #2563eb; font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 4px; }
@@ -75,6 +77,7 @@ class ThemeManager:
             QMenuBar { background: #242424; color: #d8d8d8; border-bottom: 1px solid #3c3c3c; padding: 3px 8px; }
             QMenuBar::item:selected, QMenu::item:selected { background: #3c3c3c; }
             QMenu { background: #242424; color: #f4f4f4; border: 1px solid #4a4a4a; }
+            QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #242424; border: 1px solid #3f3f3f; border-radius: 6px; }
             QFrame#playerBar { background: #181818; border: 1px solid #303030; border-radius: 6px; }
             QLabel#sectionTitle { color: #f0f0f0; font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 4px; }

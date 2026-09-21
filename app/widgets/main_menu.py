@@ -14,6 +14,7 @@ class MainMenu(QMenuBar):
     karaoke_requested = Signal()
     fullscreen_requested = Signal()
     karaoke_editor_requested = Signal()
+    audio_effects_requested = Signal()
     play_pause_requested = Signal()
     previous_requested = Signal()
     next_requested = Signal()
@@ -46,6 +47,7 @@ class MainMenu(QMenuBar):
 
         menu_ferramentas = self.addMenu("&Ferramentas")
         self._adicionar_acao(menu_ferramentas, "Editor de Karaoke e Cifras...", "Ctrl+E", self.karaoke_editor_requested)
+        self._adicionar_acao(menu_ferramentas, "Ajustes e Efeitos de Áudio...", "Ctrl+Shift+A", self.audio_effects_requested)
 
         menu_controles = self.addMenu("&Controles")
         self._adicionar_acao(menu_controles, "Reproduzir / Pausar", "Space", self.play_pause_requested)

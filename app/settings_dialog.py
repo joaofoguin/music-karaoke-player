@@ -100,77 +100,6 @@ class SettingsDialog(QDialog):
         self.combo_output_device.setToolTip("Dispositivo usado para reproduzir o áudio.")
         form_audio.addRow("Dispositivo de saída:", self.combo_output_device)
 
-        self.chk_mono_enabled = QCheckBox("Reproduzir em mono (mesclar canais)")
-        self.chk_mono_enabled.setToolTip("Mescla todos os canais do áudio em um único canal.")
-        form_audio.addRow("", self.chk_mono_enabled)
-
-        self.spin_gain_db = QDoubleSpinBox()
-        self.spin_gain_db.setRange(-60.0, 24.0)
-        self.spin_gain_db.setDecimals(1)
-        self.spin_gain_db.setSingleStep(0.5)
-        self.spin_gain_db.setSuffix(" dB")
-        self.spin_gain_db.setToolTip("Ajusta o ganho do áudio antes da saída.")
-        form_audio.addRow("Ganho / Trim:", self.spin_gain_db)
-
-        self.chk_normalize_enabled = QCheckBox("Normalizar automaticamente o nível do áudio")
-        self.chk_normalize_enabled.setToolTip(
-            "Ajusta o pico de cada bloco PCM para um nível de referência."
-        )
-        form_audio.addRow("", self.chk_normalize_enabled)
-
-        self.chk_noise_reduction_enabled = QCheckBox("Redução de ruído")
-        self.chk_noise_reduction_enabled.setToolTip(
-            "Atenua sinais de baixo nível para reduzir ruído de fundo constante."
-        )
-        form_audio.addRow("", self.chk_noise_reduction_enabled)
-
-        self.spin_noise_threshold_db = QDoubleSpinBox()
-        self.spin_noise_threshold_db.setRange(-80.0, -10.0)
-        self.spin_noise_threshold_db.setDecimals(1)
-        self.spin_noise_threshold_db.setSingleStep(1.0)
-        self.spin_noise_threshold_db.setSuffix(" dB")
-        self.spin_noise_threshold_db.setToolTip(
-            "Nível abaixo do qual a redução começa a atuar."
-        )
-        form_audio.addRow("Limiar de ruído:", self.spin_noise_threshold_db)
-
-        self.spin_noise_reduction_db = QDoubleSpinBox()
-        self.spin_noise_reduction_db.setRange(0.0, 60.0)
-        self.spin_noise_reduction_db.setDecimals(1)
-        self.spin_noise_reduction_db.setSingleStep(1.0)
-        self.spin_noise_reduction_db.setSuffix(" dB")
-        self.spin_noise_reduction_db.setToolTip(
-            "Quanto o sinal de baixo nível será atenuado."
-        )
-        form_audio.addRow("Redução:", self.spin_noise_reduction_db)
-
-        self.chk_equalizer_enabled = QCheckBox("Equalizador de 3 bandas")
-        self.chk_equalizer_enabled.setToolTip(
-            "Ativa o equalizador paramétrico com bandas de graves, médios e agudos."
-        )
-        form_audio.addRow("", self.chk_equalizer_enabled)
-
-        self.spin_equalizer_bass_db = QDoubleSpinBox()
-        self.spin_equalizer_bass_db.setRange(-12.0, 12.0)
-        self.spin_equalizer_bass_db.setDecimals(1)
-        self.spin_equalizer_bass_db.setSingleStep(0.5)
-        self.spin_equalizer_bass_db.setSuffix(" dB")
-        form_audio.addRow("Graves (100 Hz):", self.spin_equalizer_bass_db)
-
-        self.spin_equalizer_mid_db = QDoubleSpinBox()
-        self.spin_equalizer_mid_db.setRange(-12.0, 12.0)
-        self.spin_equalizer_mid_db.setDecimals(1)
-        self.spin_equalizer_mid_db.setSingleStep(0.5)
-        self.spin_equalizer_mid_db.setSuffix(" dB")
-        form_audio.addRow("Médios (1 kHz):", self.spin_equalizer_mid_db)
-
-        self.spin_equalizer_treble_db = QDoubleSpinBox()
-        self.spin_equalizer_treble_db.setRange(-12.0, 12.0)
-        self.spin_equalizer_treble_db.setDecimals(1)
-        self.spin_equalizer_treble_db.setSingleStep(0.5)
-        self.spin_equalizer_treble_db.setSuffix(" dB")
-        form_audio.addRow("Agudos (10 kHz):", self.spin_equalizer_treble_db)
-
         self.chk_remember_volume = QCheckBox("Lembrar o último volume ao fechar")
         form_audio.addRow("", self.chk_remember_volume)
 
@@ -297,7 +226,7 @@ class SettingsDialog(QDialog):
 
         layout_botoes.addStretch()
 
-        self.btn_cancelar = QPushButton("Cancelar")
+        self.btn_cancelar = QPushButton("Fechar")
         self.btn_cancelar.clicked.connect(self.reject)
         self.btn_salvar = QPushButton("Salvar Configurações")
         self.btn_salvar.setDefault(True)
@@ -399,32 +328,6 @@ class SettingsDialog(QDialog):
         self.slider_volume.setValue(vol)
         self.lbl_volume_val.setText(f"{vol}%")
 
-        self.chk_mono_enabled.setChecked(self.config_manager.get("audio/effects/mono_enabled", False))
-        self.spin_gain_db.setValue(self.config_manager.get("audio/effects/gain_db", 0.0))
-        self.chk_normalize_enabled.setChecked(
-            self.config_manager.get("audio/effects/normalize_enabled", False)
-        )
-        self.chk_noise_reduction_enabled.setChecked(
-            self.config_manager.get("audio/effects/noise_reduction_enabled", False)
-        )
-        self.spin_noise_threshold_db.setValue(
-            self.config_manager.get("audio/effects/noise_threshold_db", -45.0)
-        )
-        self.spin_noise_reduction_db.setValue(
-            self.config_manager.get("audio/effects/noise_reduction_db", 18.0)
-        )
-        self.chk_equalizer_enabled.setChecked(
-            self.config_manager.get("audio/effects/equalizer_enabled", False)
-        )
-        self.spin_equalizer_bass_db.setValue(
-            self.config_manager.get("audio/effects/equalizer_bass_db", 0.0)
-        )
-        self.spin_equalizer_mid_db.setValue(
-            self.config_manager.get("audio/effects/equalizer_mid_db", 0.0)
-        )
-        self.spin_equalizer_treble_db.setValue(
-            self.config_manager.get("audio/effects/equalizer_treble_db", 0.0)
-        )
         self.chk_remember_volume.setChecked(self.config_manager.get("playback/remember_volume", True))
         self.chk_repeat_default.setChecked(self.config_manager.get("playback/repeat_enabled", False))
         self.chk_autoplay.setChecked(self.config_manager.get("playback/auto_play_on_add", False))
@@ -471,16 +374,6 @@ class SettingsDialog(QDialog):
             "playback/auto_play_on_add": self.chk_autoplay.isChecked(),
             "playback/audio_extensions": exts,
             "audio/output_device_id": self.combo_output_device.currentData() or "",
-            "audio/effects/mono_enabled": self.chk_mono_enabled.isChecked(),
-            "audio/effects/gain_db": self.spin_gain_db.value(),
-            "audio/effects/normalize_enabled": self.chk_normalize_enabled.isChecked(),
-            "audio/effects/noise_reduction_enabled": self.chk_noise_reduction_enabled.isChecked(),
-            "audio/effects/noise_threshold_db": self.spin_noise_threshold_db.value(),
-            "audio/effects/noise_reduction_db": self.spin_noise_reduction_db.value(),
-            "audio/effects/equalizer_enabled": self.chk_equalizer_enabled.isChecked(),
-            "audio/effects/equalizer_bass_db": self.spin_equalizer_bass_db.value(),
-            "audio/effects/equalizer_mid_db": self.spin_equalizer_mid_db.value(),
-            "audio/effects/equalizer_treble_db": self.spin_equalizer_treble_db.value(),
             "karaoke/lyrics_directory": self.edit_lyrics_dir.text().strip(),
             "karaoke/save_to_central_dir": self.chk_save_central.isChecked(),
             "karaoke/show_chords": self.chk_show_chords.isChecked(),
@@ -498,7 +391,7 @@ class SettingsDialog(QDialog):
         # O diálogo permanece responsável apenas por editar e persistir valores.
         # O botão Salvar aplica as alterações sem fechar esta janela.
         # O usuário pode continuar ajustando as configurações ou fechá-la
-        # explicitamente pelo botão Cancelar ou pelo X da janela.
+        # explicitamente pelo botão Fechar ou pelo X da janela.
 
     def _restaurar_padroes(self):
         self.config_manager.reset_to_defaults()
