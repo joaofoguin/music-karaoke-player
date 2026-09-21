@@ -34,6 +34,7 @@ class AudioEffectsDialog(QDialog):
         """Atualiza o tema mesmo enquanto a janela de efeitos estiver aberta."""
         tema = self.config_manager.get("appearance/theme", "dark")
         self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+        ThemeManager.aplicar_barra_titulo(self, tema)
 
     def _criar_interface(self):
         layout_principal = QVBoxLayout(self)
