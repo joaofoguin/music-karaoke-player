@@ -35,6 +35,7 @@ class AudioProcessingPipeline:
         equalizer_bass_db: float = 0.0,
         equalizer_mid_db: float = 0.0,
         equalizer_treble_db: float = 0.0,
+        reverb_delay_enabled: bool = False,
         reverb_delay_ms: float = 120.0,
         reverb_feedback: float = 0.35,
         reverb_mix: float = 0.25,
@@ -68,16 +69,17 @@ class AudioProcessingPipeline:
             processed, source_sample_format, channels
         )
 
-        self._configure_reverb_delay(
-            source_format.sampleRate(),
-            channels,
-            reverb_delay_ms,
-            reverb_feedback,
-            reverb_mix,
-        )
-        processed = self._reverb_delay.process(
-            processed, source_sample_format, channels
-        )
+        if reverb_delay_enabled:
+            self._configure_reverb_delay(
+                source_format.sampleRate(),
+                channels,
+                reverb_delay_ms,
+                reverb_feedback,
+                reverb_mix,
+            )
+            processed = self._reverb_delay.process(
+                processed, source_sample_format, channels
+            )
 
         if normalize_enabled:
             processed = AudioEffects.normalize_peak(
