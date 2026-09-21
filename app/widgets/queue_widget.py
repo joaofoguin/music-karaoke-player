@@ -71,6 +71,10 @@ class QueueWidget(QFrame):
         cor_icone = "#374151" if tema == "light" else "#e5e7eb"
         self.btn_add_arquivos.setIcon(get_svg_icon("plus", color=cor_icone, size=64))
         self.botao_limpar_fila.setIcon(get_svg_icon("trash", color=cor_icone, size=64))
+        for i in range(self.queue_layout.count()):
+            widget = self.queue_layout.itemAt(i).widget()
+            if isinstance(widget, QueueItemWidget):
+                widget.aplicar_tema(tema)
 
     def atualizar_fila(self):
         while self.queue_layout.count():
