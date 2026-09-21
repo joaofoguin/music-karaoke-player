@@ -119,11 +119,11 @@ class KaraokeEditorWindow(QMainWindow):
             """)
         cor_titulo = "#111827" if tema == "light" else "#f3f4f6"
         self.lbl_faixa.setStyleSheet(
-            f"font-size: 16px; font-weight: bold; color: {cor_titulo};"
+            f"font-size: 16px; font-weight: 600; color: {cor_titulo};"
         )
         cor_tempo = "#111827" if tema == "light" else "#e5e7eb"
         self.lbl_tempo.setStyleSheet(
-            f"font-size: 13px; font-family: monospace; font-weight: bold; color: {cor_tempo};"
+            f"font-size: 13px; font-family: "Poppins", monospace; font-weight: 600; color: {cor_tempo};"
         )
         self._atualizar_icones()
 
@@ -173,7 +173,7 @@ class KaraokeEditorWindow(QMainWindow):
         linha1 = QHBoxLayout()
         self.lbl_faixa = QLabel("Nenhuma música carregada")
         self.lbl_faixa.setStyleSheet(
-            "font-size: 16px; font-weight: bold; color: #111827;"
+            "font-size: 16px; font-weight: 600; color: #111827;"
         )
         linha1.addWidget(self.lbl_faixa, 1)
 
