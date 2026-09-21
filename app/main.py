@@ -36,14 +36,14 @@ from widgets.queue_widget import QueueWidget
 from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
 from widgets.main_menu import MainMenu
-from widgets.main_content_widget import MainContentWidget
+from widgets.main_content_widget import MainContentWidget\nfrom core.branding import APP_DISPLAY_NAME, load_branding
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Music Player")
+        self.setWindowTitle(APP_DISPLAY_NAME)
         self.resize(1200, 720)
         self.setMinimumSize(900, 560)
 
@@ -415,7 +415,7 @@ class MainWindow(QMainWindow):
 
     def mostrar_sobre(self):
         texto = """
-        <h3>Music Player</h3>
+        <h3>StageBox (Beta)</h3>
         <p>Um reprodutor de áudio moderno e elegante desenvolvido com Python e PySide6 (Qt).</p>
         <p><b>Recursos:</b></p>
         <ul>
@@ -426,7 +426,7 @@ class MainWindow(QMainWindow):
             <li>Fila dinâmica com duplo clique para reproduzir e recurso 'Tocar a Seguir'</li>
         </ul>
         """
-        QMessageBox.about(self, "Sobre o Music Player", texto)
+        QMessageBox.about(self, "Sobre o StageBox", texto)
 
     # ==================================================
     # REPRODUÇÃO & KARAOKE
