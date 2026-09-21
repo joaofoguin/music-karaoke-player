@@ -73,6 +73,16 @@ def test_explorer_widget_emits_only_supported_files(tmp_path):
     assert selected == [audio]
 
 
+def test_explorer_widget_sets_font_size():
+    _app()
+    widget = ExplorerWidget([".mp3"])
+
+    widget.set_font_size(8.5)
+
+    assert widget.file_tree.font().pointSizeF() == 8.5
+    assert widget.file_list.font().pointSizeF() == 8.5
+
+
 def test_explorer_widget_changes_directory(tmp_path):
     _app()
     widget = ExplorerWidget([".mp3"])
