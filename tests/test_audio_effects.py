@@ -190,3 +190,61 @@ def test_equalizer_rejects_invalid_configuration():
             pass
         else:
             raise AssertionError("Era esperado ValueError")
+
+
+from core.audio_reverb import AudioReverbDelay
+
+
+def test_reverb_delay_applies_delayed_signal():
+    effect = AudioReverbDelay()
+    effect.configure(1000, 1, delay_ms=10.0, feedback=0.0, mix=1.0)
+
+    first = struct.pack("<10f", *([0.0] * 9 + [1.0]))
+    second = struct.pack("<10f", *([0.0] * 10))
+
+    first_result = effect.process(first, "float32", 1)
+    second_result = effect.process(second, "float32", 1)
+
+    assert struct.unpack("<10f", first_result) == (0.0,) * 10
+    second_samples = struct.unpack("<10f", second_result)
+    assert second_samples[0] == 1.0
+    assert all(sample == 0.0 for sample in second_samples[1:])
+
+
+def test_reverb_delay_preserves_state_between_buffers():
+    samples = [0.0] * 10 + [0.5] + [0.0] * 9
+    effect = AudioReverbDelay()
+    effect.configure(1000, 1, delay_ms=10.0, feedback=0.0, mix=1.0)
+
+    first = struct.pack("<10f", *samples[:10])
+    second = struct.pack("<10f", *samples[10:])
+    result = effect.process(first, "float32", 1) + effect.process(second, "float32", 1)
+    output = struct.unpack("<20f", result)
+
+    assert output[10] == 0.0
+    assert output[11] == 0.5
+
+
+def test_reverb_delay_zero_mix_keeps_data():
+    data = struct.pack("<3f", 0.1, -0.2, 0.3)
+    effect = AudioReverbDelay()
+    effect.configure(44100, 1, mix=0.0)
+    assert effect.process(data, "float32", 1) == data
+
+
+def test_reverb_delay_rejects_invalid_configuration():
+    effect = AudioReverbDelay()
+    invalid = [
+        (0, 1, 120.0, 0.35, 0.25),
+        (44100, 0, 120.0, 0.35, 0.25),
+        (44100, 1, 5.0, 0.35, 0.25),
+        (44100, 1, 120.0, 1.0, 0.25),
+        (44100, 1, 120.0, 0.35, 1.1),
+    ]
+    for config in invalid:
+        try:
+            effect.configure(*config)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Era esperado ValueError")
