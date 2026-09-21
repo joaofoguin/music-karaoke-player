@@ -342,10 +342,9 @@ class AudioEngine(QObject):
                 self._noise_reduction_enabled,
                 self._noise_threshold_db,
                 self._noise_reduction_db,
-                self._equalizer_enabled,
-                self._equalizer_bass_db,
-                self._equalizer_mid_db,
-                self._equalizer_treble_db,
+                self._equalizer_bass_db if self._equalizer_enabled else 0.0,
+                self._equalizer_mid_db if self._equalizer_enabled else 0.0,
+                self._equalizer_treble_db if self._equalizer_enabled else 0.0,
             )
         except ValueError as exc:
             print(f"Efeito de áudio indisponível: {exc}")
