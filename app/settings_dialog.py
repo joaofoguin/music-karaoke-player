@@ -43,6 +43,8 @@ class SettingsDialog(QDialog):
         # Aplica o tema atual ao diálogo
         tema = self.config_manager.get("appearance/theme", "dark")
         self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+        self.combo_tema.currentIndexChanged.connect(self._previsualizar_tema)
+        self.config_manager.settings_changed.connect(self._atualizar_tema_salvo)
 
     def _criar_interface(self):
         layout_principal = QVBoxLayout(self)
@@ -374,6 +376,17 @@ class SettingsDialog(QDialog):
         idx = self.combo_tema.findData(tema)
         if idx >= 0:
             self.combo_tema.setCurrentIndex(idx)
+
+    def _previsualizar_tema(self, _index):
+        """Aplica imediatamente o tema escolhido na própria janela de Preferências."""
+        tema = self.combo_tema.currentData()
+        if tema:
+            self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+
+    def _atualizar_tema_salvo(self):
+        """Sincroniza o diálogo quando o tema for alterado em outra janela."""
+        tema = self.config_manager.get("appearance/theme", "dark")
+        self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
 
     def _salvar_configuracoes(self):
         exts_raw = self.edit_extensions.text().split(",")
