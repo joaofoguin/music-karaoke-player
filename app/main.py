@@ -36,7 +36,8 @@ from widgets.queue_widget import QueueWidget
 from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
 from widgets.main_menu import MainMenu
-from widgets.main_content_widget import MainContentWidget\nfrom core.branding import APP_DISPLAY_NAME, load_branding
+from widgets.main_content_widget import MainContentWidget
+from core.branding import APP_DISPLAY_NAME, load_branding
 
 
 class MainWindow(QMainWindow):
