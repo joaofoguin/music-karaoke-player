@@ -5,6 +5,7 @@ import struct
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "app"))
 
 from core.audio_effects import AudioEffects
+from core.audio_equalizer import AudioEqualizer
 
 
 def test_mix_to_mono_int16_average_channels():
@@ -125,6 +126,65 @@ def test_apply_noise_reduction_rejects_invalid_parameters():
         try:
             AudioEffects.apply_noise_reduction(
                 data, "float32", threshold_db=threshold, reduction_db=reduction
+            )
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Era esperado ValueError")
+
+
+def test_equalizer_zero_gain_keeps_float32_data():
+    data = struct.pack("<4f", 0.1, -0.2, 0.3, -0.4)
+    equalizer = AudioEqualizer()
+    equalizer.configure(44100, 1)
+    assert equalizer.process(data, "float32", 1) == data
+
+
+def test_equalizer_boost_changes_signal():
+    data = struct.pack("<128f", *([0.1] * 128))
+    equalizer = AudioEqualizer()
+    equalizer.configure(44100, 1, bass_db=6.0)
+    result = equalizer.process(data, "float32", 1)
+    samples = struct.unpack("<128f", result)
+    assert samples[-1] > 0.1
+
+
+def test_equalizer_preserves_state_between_buffers():
+    samples = [0.1] * 256
+    first = struct.pack("<128f", *samples[:128])
+    second = struct.pack("<128f", *samples[128:])
+
+    split_equalizer = AudioEqualizer()
+    split_equalizer.configure(44100, 1, bass_db=6.0)
+    split_result = split_equalizer.process(first, "float32", 1) + split_equalizer.process(
+        second, "float32", 1
+    )
+
+    single_equalizer = AudioEqualizer()
+    single_equalizer.configure(44100, 1, bass_db=6.0)
+    single_result = single_equalizer.process(
+        struct.pack("<256f", *samples), "float32", 1
+    )
+
+    assert split_result == single_result
+
+
+def test_equalizer_supports_stereo_pcm():
+    data = struct.pack("<4h", 1000, -1000, 2000, -2000)
+    equalizer = AudioEqualizer()
+    equalizer.configure(44100, 2, mid_db=3.0)
+    result = equalizer.process(data, "int16", 2)
+    assert len(result) == len(data)
+
+
+def test_equalizer_rejects_invalid_configuration():
+    equalizer = AudioEqualizer()
+    for sample_rate, channels, gain in [(0, 1, 0.0), (44100, 0, 0.0), (44100, 1, 13.0)]:
+        try:
+            equalizer.configure(
+                sample_rate,
+                channels,
+                bass_db=gain,
             )
         except ValueError:
             pass
