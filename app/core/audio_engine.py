@@ -138,21 +138,9 @@ class AudioEngine(QObject):
         if gain_db == self._gain_db:
             return
 
-        was_playing = self.is_playing()
-        current_position = self.player.position()
-        if was_playing:
-            self.player.pause()
-
-        self._gain_db = gain_db
-        if self._processing_enabled():
-            self._enable_processed_output()
-        else:
-            self._disable_processed_output()
-
-        if was_playing:
-            self.player.setPosition(current_position)
-            self.player.play()
-
+        self._reconfigure_processing(
+            lambda: setattr(self, "_gain_db", gain_db)
+        )
         self.gain_changed.emit(gain_db)
 
     def gain_db(self) -> float:
@@ -163,21 +151,9 @@ class AudioEngine(QObject):
         if enabled == self._normalize_enabled:
             return
 
-        was_playing = self.is_playing()
-        current_position = self.player.position()
-        if was_playing:
-            self.player.pause()
-
-        self._normalize_enabled = enabled
-        if self._processing_enabled():
-            self._enable_processed_output()
-        else:
-            self._disable_processed_output()
-
-        if was_playing:
-            self.player.setPosition(current_position)
-            self.player.play()
-
+        self._reconfigure_processing(
+            lambda: setattr(self, "_normalize_enabled", enabled)
+        )
         self.normalize_changed.emit(enabled)
 
     def normalize_enabled(self) -> bool:
@@ -188,21 +164,9 @@ class AudioEngine(QObject):
         if enabled == self._noise_reduction_enabled:
             return
 
-        was_playing = self.is_playing()
-        current_position = self.player.position()
-        if was_playing:
-            self.player.pause()
-
-        self._noise_reduction_enabled = enabled
-        if self._processing_enabled():
-            self._enable_processed_output()
-        else:
-            self._disable_processed_output()
-
-        if was_playing:
-            self.player.setPosition(current_position)
-            self.player.play()
-
+        self._reconfigure_processing(
+            lambda: setattr(self, "_noise_reduction_enabled", enabled)
+        )
         self.noise_reduction_changed.emit(enabled)
 
     def noise_reduction_enabled(self) -> bool:
@@ -219,19 +183,13 @@ class AudioEngine(QObject):
         ):
             return
 
-        was_playing = self.is_playing()
-        current_position = self.player.position()
-        if was_playing:
-            self.player.pause()
-
-        self._noise_threshold_db = threshold_db
-        self._noise_reduction_db = reduction_db
-        if self._processing_enabled():
-            self._enable_processed_output()
-
-        if was_playing:
-            self.player.setPosition(current_position)
-            self.player.play()
+        self._reconfigure_processing(
+            lambda: (
+                setattr(self, "_noise_threshold_db", threshold_db),
+                setattr(self, "_noise_reduction_db", reduction_db),
+            ),
+            refresh_when_inactive=False,
+        )
 
     def noise_threshold_db(self) -> float:
         return self._noise_threshold_db
@@ -247,30 +205,34 @@ class AudioEngine(QObject):
             or self._noise_reduction_enabled
         )
 
-    def set_mono_enabled(self, enabled: bool) -> None:
-        enabled = bool(enabled)
-        if enabled == self._mono_enabled:
-            return
-
+    def _reconfigure_processing(self, update, refresh_when_inactive: bool = True) -> None:
         was_playing = self.is_playing()
         current_position = self.player.position()
         if was_playing:
             self.player.pause()
 
-        self._mono_enabled = enabled
-        if enabled:
-            self._buffer_callback_count = 0
+        update()
+
+        if self._processing_enabled():
             self._enable_processed_output()
-        else:
-            if self._processing_enabled():
-                self._enable_processed_output()
-            else:
-                self._disable_processed_output()
+        elif refresh_when_inactive:
+            self._disable_processed_output()
 
         if was_playing:
             self.player.setPosition(current_position)
             self.player.play()
 
+    def set_mono_enabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled == self._mono_enabled:
+            return
+
+        def update():
+            self._mono_enabled = enabled
+            if enabled:
+                self._buffer_callback_count = 0
+
+        self._reconfigure_processing(update)
         self.mono_changed.emit(enabled)
 
     def mono_enabled(self) -> bool:
