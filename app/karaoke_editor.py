@@ -134,6 +134,17 @@ class KaraokeEditorWindow(QMainWindow):
                 icon_name = "timer" if button.toolTip() == "Marcar tempo" else "play"
                 button.setIcon(get_stateful_icon(icon_name, normal_color=cor, hover_color="#2563eb", active_color="#2563eb"))
         self.btn_salvar.setIcon(get_svg_icon("save", color=cor))
+        icones = {
+            "Adicionar verso": "plus",
+            "Remover verso": "minus",
+            "Mover verso para cima": "arrow_up",
+            "Mover verso para baixo": "arrow_down",
+            "Ajustar offset geral": "settings",
+        }
+        for button in self.findChildren(QPushButton):
+            nome_icone = icones.get(button.toolTip())
+            if nome_icone:
+                button.setIcon(get_svg_icon(nome_icone, color=cor))
 
     def _criar_interface(self):
         central = QWidget()
