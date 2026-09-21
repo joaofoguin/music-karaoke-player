@@ -305,9 +305,10 @@ class KaraokeWindow(QMainWindow):
             else:
                 self.bg_color = "#1d1d1d"
 
-            self.highlight_color = self._cor_visivel(self.highlight_color, "#111827")
-            self.context_color = self._cor_visivel(self.context_color, "#6b7280")
-            self.chords_color = self._cor_visivel(self.chords_color, "#b45309")
+            if theme == "light":
+                self.highlight_color = self._cor_visivel(self.highlight_color, "#111827")
+                self.context_color = self._cor_visivel(self.context_color, "#6b7280")
+                self.chords_color = self._cor_visivel(self.chords_color, "#b45309")
 
         self.lbl_font_size.setText(f"{self.font_size}px")
         self.aplicar_estilo()
@@ -352,6 +353,8 @@ class KaraokeWindow(QMainWindow):
         btn_bg = "#e0e0e0" if self.bg_color == "#f5f5f7" else "#2e2e2e"
         btn_color = "#111111" if self.bg_color == "#f5f5f7" else "#f5f5f5"
         cor_icone = "#374151" if self.bg_color == "#f5f5f7" else "#e5e7eb"
+        painel_bg = "#ffffff" if self.bg_color == "#f5f5f7" else "rgba(0, 0, 0, 0.25)"
+        painel_border = "#d1d5db" if self.bg_color == "#f5f5f7" else "#383838"
 
         self.setStyleSheet(
             f"""
