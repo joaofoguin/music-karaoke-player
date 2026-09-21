@@ -38,7 +38,7 @@ from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
 from widgets.main_menu import MainMenu
 from widgets.main_content_widget import MainContentWidget
-from core.branding import APP_DISPLAY_NAME, load_branding, resource_path
+from core.branding import APP_DISPLAY_NAME, load_branding, resource_path, set_interface_font_size
 
 
 class MainWindow(QMainWindow):
@@ -110,9 +110,6 @@ class MainWindow(QMainWindow):
 
         self.criar_interface()
         self.aplicar_estilo()
-        self.explorer_widget.set_font_size(
-            self.config_manager.get("appearance/explorer_font_size", 9.0)
-        )
         self.carregar_estado_inicial()
 
     def aplicar_configuracoes(self):
@@ -125,10 +122,6 @@ class MainWindow(QMainWindow):
         )
         self.track_loader.set_audio_extensions(self.audio_extensions)
         self.explorer_widget.set_audio_extensions(self.audio_extensions)
-        self.explorer_widget.set_font_size(
-            self.config_manager.get("appearance/explorer_font_size", 9.0)
-        )
-
         output_device_id = self.config_manager.get("audio/output_device_id", "")
         self.audio_engine.set_configured_output_device_id(output_device_id)
         if not self.audio_engine.set_output_device(output_device_id):
@@ -173,6 +166,16 @@ class MainWindow(QMainWindow):
     def aplicar_estilo(self):
         tema = self.config_manager.get("appearance/theme", "dark")
         self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+
+        tamanho_fonte = self.config_manager.get(
+            "appearance/font_size",
+            self.config_manager.get("appearance/explorer_font_size", 9.0),
+        )
+        app = QApplication.instance()
+        if app is not None:
+            set_interface_font_size(app, tamanho_fonte)
+        self.setFont(app.font() if app is not None else self.font())
+        self.explorer_widget.set_font_size(tamanho_fonte)
         self.atualizar_icones()
 
     def atualizar_icones(self):
