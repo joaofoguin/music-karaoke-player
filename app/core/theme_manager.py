@@ -1,6 +1,45 @@
 class ThemeManager:
     """Fornece os estilos visuais da aplicação."""
 
+    @staticmethod
+    def aplicar_barra_titulo(janela, tema: str) -> None:
+        """Sincroniza a barra de título nativa do Windows com o tema atual."""
+        if not hasattr(janela, "winId"):
+            return
+
+        try:
+            import ctypes
+            import sys
+
+            if sys.platform != "win32":
+                return
+
+            hwnd = int(janela.winId())
+            cores = {
+                "light": ("#f3f4f6", "#111827", "#d1d5db"),
+                "midnight": ("#0b0d11", "#f3f4f6", "#1f2937"),
+                "dark": ("#242424", "#f3f4f6", "#3c3c3c"),
+            }
+            fundo, texto, borda = cores.get(tema, cores["dark"])
+
+            def rgb_int(cor):
+                valor = int(cor.lstrip("#"), 16)
+                return ((valor & 0xFF) << 16) | (valor & 0xFF00) | ((valor >> 16) & 0xFF)
+
+            dwmapi = ctypes.windll.dwmapi
+            caption = ctypes.c_int(rgb_int(fundo))
+            text_color = ctypes.c_int(rgb_int(texto))
+            border = ctypes.c_int(rgb_int(borda))
+
+            # Windows 10/11: DWMWA_CAPTION_COLOR=35,
+            # DWMWA_TEXT_COLOR=36 e DWMWA_BORDER_COLOR=34.
+            dwmapi.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(caption), ctypes.sizeof(caption))
+            dwmapi.DwmSetWindowAttribute(hwnd, 36, ctypes.byref(text_color), ctypes.sizeof(text_color))
+            dwmapi.DwmSetWindowAttribute(hwnd, 34, ctypes.byref(border), ctypes.sizeof(border))
+        except (AttributeError, OSError, TypeError, ValueError):
+            # Mantém o comportamento padrão caso a API DWM não esteja disponível.
+            pass
+
     def obter_tema_qss(tema: str) -> str:
         if tema == "midnight":
             return """
