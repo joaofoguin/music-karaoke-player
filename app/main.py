@@ -98,7 +98,10 @@ class MainWindow(QMainWindow):
         self.audio_effects_dialog = None
         self._volume_anterior_mudo = None
 
-        self.config_manager.settings_changed.connect(\n            self.aplicar_configuracoes,\n            Qt.ConnectionType.QueuedConnection,\n        )
+        self.config_manager.settings_changed.connect(
+            self.aplicar_configuracoes,
+            Qt.ConnectionType.QueuedConnection,
+        )
 
         self.audio_extensions = set(
             self.config_manager.get(
