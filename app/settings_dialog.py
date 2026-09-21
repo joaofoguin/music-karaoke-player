@@ -212,6 +212,14 @@ class SettingsDialog(QDialog):
         self.combo_tema.addItem("Claro Suave", "light")
         form_tema.addRow("Estilo visual:", self.combo_tema)
 
+        self.spin_explorer_font_size = QDoubleSpinBox()
+        self.spin_explorer_font_size.setRange(8.0, 16.0)
+        self.spin_explorer_font_size.setSingleStep(0.5)
+        self.spin_explorer_font_size.setDecimals(1)
+        self.spin_explorer_font_size.setSuffix(" pt")
+        self.spin_explorer_font_size.setToolTip("Ajusta o tamanho dos nomes e detalhes exibidos no explorador de arquivos.")
+        form_tema.addRow("Tamanho do texto do explorador:", self.spin_explorer_font_size)
+
         layout_aparencia.addWidget(grupo_tema)
         layout_aparencia.addStretch()
         self.tabs.addTab(tab_aparencia, "Aparência")
@@ -350,6 +358,10 @@ class SettingsDialog(QDialog):
         self.context_color = self.config_manager.get("karaoke/context_color", "#8f8f8f")
         self._atualizar_botoes_cores()
 
+        self.spin_explorer_font_size.setValue(
+            self.config_manager.get("appearance/explorer_font_size", 9.0)
+        )
+
         tema = self.config_manager.get("appearance/theme", "dark")
         idx = self.combo_tema.findData(tema)
         if idx >= 0:
@@ -383,6 +395,7 @@ class SettingsDialog(QDialog):
             "karaoke/highlight_color": self.highlight_color,
             "karaoke/context_color": self.context_color,
             "appearance/theme": self.combo_tema.currentData(),
+            "appearance/explorer_font_size": self.spin_explorer_font_size.value(),
         }
 
         self.config_manager.update_multiple(novas_configuracoes)
