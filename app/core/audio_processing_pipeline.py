@@ -1,6 +1,7 @@
 from PySide6.QtMultimedia import QAudioFormat
 
 from core.audio_effects import AudioEffects
+from core.audio_equalizer import AudioEqualizer
 from core.pcm_converter import PcmConverter
 
 
@@ -9,9 +10,12 @@ class AudioProcessingPipeline:
 
     def __init__(self):
         self._pcm_converter = PcmConverter()
+        self._equalizer = AudioEqualizer()
+        self._equalizer_configuration = None
 
     def reset(self):
         self._pcm_converter.reset()
+        self._equalizer.reset()
 
     def process(
         self,
@@ -24,6 +28,9 @@ class AudioProcessingPipeline:
         noise_reduction_enabled: bool = False,
         noise_threshold_db: float = -45.0,
         noise_reduction_db: float = 18.0,
+        equalizer_bass_db: float = 0.0,
+        equalizer_mid_db: float = 0.0,
+        equalizer_treble_db: float = 0.0,
     ) -> bytes:
         source_sample_format = self._sample_format_name(source_format.sampleFormat())
         if source_sample_format == "unknown":
@@ -42,6 +49,17 @@ class AudioProcessingPipeline:
                     processed, source_sample_format, target_format.channelCount()
                 )
                 channels = target_format.channelCount()
+
+        self._configure_equalizer(
+            source_format.sampleRate(),
+            channels,
+            equalizer_bass_db,
+            equalizer_mid_db,
+            equalizer_treble_db,
+        )
+        processed = self._equalizer.process(
+            processed, source_sample_format, channels
+        )
 
         if normalize_enabled:
             processed = AudioEffects.normalize_peak(
@@ -71,6 +89,27 @@ class AudioProcessingPipeline:
             self._pcm_converter.reset()
 
         return processed
+
+    def _configure_equalizer(
+        self,
+        sample_rate: int,
+        channels: int,
+        bass_db: float,
+        mid_db: float,
+        treble_db: float,
+    ) -> None:
+        configuration = (
+            int(sample_rate),
+            int(channels),
+            float(bass_db),
+            float(mid_db),
+            float(treble_db),
+        )
+        if configuration == self._equalizer_configuration:
+            return
+
+        self._equalizer.configure(*configuration)
+        self._equalizer_configuration = configuration
 
     @staticmethod
     def _sample_format_name(sample_format) -> str:
