@@ -1,5 +1,6 @@
 ; Inno Setup installer for StageBox Beta
-; Build this script after generating dist\StageBox-Beta.exe with PyInstaller.
+; Requer o executável gerado por:
+;   pyinstaller --clean --noconfirm stagebox.spec
 
 #define MyAppName "StageBox"
 #define MyAppVersion "0.1.0-beta"
@@ -36,6 +37,7 @@ Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "assets\logo.ico"; DestDir: "{app}"; DestName: "{#MyAppIconName}"; Flags: ignoreversion
 
 [Icons]
+; O atalho usa explicitamente o ICO instalado, em vez de depender do icone embutido no EXE.
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppIconName}"; IconIndex: 0
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppIconName}"; IconIndex: 0; Tasks: desktopicon
 
