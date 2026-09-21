@@ -171,6 +171,7 @@ class MainWindow(QMainWindow):
     def aplicar_estilo(self):
         tema = self.config_manager.get("appearance/theme", "dark")
         self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
+        ThemeManager.aplicar_barra_titulo(self, tema)
 
         tamanho_fonte = self.config_manager.get(
             "appearance/font_size",
