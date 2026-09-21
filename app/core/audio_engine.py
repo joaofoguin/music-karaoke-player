@@ -28,6 +28,7 @@ class AudioEngine(QObject):
     mono_changed = Signal(bool)
     gain_changed = Signal(float)
     normalize_changed = Signal(bool)
+    noise_reduction_changed = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -36,6 +37,9 @@ class AudioEngine(QObject):
         self._mono_enabled = False
         self._gain_db = 0.0
         self._normalize_enabled = False
+        self._noise_reduction_enabled = False
+        self._noise_threshold_db = -45.0
+        self._noise_reduction_db = 18.0
         self._buffer_callback_count = 0
         self._audio_pipeline = AudioProcessingPipeline()
 
@@ -179,11 +183,68 @@ class AudioEngine(QObject):
     def normalize_enabled(self) -> bool:
         return self._normalize_enabled
 
+    def set_noise_reduction_enabled(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if enabled == self._noise_reduction_enabled:
+            return
+
+        was_playing = self.is_playing()
+        current_position = self.player.position()
+        if was_playing:
+            self.player.pause()
+
+        self._noise_reduction_enabled = enabled
+        if self._processing_enabled():
+            self._enable_processed_output()
+        else:
+            self._disable_processed_output()
+
+        if was_playing:
+            self.player.setPosition(current_position)
+            self.player.play()
+
+        self.noise_reduction_changed.emit(enabled)
+
+    def noise_reduction_enabled(self) -> bool:
+        return self._noise_reduction_enabled
+
+    def set_noise_reduction_settings(
+        self, threshold_db: float, reduction_db: float
+    ) -> None:
+        threshold_db = max(-80.0, min(-10.0, float(threshold_db)))
+        reduction_db = max(0.0, min(60.0, float(reduction_db)))
+        if (
+            threshold_db == self._noise_threshold_db
+            and reduction_db == self._noise_reduction_db
+        ):
+            return
+
+        was_playing = self.is_playing()
+        current_position = self.player.position()
+        if was_playing:
+            self.player.pause()
+
+        self._noise_threshold_db = threshold_db
+        self._noise_reduction_db = reduction_db
+        if self._processing_enabled():
+            self._enable_processed_output()
+
+        if was_playing:
+            self.player.setPosition(current_position)
+            self.player.play()
+
+    def noise_threshold_db(self) -> float:
+        return self._noise_threshold_db
+
+    def noise_reduction_db(self) -> float:
+        return self._noise_reduction_db
+
     def _processing_enabled(self) -> bool:
         return (
             self._mono_enabled
             or self._gain_db != 0.0
             or self._normalize_enabled
+            or self._noise_reduction_enabled
         )
 
     def set_mono_enabled(self, enabled: bool) -> None:
@@ -288,6 +349,9 @@ class AudioEngine(QObject):
                 self._mono_enabled,
                 self._normalize_enabled,
                 self._gain_db,
+                self._noise_reduction_enabled,
+                self._noise_threshold_db,
+                self._noise_reduction_db,
             )
         except ValueError as exc:
             print(f"Efeito de áudio indisponível: {exc}")
