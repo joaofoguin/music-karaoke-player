@@ -225,7 +225,8 @@ class MainWindow(QMainWindow):
         self.main_menu.preferences_requested.connect(self.abrir_dialogo_configuracoes)
         self.main_menu.shortcuts_requested.connect(self.mostrar_atalhos)
         self.main_menu.about_requested.connect(self.mostrar_sobre)
-        self.main_menu.setFixedHeight(28)\n        self.setMenuBar(self.main_menu)
+        self.main_menu.setFixedHeight(28)
+        self.setMenuBar(self.main_menu)
 
         self.main_content = MainContentWidget(
             self.audio_engine,
