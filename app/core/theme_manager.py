@@ -5,7 +5,7 @@ class ThemeManager:
         if tema == "midnight":
             return """
             QMainWindow { background: #0b0d11; color: #f3f4f6; }
-            QMenuBar { background: #131720; color: #e5e7eb; border-bottom: 1px solid #1f2937; padding: 4px 8px; }
+            QMenuBar { background: #131720; color: #e5e7eb; border-bottom: 1px solid #1f2937; padding: 4px 8px; }\n            QMenuBar::item { padding: 4px 8px; margin: 0; }
             QMenuBar::item:selected, QMenu::item:selected { background: #2563eb; color: #ffffff; }
             QMenu { background: #131720; color: #f3f4f6; border: 1px solid #374151; }
             QMenu::item { padding: 6px 28px 6px 12px; }
@@ -42,7 +42,7 @@ class ThemeManager:
         elif tema == "light":
             return """
             QMainWindow { background: #f3f4f6; color: #111827; }
-            QMenuBar { background: #ffffff; color: #374151; border-bottom: 1px solid #e5e7eb; padding: 4px 8px; }
+            QMenuBar { background: #ffffff; color: #374151; border-bottom: 1px solid #e5e7eb; padding: 4px 8px; }\n            QMenuBar::item { padding: 4px 8px; margin: 0; }
             QMenuBar::item:selected, QMenu::item:selected { background: #e5e7eb; }
             QMenu { background: #ffffff; color: #111827; border: 1px solid #d1d5db; }
             QMenu::item { padding: 6px 28px 6px 12px; }
@@ -74,7 +74,7 @@ class ThemeManager:
             # Tema Escuro Moderno Padrão
             return """
             QMainWindow { background: #171717; color: #f4f4f4; }
-            QMenuBar { background: #242424; color: #d8d8d8; border-bottom: 1px solid #3c3c3c; padding: 3px 8px; }
+            QMenuBar { background: #242424; color: #d8d8d8; border-bottom: 1px solid #3c3c3c; padding: 3px 8px; }\n            QMenuBar::item { padding: 3px 8px; margin: 0; }
             QMenuBar::item:selected, QMenu::item:selected { background: #3c3c3c; }
             QMenu { background: #242424; color: #f4f4f4; border: 1px solid #4a4a4a; }
             QMenu::item { padding: 6px 28px 6px 12px; }
