@@ -37,6 +37,10 @@ class ConfigManager(QObject):
         "audio/effects/noise_reduction_enabled": False,
         "audio/effects/noise_threshold_db": -45.0,
         "audio/effects/noise_reduction_db": 18.0,
+        "audio/effects/equalizer_enabled": False,
+        "audio/effects/equalizer_bass_db": 0.0,
+        "audio/effects/equalizer_mid_db": 0.0,
+        "audio/effects/equalizer_treble_db": 0.0,
         "appearance/theme": "dark",  # "dark", "midnight", "light"
         "karaoke/lyrics_directory": _DEFAULT_KARAOKE_DIR,
         "karaoke/save_to_central_dir": True,
