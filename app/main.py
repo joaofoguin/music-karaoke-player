@@ -114,6 +114,10 @@ class MainWindow(QMainWindow):
 
     def aplicar_configuracoes(self):
         """Atualiza o comportamento e aparência do player conforme as configurações salvas."""
+        # Aplica primeiro as mudanças visuais para que o usuário veja o resultado
+        # imediatamente ao salvar, antes das reconfigurações de áudio.
+        self.aplicar_estilo()
+
         self.audio_extensions = set(
             self.config_manager.get(
                 "playback/audio_extensions",
@@ -161,7 +165,6 @@ class MainWindow(QMainWindow):
         self.audio_engine.set_reverb_delay_enabled(
             self.config_manager.get("audio/effects/reverb_delay_enabled", False)
         )
-        self.aplicar_estilo()
 
     def aplicar_estilo(self):
         tema = self.config_manager.get("appearance/theme", "dark")
