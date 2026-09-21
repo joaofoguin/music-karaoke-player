@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import collect_submodules\nfrom PIL import Image
 
 
 PROJECT_DIR = Path(SPECPATH)
 APP_DIR = PROJECT_DIR / "app"
 
-# PySide6 carrega módulos dinamicamente em alguns pontos da aplicação.
+# O Windows espera um ícone ICO para o executável.\nicon_png = PROJECT_DIR / "assets" / "logo.png"\nicon_ico = PROJECT_DIR / "assets" / "logo.ico"\nif icon_png.exists():\n    with Image.open(icon_png) as image:\n        image.convert("RGBA").save(icon_ico, format="ICO", sizes=[(16,16),(24,24),(32,32),(48,48),(64,64)])\n\n# PySide6 carrega módulos dinamicamente em alguns pontos da aplicação.
 hiddenimports = collect_submodules("PySide6.QtMultimedia")
 
 a = Analysis(
@@ -16,7 +16,7 @@ a = Analysis(
     datas=[
         (str(PROJECT_DIR / "assets"), "assets"),
     ],
-    icon=str(PROJECT_DIR / "assets" / "logo.png"),
+    icon=str(icon_ico),
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
