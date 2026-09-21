@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from PySide6.QtCore import QDir, QSize, Signal
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
     QFileSystemModel,
