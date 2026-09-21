@@ -231,6 +231,8 @@ class KaraokeEditorWindow(QMainWindow):
         self.lbl_tempo.setStyleSheet(
             f"font-size: 13px; font-family: monospace; font-weight: bold; color: {cor_tempo};"
         )
+        # Largura mínima fixa para que a barra de progresso não se mova ao atualizar o tempo
+        self.lbl_tempo.setFixedWidth(148)
         linha2.addWidget(self.lbl_tempo)
 
         # Barra de reprodução com clique direto!

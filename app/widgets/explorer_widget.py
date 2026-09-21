@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QToolButton,
     QTreeView,
     QVBoxLayout,
+    QWidget,
 )
 
 from core.icons import get_svg_icon
@@ -36,13 +37,16 @@ class ExplorerWidget(QFrame):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(6)
 
         header = QHBoxLayout()
         header.setSpacing(4)
+        header.setContentsMargins(0, 0, 0, 0)
 
         title = QLabel("EXPLORADOR DE ARQUIVOS")
         title.setObjectName("sectionTitle")
-        title.setStyleSheet("font-weight: 600;")
+        title.setStyleSheet("font-weight: bold;")
         header.addWidget(title, 1)
 
         self.btn_abrir_pasta = QToolButton()
@@ -72,7 +76,12 @@ class ExplorerWidget(QFrame):
         self.btn_modo.setMenu(self.menu_modo)
         self.btn_modo.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         header.addWidget(self.btn_modo)
-        layout.addLayout(header)
+
+        # Container de cabeçalho com altura fixa para evitar movimentação ao mudar tema
+        header_widget = QWidget()
+        header_widget.setLayout(header)
+        header_widget.setFixedHeight(38)
+        layout.addWidget(header_widget)
 
         self.file_model = QFileSystemModel()
         self.file_model.setFilter(

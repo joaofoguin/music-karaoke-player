@@ -34,32 +34,35 @@ class PlayerWidget(QFrame):
         layout.setSpacing(8)
 
         self.capa = QLabel("CAPA")
-        self.capa.setFixedSize(54, 54)
+        self.capa.setFixedSize(68, 68)
         self.capa.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.capa.setStyleSheet(
             "background: #2b2b2b; border: 1px solid #444444; border-radius: 6px; font-size: 11px;"
         )
 
         info_layout = QVBoxLayout()
-        info_layout.setSpacing(0)
+        info_layout.setSpacing(1)
+        info_layout.setContentsMargins(0, 2, 0, 2)
         self.titulo_musica = QLabel("Nenhuma música selecionada")
         self.artista_musica = QLabel("Artista")
         self.album_musica = QLabel("Álbum")
         self.titulo_musica.setObjectName("trackTitle")
         self.artista_musica.setObjectName("trackMetadata")
         self.album_musica.setObjectName("trackMetadata")
+        info_layout.addStretch(1)
         info_layout.addWidget(self.titulo_musica)
         info_layout.addWidget(self.artista_musica)
         info_layout.addWidget(self.album_musica)
+        info_layout.addStretch(1)
 
         current_layout = QHBoxLayout()
-        current_layout.setSpacing(6)
+        current_layout.setSpacing(8)
         current_layout.addWidget(self.capa)
         current_layout.addLayout(info_layout)
         layout.addLayout(current_layout, 3)
 
         center = QVBoxLayout()
-        center.setSpacing(1)
+        center.setSpacing(2)
         center.setContentsMargins(8, 0, 8, 0)
         center.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -89,12 +92,18 @@ class PlayerWidget(QFrame):
         controls.addWidget(self.botao_repetir)
         center.addLayout(controls)
 
+        # Barra de progresso com tempos fixos em uma linha separada
         progress = QHBoxLayout()
         progress.setSpacing(4)
         self.tempo_atual = QLabel("00:00")
         self.tempo_total = QLabel("00:00")
         self.tempo_atual.setObjectName("trackMetadata")
         self.tempo_total.setObjectName("trackMetadata")
+        # Largura fixa para os labels de tempo evitando que a barra se mova
+        self.tempo_atual.setFixedWidth(40)
+        self.tempo_total.setFixedWidth(40)
+        self.tempo_atual.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.tempo_total.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
         self.slider_progresso = ClickableSlider(Qt.Orientation.Horizontal)
         self.slider_progresso.setMaximumWidth(400)

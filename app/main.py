@@ -346,10 +346,14 @@ class MainWindow(QMainWindow):
 
     def abrir_ajustes_efeitos_audio(self):
         """Abre a janela centralizada de ajustes e efeitos de áudio."""
+        from core.theme_manager import ThemeManager
         if self.audio_effects_dialog is None:
             self.audio_effects_dialog = AudioEffectsDialog(self.config_manager, self)
 
         self.audio_effects_dialog._carregar_valores()
+        # Garante que o tema atual seja aplicado (pode ter mudado desde a última abertura)
+        tema = self.config_manager.get("appearance/theme", "dark")
+        self.audio_effects_dialog.setStyleSheet(ThemeManager.obter_tema_qss(tema))
         self.audio_effects_dialog.show()
         self.audio_effects_dialog.raise_()
         self.audio_effects_dialog.activateWindow()

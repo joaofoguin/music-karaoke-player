@@ -26,13 +26,16 @@ class QueueWidget(QFrame):
 
     def _build_ui(self):
         layout_queue = QVBoxLayout(self)
+        layout_queue.setContentsMargins(8, 8, 8, 8)
+        layout_queue.setSpacing(6)
 
         titulo_queue = QLabel("FILA DE REPRODUÇÃO")
         titulo_queue.setObjectName("sectionTitle")
-        titulo_queue.setStyleSheet("font-weight: 600;")
+        titulo_queue.setStyleSheet("font-weight: bold;")
 
         cabecalho_fila = QHBoxLayout()
         cabecalho_fila.setSpacing(4)
+        cabecalho_fila.setContentsMargins(0, 0, 0, 0)
         cabecalho_fila.addWidget(titulo_queue, 1)
 
         self.btn_add_arquivos = QToolButton()
@@ -48,7 +51,12 @@ class QueueWidget(QFrame):
         self.botao_limpar_fila.clicked.connect(self.clear_requested.emit)
         self.botao_limpar_fila.setEnabled(False)
         cabecalho_fila.addWidget(self.botao_limpar_fila)
-        layout_queue.addLayout(cabecalho_fila)
+
+        # Container de cabeçalho com altura fixa para evitar movimentação ao mudar tema
+        header_widget = QWidget()
+        header_widget.setLayout(cabecalho_fila)
+        header_widget.setFixedHeight(38)
+        layout_queue.addWidget(header_widget)
 
         self.queue_scroll = QScrollArea()
         self.queue_scroll.setWidgetResizable(True)

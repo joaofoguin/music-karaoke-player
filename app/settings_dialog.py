@@ -24,6 +24,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from core.theme_manager import ThemeManager
+
 
 class SettingsDialog(QDialog):
     """Diálogo completo de Preferências e Configurações do Music Player."""
@@ -38,6 +40,9 @@ class SettingsDialog(QDialog):
 
         self._criar_interface()
         self._carregar_valores()
+        # Aplica o tema atual ao diálogo
+        tema = self.config_manager.get("appearance/theme", "dark")
+        self.setStyleSheet(ThemeManager.obter_tema_qss(tema))
 
     def _criar_interface(self):
         layout_principal = QVBoxLayout(self)
