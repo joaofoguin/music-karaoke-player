@@ -71,6 +71,14 @@ class MainWindow(QMainWindow):
         self.audio_engine.set_noise_reduction_enabled(
             self.config_manager.get("audio/effects/noise_reduction_enabled", False)
         )
+        self.audio_engine.set_equalizer_settings(
+            self.config_manager.get("audio/effects/equalizer_bass_db", 0.0),
+            self.config_manager.get("audio/effects/equalizer_mid_db", 0.0),
+            self.config_manager.get("audio/effects/equalizer_treble_db", 0.0),
+        )
+        self.audio_engine.set_equalizer_enabled(
+            self.config_manager.get("audio/effects/equalizer_enabled", False)
+        )
         self.playback_coordinator = PlaybackCoordinator(self.audio_engine, self.queue_controller)
         self.playback_coordinator.track_changed.connect(self._ao_mudar_faixa)
         self.karaoke_window = None
