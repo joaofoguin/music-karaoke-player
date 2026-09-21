@@ -144,6 +144,33 @@ class SettingsDialog(QDialog):
         )
         form_audio.addRow("Redução:", self.spin_noise_reduction_db)
 
+        self.chk_equalizer_enabled = QCheckBox("Equalizador de 3 bandas")
+        self.chk_equalizer_enabled.setToolTip(
+            "Ativa o equalizador paramétrico com bandas de graves, médios e agudos."
+        )
+        form_audio.addRow("", self.chk_equalizer_enabled)
+
+        self.spin_equalizer_bass_db = QDoubleSpinBox()
+        self.spin_equalizer_bass_db.setRange(-12.0, 12.0)
+        self.spin_equalizer_bass_db.setDecimals(1)
+        self.spin_equalizer_bass_db.setSingleStep(0.5)
+        self.spin_equalizer_bass_db.setSuffix(" dB")
+        form_audio.addRow("Graves (100 Hz):", self.spin_equalizer_bass_db)
+
+        self.spin_equalizer_mid_db = QDoubleSpinBox()
+        self.spin_equalizer_mid_db.setRange(-12.0, 12.0)
+        self.spin_equalizer_mid_db.setDecimals(1)
+        self.spin_equalizer_mid_db.setSingleStep(0.5)
+        self.spin_equalizer_mid_db.setSuffix(" dB")
+        form_audio.addRow("Médios (1 kHz):", self.spin_equalizer_mid_db)
+
+        self.spin_equalizer_treble_db = QDoubleSpinBox()
+        self.spin_equalizer_treble_db.setRange(-12.0, 12.0)
+        self.spin_equalizer_treble_db.setDecimals(1)
+        self.spin_equalizer_treble_db.setSingleStep(0.5)
+        self.spin_equalizer_treble_db.setSuffix(" dB")
+        form_audio.addRow("Agudos (10 kHz):", self.spin_equalizer_treble_db)
+
         self.chk_remember_volume = QCheckBox("Lembrar o último volume ao fechar")
         form_audio.addRow("", self.chk_remember_volume)
 
@@ -386,6 +413,18 @@ class SettingsDialog(QDialog):
         self.spin_noise_reduction_db.setValue(
             self.config_manager.get("audio/effects/noise_reduction_db", 18.0)
         )
+        self.chk_equalizer_enabled.setChecked(
+            self.config_manager.get("audio/effects/equalizer_enabled", False)
+        )
+        self.spin_equalizer_bass_db.setValue(
+            self.config_manager.get("audio/effects/equalizer_bass_db", 0.0)
+        )
+        self.spin_equalizer_mid_db.setValue(
+            self.config_manager.get("audio/effects/equalizer_mid_db", 0.0)
+        )
+        self.spin_equalizer_treble_db.setValue(
+            self.config_manager.get("audio/effects/equalizer_treble_db", 0.0)
+        )
         self.chk_remember_volume.setChecked(self.config_manager.get("playback/remember_volume", True))
         self.chk_repeat_default.setChecked(self.config_manager.get("playback/repeat_enabled", False))
         self.chk_autoplay.setChecked(self.config_manager.get("playback/auto_play_on_add", False))
@@ -438,6 +477,10 @@ class SettingsDialog(QDialog):
             "audio/effects/noise_reduction_enabled": self.chk_noise_reduction_enabled.isChecked(),
             "audio/effects/noise_threshold_db": self.spin_noise_threshold_db.value(),
             "audio/effects/noise_reduction_db": self.spin_noise_reduction_db.value(),
+            "audio/effects/equalizer_enabled": self.chk_equalizer_enabled.isChecked(),
+            "audio/effects/equalizer_bass_db": self.spin_equalizer_bass_db.value(),
+            "audio/effects/equalizer_mid_db": self.spin_equalizer_mid_db.value(),
+            "audio/effects/equalizer_treble_db": self.spin_equalizer_treble_db.value(),
             "karaoke/lyrics_directory": self.edit_lyrics_dir.text().strip(),
             "karaoke/save_to_central_dir": self.chk_save_central.isChecked(),
             "karaoke/show_chords": self.chk_show_chords.isChecked(),
