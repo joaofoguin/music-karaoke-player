@@ -30,6 +30,7 @@ class AudioEngine(QObject):
     gain_changed = Signal(float)
     normalize_changed = Signal(bool)
     noise_reduction_changed = Signal(bool)
+    equalizer_changed = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -41,6 +42,10 @@ class AudioEngine(QObject):
         self._noise_reduction_enabled = False
         self._noise_threshold_db = -45.0
         self._noise_reduction_db = 18.0
+        self._equalizer_enabled = False
+        self._equalizer_bass_db = 0.0
+        self._equalizer_mid_db = 0.0
+        self._equalizer_treble_db = 0.0
         self._buffer_callback_count = 0
         self._audio_pipeline = AudioProcessingPipeline()
 
@@ -202,6 +207,7 @@ class AudioEngine(QObject):
             or self._gain_db != 0.0
             or self._normalize_enabled
             or self._noise_reduction_enabled
+            or self._equalizer_enabled
         )
 
     def _reconfigure_processing(
