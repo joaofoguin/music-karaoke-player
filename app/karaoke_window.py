@@ -2,7 +2,7 @@ from html import escape
 from pathlib import Path
 
 from PySide6.QtCore import QTimer, QSize, Qt, Signal
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QColor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -305,6 +305,10 @@ class KaraokeWindow(QMainWindow):
             else:
                 self.bg_color = "#1d1d1d"
 
+            self.highlight_color = self._cor_visivel(self.highlight_color, "#111827")
+            self.context_color = self._cor_visivel(self.context_color, "#6b7280")
+            self.chords_color = self._cor_visivel(self.chords_color, "#b45309")
+
         self.lbl_font_size.setText(f"{self.font_size}px")
         self.aplicar_estilo()
         self._mostrar_contexto()
@@ -324,6 +328,24 @@ class KaraokeWindow(QMainWindow):
         if self.config_manager:
             self.config_manager.set("karaoke/font_size", novo)
         self._mostrar_contexto()
+
+    @staticmethod
+    def _cor_visivel(cor: str, fallback: str) -> str:
+        try:
+            base = QColor(cor)
+            fundo = QColor("#f5f5f7")
+            def luminancia(c):
+                return (
+                    0.2126 * (c.red() / 255) ** 2.2
+                    + 0.7152 * (c.green() / 255) ** 2.2
+                    + 0.0722 * (c.blue() / 255) ** 2.2
+                )
+            lb = luminancia(base)
+            lf = luminancia(fundo)
+            contraste = (max(lb, lf) + 0.05) / (min(lb, lf) + 0.05)
+            return cor if contraste >= 4.0 else fallback
+        except (TypeError, ValueError):
+            return fallback
 
     def aplicar_estilo(self):
         text_header = "#222222" if self.bg_color == "#f5f5f7" else "#bcbcbc"
