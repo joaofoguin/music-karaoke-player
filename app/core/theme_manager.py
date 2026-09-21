@@ -11,7 +11,7 @@ class ThemeManager:
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #131720; border: 1px solid #1f2937; border-radius: 8px; }
             QFrame#playerBar { background: #0f131a; border: 1px solid #1f2937; border-radius: 8px; }
-            QLabel#sectionTitle { color: #60a5fa; font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 4px; }
+            QLabel#sectionTitle { color: #60a5fa; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
             QLabel#trackTitle { color: #ffffff; font-size: 16px; font-weight: 700; }
             QLabel#trackMetadata { color: #9ca3af; font-size: 12px; }
             QTreeView, QScrollArea { background: #0b0d11; border: 1px solid #1f2937; color: #e5e7eb; border-radius: 4px; }
@@ -48,7 +48,7 @@ class ThemeManager:
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
             QFrame#playerBar { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
-            QLabel#sectionTitle { color: #2563eb; font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 4px; }
+            QLabel#sectionTitle { color: #2563eb; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
             QLabel#trackTitle { color: #111827; font-size: 16px; font-weight: 700; }
             QLabel#trackMetadata { color: #6b7280; font-size: 12px; }
             QTreeView, QScrollArea { background: #f9fafb; border: 1px solid #e5e7eb; color: #111827; border-radius: 4px; }
@@ -80,7 +80,7 @@ class ThemeManager:
             QMenu::item { padding: 6px 28px 6px 12px; }
             QFrame#panel { background: #242424; border: 1px solid #3f3f3f; border-radius: 6px; }
             QFrame#playerBar { background: #181818; border: 1px solid #303030; border-radius: 6px; }
-            QLabel#sectionTitle { color: #f0f0f0; font-size: 12px; font-weight: 700; letter-spacing: 1px; padding: 4px; }
+            QLabel#sectionTitle { color: #f0f0f0; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 4px; }
             QLabel#trackTitle { color: #ffffff; font-size: 16px; font-weight: 700; }
             QLabel#trackMetadata { color: #a8a8a8; font-size: 12px; }
             QTreeView, QScrollArea { background: #1d1d1d; border: 1px solid #393939; color: #d8d8d8; }
