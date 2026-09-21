@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "app"))
 
 from core.audio_effects import AudioEffects
 from core.audio_equalizer import AudioEqualizer
+from core.audio_reverb import AudioReverbDelay
 
 
 def test_mix_to_mono_int16_average_channels():
@@ -192,9 +193,6 @@ def test_equalizer_rejects_invalid_configuration():
             raise AssertionError("Era esperado ValueError")
 
 
-from core.audio_reverb import AudioReverbDelay
-
-
 def test_reverb_delay_applies_delayed_signal():
     effect = AudioReverbDelay()
     effect.configure(1000, 1, delay_ms=10.0, feedback=0.0, mix=1.0)
@@ -207,22 +205,22 @@ def test_reverb_delay_applies_delayed_signal():
 
     assert struct.unpack("<10f", first_result) == (0.0,) * 10
     second_samples = struct.unpack("<10f", second_result)
-    assert second_samples[0] == 1.0
-    assert all(sample == 0.0 for sample in second_samples[1:])
+    assert second_samples[9] == 1.0
+    assert all(sample == 0.0 for index, sample in enumerate(second_samples) if index != 9)
 
 
 def test_reverb_delay_preserves_state_between_buffers():
-    samples = [0.0] * 10 + [0.5] + [0.0] * 9
+    first = struct.pack("<10f", *([0.0] * 9 + [0.5]))
+    second = struct.pack("<10f", *([0.0] * 10))
     effect = AudioReverbDelay()
     effect.configure(1000, 1, delay_ms=10.0, feedback=0.0, mix=1.0)
 
-    first = struct.pack("<10f", *samples[:10])
-    second = struct.pack("<10f", *samples[10:])
-    result = effect.process(first, "float32", 1) + effect.process(second, "float32", 1)
-    output = struct.unpack("<20f", result)
+    first_result = effect.process(first, "float32", 1)
+    second_result = effect.process(second, "float32", 1)
+    output = struct.unpack("<10f", first_result + second_result)
 
-    assert output[10] == 0.0
-    assert output[11] == 0.5
+    assert output[9] == 0.0
+    assert output[19] == 0.5
 
 
 def test_reverb_delay_zero_mix_keeps_data():
