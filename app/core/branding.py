@@ -15,6 +15,13 @@ def resource_path(relative_path: str) -> Path:
     return base_path / relative_path
 
 
+def set_interface_font_size(app, size: float) -> None:
+    """Define o tamanho global da fonte da interface."""
+    font = app.font()
+    font.setPointSizeF(float(size))
+    app.setFont(font)
+
+
 def load_branding(app) -> None:
     """Aplica identidade visual global da aplicação."""
     font_path = resource_path("assets/fonts/Poppins-Regular.ttf")
