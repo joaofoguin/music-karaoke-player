@@ -1,4 +1,4 @@
-from PySide6.QtCore import QEvent, QSize, Signal
+from PySide6.QtCore import QEvent, Signal
 from PySide6.QtGui import QAction, QFont, QKeySequence
 from PySide6.QtWidgets import QMenuBar, QSizePolicy
 
@@ -29,6 +29,7 @@ class MainMenu(QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         # Mantém a barra e as ações com métricas estáveis desde a abertura.
+        self._fixando_fonte = False
         self.setFixedHeight(28)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         fonte = QFont(self.font())
@@ -74,11 +75,15 @@ class MainMenu(QMenuBar):
         self._adicionar_acao(menu_ajuda, "Sobre o Music Player", None, self.about_requested)
 
     def changeEvent(self, event):
-        if event.type() == QEvent.Type.FontChange:
-            fonte = QFont(self.font())
-            fonte.setPointSizeF(9.0)
-            fonte.setWeight(QFont.Weight.Normal)
-            self.setFont(fonte)
+        if event.type() == QEvent.Type.FontChange and not self._fixando_fonte:
+            self._fixando_fonte = True
+            try:
+                fonte = QFont(self.font())
+                fonte.setPointSizeF(9.0)
+                fonte.setWeight(QFont.Weight.Normal)
+                self.setFont(fonte)
+            finally:
+                self._fixando_fonte = False
         super().changeEvent(event)
 
     def resizeEvent(self, event):
