@@ -5,6 +5,8 @@ from PySide6.QtGui import QFont, QFontDatabase, QIcon
 
 
 APP_NAME = "StageBox"
+from .version import APP_VERSION
+
 APP_VERSION_LABEL = "Beta"
 APP_DISPLAY_NAME = f"{APP_NAME} ({APP_VERSION_LABEL})"
 
