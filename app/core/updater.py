@@ -105,3 +105,18 @@ class UpdateChecker(QThread):
         update = check_for_update()
         if update is not None:
             self.update_available.emit(update)
+
+
+class UpdateDownloader(QThread):
+    downloaded = Signal(object)
+    failed = Signal(str)
+
+    def __init__(self, installer_url: str, parent=None):
+        super().__init__(parent)
+        self.installer_url = installer_url
+
+    def run(self):
+        try:
+            self.downloaded.emit(download_installer(self.installer_url))
+        except (OSError, ValueError, urllib.error.URLError) as exc:
+            self.failed.emit(str(exc))
