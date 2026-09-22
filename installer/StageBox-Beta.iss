@@ -17,7 +17,7 @@ DefaultDirName={autopf}\StageBox
 DefaultGroupName={#MyAppName}
 OutputDir=installer\output
 OutputBaseFilename=StageBox-Beta-Setup
-SetupIconFile=C:\Users\joaop\Documents\Code\Music_player\assets\logo.ico
+SetupIconFile=assets\logo.ico
 UninstallDisplayIcon={app}\{#MyAppIconName}
 Compression=lzma
 SolidCompression=yes
@@ -33,8 +33,8 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 Name: "desktopicon"; Description: "Criar atalho na Área de Trabalho"; GroupDescription: "Atalhos:"
 
 [Files]
-Source: "C:\Users\joaop\Documents\Code\Music_player\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\joaop\Documents\Code\Music_player\assets\logo.ico"; DestDir: "{app}"; DestName: "{#MyAppIconName}"; Flags: ignoreversion
+Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "assets\logo.ico"; DestDir: "{app}"; DestName: "{#MyAppIconName}"; Flags: ignoreversion
 
 [Icons]
 ; O atalho usa explicitamente o ICO instalado, em vez de depender do icone embutido no EXE.
