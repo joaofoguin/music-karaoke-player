@@ -5,7 +5,7 @@ from pathlib import Path
 # QAudioBufferOutput (usado pelo pipeline de efeitos PCM) depende do backend FFmpeg no Qt 6.8.
 os.environ.setdefault("QT_MEDIA_BACKEND", "ffmpeg")
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QTimer, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -38,7 +38,8 @@ from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
 from widgets.main_menu import MainMenu
 from widgets.main_content_widget import MainContentWidget
-from core.branding import APP_DISPLAY_NAME, load_branding, resource_path, set_interface_font_size
+from core.branding import APP_DISPLAY_NAME, APP_VERSION, load_branding, resource_path, set_interface_font_size
+from core.updater import UpdateChecker, UpdateDownloader, UpdateInfo, open_installer
 
 
 class MainWindow(QMainWindow):
@@ -97,6 +98,8 @@ class MainWindow(QMainWindow):
         self.karaoke_editor = None
         self.audio_effects_dialog = None
         self._volume_anterior_mudo = None
+        self._update_checker = None
+        self._update_downloader = None
 
         self.config_manager.settings_changed.connect(self.aplicar_configuracoes)
 
@@ -111,6 +114,60 @@ class MainWindow(QMainWindow):
         self.criar_interface()
         self.aplicar_estilo()
         self.carregar_estado_inicial()
+        QTimer.singleShot(2500, self.verificar_atualizacao)
+
+    def verificar_atualizacao(self):
+        """Consulta novas versões Beta sem bloquear a interface."""
+        if self._update_checker is not None and self._update_checker.isRunning():
+            return
+
+        self._update_checker = UpdateChecker(self)
+        self._update_checker.update_available.connect(self._mostrar_atualizacao)
+        self._update_checker.finished.connect(self._update_checker.deleteLater)
+        self._update_checker.start()
+
+    def _mostrar_atualizacao(self, update: UpdateInfo):
+        resposta = QMessageBox.question(
+            self,
+            "Nova versão disponível",
+            (
+                f"Uma nova versão do StageBox está disponível: {update.version}.\n\n"
+                f"Versão atual: {APP_VERSION}\n\n"
+                "Deseja baixar e instalar a atualização agora?"
+            ),
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes,
+        )
+        if resposta != QMessageBox.Yes:
+            return
+
+        self.statusBar().showMessage("Baixando atualização...")
+        self._update_downloader = UpdateDownloader(update.installer_url, self)
+        self._update_downloader.downloaded.connect(self._instalador_baixado)
+        self._update_downloader.failed.connect(self._download_atualizacao_falhou)
+        self._update_downloader.finished.connect(self._update_downloader.deleteLater)
+        self._update_downloader.start()
+
+    def _instalador_baixado(self, path):
+        self.statusBar().clearMessage()
+        try:
+            open_installer(path)
+        except OSError as exc:
+            QMessageBox.warning(
+                self,
+                "Atualização",
+                f"Não foi possível iniciar o instalador.\n\n{exc}",
+            )
+            return
+        self.close()
+
+    def _download_atualizacao_falhou(self, erro: str):
+        self.statusBar().clearMessage()
+        QMessageBox.warning(
+            self,
+            "Atualização",
+            "Não foi possível baixar a atualização. Verifique sua conexão e tente novamente.",
+        )
 
     def aplicar_configuracoes(self):
         """Atualiza o comportamento e aparência do player conforme as configurações salvas."""
