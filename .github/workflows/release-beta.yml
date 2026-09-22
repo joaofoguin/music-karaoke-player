@@ -33,6 +33,8 @@ jobs:
           pytest -q
 
       - name: Build executable
+        env:
+          STAGEBOX_VERSION: ${{ github.ref_name }}
         run: |
           pyinstaller --clean --noconfirm stagebox.spec
 
