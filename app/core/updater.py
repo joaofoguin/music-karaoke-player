@@ -85,7 +85,7 @@ def download_installer(installer_url: str) -> Path:
     ):
         raise ValueError("URL de atualização não autorizada")
 
-    destination = Path(tempfile.gettempdir()) / INSTALLER_NAME
+    destination = Path(tempfile.gettempdir()) / f"StageBox-Beta-Setup-{os.getpid()}.exe"
     request = urllib.request.Request(installer_url, headers={"User-Agent": "StageBox-Updater"})
     with urllib.request.urlopen(request, timeout=30) as response, destination.open("wb") as output:
         while True:
@@ -97,8 +97,6 @@ def download_installer(installer_url: str) -> Path:
 
 
 def open_installer(path: Path) -> None:
-    # Aguarda o processo atual terminar antes de iniciar o instalador. Isso evita
-    # que o Windows mantenha o EXE antigo bloqueado durante a substituição.
     current_pid = os.getpid()
     installer = str(path.resolve()).replace("'", "''")
     command = (
