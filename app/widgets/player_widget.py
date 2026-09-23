@@ -170,7 +170,7 @@ class PlayerWidget(QFrame):
         self.botao_repetir.setIconSize(QSize(18, 18))
         self.botao_repetir.setText("")
 
-        self.botao_karaoke.setIcon(get_svg_icon("microphone", color=cor_icone, size=64))
+        self.botao_karaoke.setIcon(get_svg_icon("karaoke", color=cor_icone, size=64))
         self.botao_karaoke.setIconSize(QSize(18, 18))
         self.botao_karaoke.setText("")
 
