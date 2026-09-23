@@ -28,13 +28,24 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller pillow
 
+      - name: Prepare release version
+        env:
+          STAGEBOX_VERSION: ${{ github.ref_name }}
+        shell: pwsh
+        run: |
+          $version = $env:STAGEBOX_VERSION -replace "^v", ""
+          $content = Get-Content "app\core\version.py" -Raw
+          $content = $content -replace "APP_VERSION = .*", ("APP_VERSION = """ + $version + """")
+          Set-Content "app\core\version.py" -Value $content -Encoding utf8
+          Write-Host "StageBox version: $version"
+          Get-Content "app\core\version.py"
+
       - name: Run tests
         run: |
           pytest -q
 
       - name: Build executable
         env:
-          STAGEBOX_VERSION: ${{ github.ref_name }}
           STAGEBOX_LAST_UPDATE: ${{ github.event.head_commit.timestamp }}
         run: |
           pyinstaller --clean --noconfirm stagebox.spec
@@ -54,7 +65,7 @@ jobs:
         env:
           STAGEBOX_VERSION: ${{ github.ref_name }}
         run: |
-          $version = $env:STAGEBOX_VERSION -replace '^v', ''
+          $version = $env:STAGEBOX_VERSION -replace "^v", ""
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$version" "installer\StageBox-Beta.iss"
 
       - name: Verify installer
