@@ -28,6 +28,10 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller pillow
 
+      - name: Run tests
+        run: |
+          pytest -q
+
       - name: Prepare release version
         env:
           STAGEBOX_VERSION: ${{ github.ref_name }}
@@ -39,10 +43,6 @@ jobs:
           Set-Content "app\core\version.py" -Value $content -Encoding utf8
           Write-Host "StageBox version: $version"
           Get-Content "app\core\version.py"
-
-      - name: Run tests
-        run: |
-          pytest -q
 
       - name: Build executable
         env:
