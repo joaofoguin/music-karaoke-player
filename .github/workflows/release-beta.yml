@@ -35,6 +35,7 @@ jobs:
       - name: Build executable
         env:
           STAGEBOX_VERSION: ${{ github.ref_name }}
+          STAGEBOX_LAST_UPDATE: ${{ github.event.head_commit.timestamp }}
         run: |
           pyinstaller --clean --noconfirm stagebox.spec
 
