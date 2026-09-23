@@ -38,7 +38,7 @@ from widgets.player_widget import PlayerWidget
 from widgets.explorer_widget import ExplorerWidget
 from widgets.main_menu import MainMenu
 from widgets.main_content_widget import MainContentWidget
-from core.branding import APP_DISPLAY_NAME, APP_VERSION, load_branding, resource_path, set_interface_font_size
+from core.branding import APP_DISPLAY_NAME, APP_LAST_UPDATE, APP_VERSION, create_splash_screen, load_branding, resource_path, set_interface_font_size
 from core.updater import UpdateChecker, UpdateDownloader, UpdateInfo, open_installer
 
 
@@ -494,9 +494,11 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Atalhos do Teclado", texto)
 
     def mostrar_sobre(self):
-        texto = """
-        <h3>StageBox (Beta)</h3>
+        texto = f"""
+        <h3>Sobre o StageBox</h3>
         <p>Um reprodutor de áudio moderno e elegante desenvolvido com Python e PySide6 (Qt).</p>
+        <p><b>Versão:</b> {APP_VERSION}</p>
+        <p><b>Última atualização:</b> {APP_LAST_UPDATE}</p>
         <p><b>Recursos:</b></p>
         <ul>
             <li>Suporte a múltiplos formatos (MP3, FLAC, M4A, OGG, WAV, etc.)</li>
@@ -661,8 +663,15 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     load_branding(app)
+
+    splash = create_splash_screen()
+    splash.show()
+    app.processEvents()
+
     window = MainWindow()
     window.show()
+    splash.finish(window)
+
     sys.exit(app.exec())
 
 
