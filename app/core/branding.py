@@ -12,7 +12,17 @@ from .version import APP_VERSION
 
 APP_VERSION_LABEL = "Beta"
 APP_DISPLAY_NAME = f"{APP_NAME} ({APP_VERSION_LABEL})"
-APP_LAST_UPDATE = os.environ.get("STAGEBOX_LAST_UPDATE", datetime.now().strftime("%d/%m/%Y"))
+def _get_last_update() -> str:
+    raw = os.environ.get("STAGEBOX_LAST_UPDATE", "")
+    if raw:
+        try:
+            return datetime.fromisoformat(raw.replace("Z", "+00:00")).strftime("%d/%m/%Y")
+        except ValueError:
+            pass
+    return datetime.now().strftime("%d/%m/%Y")
+
+
+APP_LAST_UPDATE = _get_last_update()
 
 
 def resource_path(relative_path: str) -> Path:
