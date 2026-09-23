@@ -3,7 +3,9 @@
 ;   pyinstaller --clean --noconfirm stagebox.spec
 
 #define MyAppName "StageBox"
-#define MyAppVersion "0.1.0-beta"
+#ifndef MyAppVersion
+  #define MyAppVersion "0.1.0-beta"
+#endif
 #define MyAppPublisher "StageBox"
 #define MyAppExeName "StageBox-Beta.exe"
 #define MyAppIconName "StageBox.ico"
