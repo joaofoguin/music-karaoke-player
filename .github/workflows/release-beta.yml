@@ -51,8 +51,10 @@ jobs:
           choco install innosetup --no-progress -y
 
       - name: Build installer
+        env:
+          $version = $env:STAGEBOX_VERSION -replace '^v', ''
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$version" "installer\StageBox-Beta.iss"
         run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\StageBox-Beta.iss"
 
       - name: Verify installer
         run: |
