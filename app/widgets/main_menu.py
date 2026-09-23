@@ -72,7 +72,7 @@ class MainMenu(QMenuBar):
 
         menu_ajuda = self.addMenu("&Ajuda")
         self._adicionar_acao(menu_ajuda, "Atalhos do Teclado", None, self.shortcuts_requested)
-        self._adicionar_acao(menu_ajuda, "Sobre o Music Player", None, self.about_requested)
+        self._adicionar_acao(menu_ajuda, "Sobre o StageBox", None, self.about_requested)
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.FontChange and not self._fixando_fonte:
