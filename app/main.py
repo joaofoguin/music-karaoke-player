@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from pathlib import Path
 
 # QAudioBufferOutput (usado pelo pipeline de efeitos PCM) depende do backend FFmpeg no Qt 6.8.
@@ -669,6 +670,8 @@ def main():
     app.processEvents()
 
     window = MainWindow()
+    time.sleep(1.2)
+    app.processEvents()
     window.show()
     splash.finish(window)
 
