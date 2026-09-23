@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -96,7 +97,20 @@ def download_installer(installer_url: str) -> Path:
 
 
 def open_installer(path: Path) -> None:
-    subprocess.Popen([str(path)], close_fds=True)
+    # Aguarda o processo atual terminar antes de iniciar o instalador. Isso evita
+    # que o Windows mantenha o EXE antigo bloqueado durante a substituição.
+    current_pid = os.getpid()
+    installer = str(path.resolve()).replace("'", "''")
+    command = (
+        f"$p=Get-Process -Id {current_pid} -ErrorAction SilentlyContinue; "
+        f"if ($p) {{ $p.WaitForExit() }}; "
+        f"Start-Process -FilePath '{installer}' -Verb RunAs"
+    )
+    subprocess.Popen(
+        ["powershell.exe", "-NoProfile", "-WindowStyle", "Hidden", "-Command", command],
+        close_fds=True,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
 
 
 class UpdateChecker(QThread):
