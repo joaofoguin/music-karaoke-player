@@ -2,6 +2,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import urllib.error
 import urllib.parse
@@ -97,12 +98,17 @@ def download_installer(installer_url: str) -> Path:
 
 
 def open_installer(path: Path) -> None:
+    """Agenda a instalação silenciosa e reinicia o StageBox ao terminar."""
     current_pid = os.getpid()
     installer = str(path.resolve()).replace("'", "''")
+    application = str(Path(sys.executable).resolve()).replace("'", "''")
     command = (
         f"$p=Get-Process -Id {current_pid} -ErrorAction SilentlyContinue; "
         f"if ($p) {{ $p.WaitForExit() }}; "
-        f"Start-Process -FilePath '{installer}' -Verb RunAs"
+        f"$i=Start-Process -FilePath '{installer}' "
+        f"-ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' "
+        f"-Verb RunAs -Wait -PassThru; "
+        f"if ($i.ExitCode -eq 0) {{ Start-Process -FilePath '{application}' }}"
     )
     subprocess.Popen(
         ["powershell.exe", "-NoProfile", "-WindowStyle", "Hidden", "-Command", command],
