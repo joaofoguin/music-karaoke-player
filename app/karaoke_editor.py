@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QKeySequence, QShortcut
@@ -847,25 +848,33 @@ class KaraokeEditorWindow(QMainWindow):
             100,
         )
         if ok and offset != 0:
-            for r in range(self.tabela.rowCount()):
-                    item_tempo = self.tabela.item(r, 0)
-                    if item_tempo:
-                        ms_atual = item_tempo.data(Qt.ItemDataRole.UserRole) or 0
-                        novo_ms = max(0, ms_atual + offset)
-                        item_tempo.setText(format_timestamp_ms(novo_ms))
-                        item_tempo.setData(Qt.ItemDataRole.UserRole, novo_ms)
-    
-        def salvar_letra(self):
-            """Salva a lista de linhas na pasta centralizada de karaoke."""
-            if self.current_track is None:
-                QMessageBox.warning(self, "Aviso", "Nenhuma música carregada para salvar a letra.")
-                return
-    
             if self.editor_model == "winamp":
                 linhas = self._linhas_do_texto_winamp()
-            else:
-                linhas: list[LyricLine] = []
-                for r in range(self.tabela.rowCount()):
+                for line in linhas:
+                    line.timestamp_ms = max(0, line.timestamp_ms + offset)
+                self.editor_texto.blockSignals(True)
+                self.editor_texto.setPlainText(self._linhas_para_texto_winamp(linhas))
+                self.editor_texto.blockSignals(False)
+                return
+            for r in range(self.tabela.rowCount()):
+                item_tempo = self.tabela.item(r, 0)
+                if item_tempo:
+                    ms_atual = item_tempo.data(Qt.ItemDataRole.UserRole) or 0
+                    novo_ms = max(0, ms_atual + offset)
+                    item_tempo.setText(format_timestamp_ms(novo_ms))
+                    item_tempo.setData(Qt.ItemDataRole.UserRole, novo_ms)
+
+    def salvar_letra(self):
+        """Salva a lista de linhas na pasta centralizada de karaoke."""
+        if self.current_track is None:
+            QMessageBox.warning(self, "Aviso", "Nenhuma música carregada para salvar a letra.")
+            return
+
+        if self.editor_model == "winamp":
+            linhas = self._linhas_do_texto_winamp()
+        else:
+            linhas: list[LyricLine] = []
+            for r in range(self.tabela.rowCount()):
                 item_tempo = self.tabela.item(r, 0)
                 item_chords = self.tabela.item(r, 1)
                 item_texto = self.tabela.item(r, 2)
@@ -879,8 +888,8 @@ class KaraokeEditorWindow(QMainWindow):
                 )
                 texto = item_texto.text() if item_texto else ""
                 linhas.append(LyricLine(timestamp_ms=int(ms), text=texto, chords=chords))
-    
-            destino = self.target_lrc_path or get_save_lyrics_path(self.current_track, self.config_manager)
+
+        destino = self.target_lrc_path or get_save_lyrics_path(self.current_track, self.config_manager)
         sucesso = save_lrc(
             path=destino,
             lines=linhas,
