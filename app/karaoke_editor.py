@@ -920,8 +920,14 @@ class KaraokeEditorWindow(QMainWindow):
         if ok and offset != 0:
             if self.editor_model == "winamp":
                 linhas = self._linhas_do_texto_winamp()
-                for line in linhas:
-                    line.timestamp_ms = max(0, line.timestamp_ms + offset)
+                linhas = [
+                    LyricLine(
+                        timestamp_ms=max(0, line.timestamp_ms + offset),
+                        text=line.text,
+                        chords=line.chords,
+                    )
+                    for line in linhas
+                ]
                 self.editor_texto.blockSignals(True)
                 self.editor_texto.setPlainText(self._linhas_para_texto_winamp(linhas))
                 self.editor_texto.blockSignals(False)
