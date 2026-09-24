@@ -126,6 +126,13 @@ def test_render_chord_line_html():
     assert "Verso com acordes" in html
 
 
+def test_render_chord_line_html_with_link():
+    line = LyricLine(timestamp_ms=5000, text="Verso clicável")
+    html = render_chord_line_html(line, is_active=False, link_href="line:3")
+    assert 'href="line:3"' in html
+    assert "Verso clicável" in html
+
+
 def test_current_line_index():
     lines = [
         LyricLine(1000, "Line 1"),
