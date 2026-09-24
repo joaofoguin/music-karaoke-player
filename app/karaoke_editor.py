@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 
 from PySide6.QtCore import QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QKeySequence, QShortcut
+from PySide6.QtGui import QColor, QFont, QKeySequence, QShortcut, QTextCursor
 from PySide6.QtWidgets import (
     QCheckBox,
     QDialog,
@@ -31,6 +31,7 @@ from core.lyrics import (
     convert_chord_sheet_to_lyric_lines,
     extract_chords_and_lyrics,
     format_timestamp_ms,
+    is_chord_line,
     load_lrc,
     parse_timestamp_ms,
     save_lrc,
@@ -223,8 +224,8 @@ class KaraokeEditorWindow(QMainWindow):
         self.btn_sync.setObjectName("btnSync")
         self.btn_sync.setFixedHeight(36)
         self.btn_sync.setMinimumWidth(104)
-        self.btn_sync.setToolTip("Marcar tempo da linha selecionada (F5)")
-        self.btn_sync.clicked.connect(self._gravar_tempo_linha_selecionada)
+        self.btn_sync.setToolTip("Marcar o verso atual no editor (F5)")
+        self.btn_sync.clicked.connect(self._marcar_verso_atual)
         linha1.addWidget(self.btn_sync)
 
         layout_topo.addLayout(linha1)
@@ -308,7 +309,11 @@ class KaraokeEditorWindow(QMainWindow):
         self.editor_texto.setPlaceholderText("      C             G\n[00:12]Quando eu te encontrar\n\n      Am            F\n[00:18]E então...")
         self.editor_texto.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
         self.editor_texto.setTabStopDistance(32)
+        self.editor_texto.setToolTip(
+            "Posicione o cursor no verso e pressione F5 ou clique em Marcar para registrar o tempo atual."
+        )
         self.editor_texto.textChanged.connect(self._on_editor_text_changed)
+        self.editor_texto.cursorPositionChanged.connect(self._atualizar_linha_winamp_selecionada)
 
         self.tabela.cellClicked.connect(self._on_cell_clicked)
         self.tabela.itemChanged.connect(self._on_table_item_changed)
@@ -407,7 +412,7 @@ class KaraokeEditorWindow(QMainWindow):
 
         self.shortcut_marcar = QShortcut(QKeySequence("F5"), self)
         self.shortcut_marcar.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        self.shortcut_marcar.activated.connect(self._gravar_tempo_linha_selecionada)
+        self.shortcut_marcar.activated.connect(self._marcar_verso_atual)
 
         self.shortcut_salvar = QShortcut(QKeySequence("Ctrl+S"), self)
         self.shortcut_salvar.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
@@ -479,6 +484,71 @@ class KaraokeEditorWindow(QMainWindow):
             ))
             pending_chords = ""
         return linhas
+
+    def _atualizar_linha_winamp_selecionada(self):
+        """Mantém a seleção lógica do verso sob o cursor para a marcação rápida."""
+        if self.editor_model != "winamp":
+            return
+        block = self.editor_texto.textCursor().block()
+        if block.isValid() and is_chord_line(block.text()):
+            block = block.next()
+            while block.isValid() and not block.text().strip():
+                block = block.next()
+        if block.isValid():
+            self.editor_texto.ensureCursorVisible()
+
+    def _bloco_winamp_para_marcacao(self):
+        """Resolve o verso correspondente ao cursor, ignorando linhas de cifras."""
+        if self.editor_model != "winamp":
+            return None
+
+        block = self.editor_texto.textCursor().block()
+        if not block.isValid():
+            return None
+
+        if is_chord_line(block.text()):
+            candidate = block.next()
+            while candidate.isValid() and not candidate.text().strip():
+                candidate = candidate.next()
+            if candidate.isValid():
+                block = candidate
+
+        if not block.text().strip():
+            candidate = block.next()
+            while candidate.isValid():
+                if candidate.text().strip() and not is_chord_line(candidate.text()):
+                    block = candidate
+                    break
+                candidate = candidate.next()
+
+        return block if block.isValid() and block.text().strip() else None
+
+    def _gravar_tempo_winamp(self):
+        """Marca o verso sob o cursor com a posição atual do áudio."""
+        block = self._bloco_winamp_para_marcacao()
+        if block is None:
+            return False
+
+        posicao_ms = max(0, int(self.audio_engine.position()))
+        timestamp = format_timestamp_ms(posicao_ms).split(".")[0]
+        texto = block.text()
+        texto_sem_tempo = re.sub(r"^[d{1,2}:d{2}(?:.d{1,3})?]", "", texto)
+        novo_texto = f"[{timestamp}]{texto_sem_tempo}"
+
+        cursor = QTextCursor(block)
+        cursor.select(QTextCursor.SelectionType.LineUnderCursor)
+        cursor.insertText(novo_texto)
+        self.editor_texto.setTextCursor(cursor)
+        self.editor_texto.ensureCursorVisible()
+        return True
+
+    def _marcar_verso_atual(self):
+        """Marca o verso atual no modelo ativo usando o relógio ou F5."""
+        if self.editor_model == "winamp":
+            if self._gravar_tempo_winamp():
+                return
+            return
+        self._gravar_tempo_linha_selecionada()
 
     def _on_editor_text_changed(self):
         if self.editor_model == "winamp":
