@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtCore import QByteArray, QSize, Qt, Signal
+from PySide6.QtGui import QIcon, QPainter, QPixmap
+from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
 from core.clickable_slider import ClickableSlider
@@ -172,8 +173,20 @@ class PlayerWidget(QFrame):
         self.botao_repetir.setIconSize(QSize(18, 18))
         self.botao_repetir.setText("")
 
-        karaoke_icon = QIcon(str(Path(__file__).resolve().parent.parent.parent / "assets" / "karaoke.svg"))
-        self.botao_karaoke.setIcon(karaoke_icon)
+        karaoke_path = Path(__file__).resolve().parent.parent.parent / "assets" / "karaoke.svg"
+        try:
+            svg_content = karaoke_path.read_text(encoding="utf-8")
+            svg_content = svg_content.replace('fill="#000000"', f'fill="{cor_icone}"')
+            renderer = QSvgRenderer(QByteArray(svg_content.encode("utf-8")))
+            pixmap = QPixmap(64, 64)
+            pixmap.fill(Qt.GlobalColor.transparent)
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            renderer.render(painter)
+            painter.end()
+            self.botao_karaoke.setIcon(QIcon(pixmap))
+        except (OSError, RuntimeError):
+            self.botao_karaoke.setIcon(QIcon())
         self.botao_karaoke.setIconSize(QSize(18, 18))
         self.botao_karaoke.setText("")
 
