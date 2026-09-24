@@ -295,7 +295,7 @@ def render_chord_line_html(
         partes.append("</td></tr></table>")
         conteudo = (
             f'<div align="center" style="margin:{margem}px 0; '
-            f'opacity:{opacidade};">{"" .join(partes)}</div>'
+            f'opacity:{opacidade};">{"".join(partes)}</div>'
         )
     else:
         partes = [
