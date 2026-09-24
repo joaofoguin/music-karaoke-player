@@ -55,6 +55,7 @@ class ConfigManager(QObject):
         "karaoke/highlight_color": "#ffffff",
         "karaoke/context_color": "#8f8f8f",
         "karaoke/context_lines": 2,
+        "karaoke/editor_model": "stagebox",
     }
 
     def __init__(self, organization="MusicPlayerApp", application="MusicPlayer"):
