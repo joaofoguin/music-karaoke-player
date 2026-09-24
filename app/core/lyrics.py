@@ -329,9 +329,14 @@ def render_chord_line_html(
             f'margin-left:auto; margin-right:auto;">{escape(clean)}</div>'
         )
 
+    # QLabel/QTextDocument (Qt) não interpreta "margin:auto" e algumas regras
+    # de text-align CSS da mesma forma que um navegador. Uma célula centralizada
+    # com largura total garante o alinhamento real dentro da área do Karaokê.
     conteudo = (
-        f'<div align="center" style="margin:{margem}px 0; text-align:center; opacity:{opacidade}; '
-        f'transition: all 0.2s ease-in-out;">{"".join(html_partes)}</div>'
+        f'<table width="100%" cellspacing="0" cellpadding="0" border="0" '
+        f'style="margin:{margem}px 0; opacity:{opacidade};">'
+        f'<tr><td align="center" style="text-align:center;">{"".join(html_partes)}</td></tr>'
+        f'</table>'
     )
     if link_href:
         href = escape(link_href, quote=True)
