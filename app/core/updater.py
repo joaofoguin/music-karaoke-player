@@ -23,6 +23,7 @@ class UpdateInfo:
     version: str
     release_url: str
     installer_url: str
+    release_notes: str = ""
 
 
 def _version_key(version: str):
@@ -67,6 +68,7 @@ def find_latest_beta_release(releases) -> UpdateInfo | None:
                 version=tag.lstrip("v"),
                 release_url=str(release.get("html_url", "")),
                 installer_url=str(installer_url),
+                release_notes=str(release.get("body", "") or ""),
             ))
 
     return max(candidates, key=lambda item: _version_key(item.version)) if candidates else None
@@ -108,7 +110,7 @@ def open_installer(path: Path) -> None:
         f"$i=Start-Process -FilePath '{installer}' "
         f"-ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' "
         f"-Verb RunAs -Wait -PassThru; "
-        f"if ($i.ExitCode -eq 0) {{ Start-Process -FilePath '{application}' }}"
+        f"if ($i.ExitCode -eq 0) {{ Start-Process -FilePath '{application}' -ArgumentList '--update-complete','{marker_path}' }} "
     )
     subprocess.Popen(
         ["powershell.exe", "-NoProfile", "-WindowStyle", "Hidden", "-Command", command],
