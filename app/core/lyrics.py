@@ -254,80 +254,78 @@ def render_chord_line_html(
 
     html_partes = []
 
-    # No modelo Winamp, cada verso é centralizado como um bloco monoespaçado.
-    # As cifras usam as mesmas colunas do texto, incluindo quando a letra possui
-    # quebras de linha. O bloco inteiro é então centralizado no Karaoke.
-    if show_chords and chords_list:
-        positioned = line.positioned_chords
+    # No modelo Winamp, cifras e letra usam o mesmo bloco monoespaçado.
+    # O bloco é centralizado e cada linha de letra é centralizada dentro dele.
+    clean = line.clean_lyrics or "♪"
+    if editor_model == "winamp":
+        lyric_lines = clean.splitlines() or ["♪"]
+        positioned = line.positioned_chords if show_chords and chords_list else []
         chord_end = max(
             (position + len(chord) for chord, position in positioned),
             default=0,
         )
-        lyric_lines = line.clean_lyrics.splitlines() or [""]
         lyric_width = max((len(part) for part in lyric_lines), default=0)
         visual_width = max(lyric_width, chord_end, 1)
-        chord_cells = [" "] * visual_width
-        for chord, position in positioned:
-            for offset, char in enumerate(chord):
-                index = position + offset
-                if 0 <= index < len(chord_cells):
-                    chord_cells[index] = char
 
-        chords_size = (
-            tamanho_verso
-            if editor_model == "winamp"
-            else max(15, int(tamanho_verso * 0.6))
-        )
-        if editor_model == "winamp":
-            # O deslocamento do texto dentro da largura visual é aplicado
-            # também às cifras, mantendo a cifra sobre a coluna correta.
-            primeiro_verso = lyric_lines[0] if lyric_lines else ""
-            offset_central = max(0, (visual_width - len(primeiro_verso)) // 2)
-            chord_line = " " * offset_central + "".join(chord_cells)
-            chords_str = escape(chord_line.rstrip())
-            html_partes.append(
-                f'<div style="display:table; margin:0 auto; text-align:left; '
-                f'font-family:monospace; font-size:{tamanho_verso}px; line-height:1.15;">'
-                f'<div style="color:{chords_color}; font-size:{chords_size}px; font-weight:700; '
-                f'white-space:pre; margin:0 0 4px 0;">{chords_str}</div>'
-            )
-        else:
-            chords_str = escape("".join(chord_cells).rstrip())
-            html_partes.append(
-                f'<div style="color:{chords_color}; font-size:{chords_size}px; font-weight:700; '
-                f'letter-spacing:0; margin-bottom:6px; font-family:monospace; white-space:pre; '
-                f'text-align:left; width:fit-content; margin-left:auto; margin-right:auto;">{chords_str}</div>'
-            )
-
-    # Frase do verso 100% limpa e espaçosa.
-    clean = line.clean_lyrics or "♪"
-    if editor_model == "winamp":
-        lyric_lines = clean.splitlines() or ["♪"]
-        visual_width = max(
-            max((len(part) for part in lyric_lines), default=0),
-            max((position + len(chord) for chord, position in line.positioned_chords), default=0),
-            1,
-        )
         html_partes.append(
             f'<div style="display:table; margin:0 auto; text-align:left; '
-            f'font-family:monospace; font-size:{tamanho_verso}px; line-height:1.6;">'
+            f'font-family:monospace; font-size:{tamanho_verso}px; line-height:1.15;">'
         )
+
+        if positioned:
+            chord_cells = [" "] * visual_width
+            for chord, position in positioned:
+                for offset, char in enumerate(chord):
+                    index = position + offset
+                    if 0 <= index < len(chord_cells):
+                        chord_cells[index] = char
+
+            first_line = lyric_lines[0] if lyric_lines else ""
+            chord_offset = max(0, (visual_width - len(first_line)) // 2)
+            chord_line = " " * chord_offset + "".join(chord_cells)
+            chords_size = tamanho_verso
+            html_partes.append(
+                f'<div style="color:{chords_color}; font-size:{chords_size}px; '
+                f'font-weight:700; white-space:pre; margin:0 0 4px 0;">'
+                f'{escape(chord_line.rstrip())}</div>'
+            )
+
         for part in lyric_lines:
-            escaped_part = escape(part)
             padding = max(0, (visual_width - len(part)) // 2)
             html_partes.append(
-                f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; font-weight:{peso_fonte}; '
-                f'white-space:pre; text-align:left; padding-left:{padding}ch;">{escaped_part}</div>'
+                f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; '
+                f'font-weight:{peso_fonte}; white-space:pre; '
+                f'padding-left:{padding}ch;">{escape(part)}</div>'
             )
+
         html_partes.append("</div>")
-        if show_chords and chords_list:
-            # O wrapper das cifras já foi fechado antes da letra.
-            pass
     else:
+        if show_chords and chords_list:
+            positioned = line.positioned_chords
+            max_position = max(
+                (position + len(chord) for chord, position in positioned),
+                default=1,
+            )
+            cells = [" "] * max_position
+            for chord, position in positioned:
+                for offset, char in enumerate(chord):
+                    index = position + offset
+                    if 0 <= index < len(cells):
+                        cells[index] = char
+            chords_size = max(15, int(tamanho_verso * 0.6))
+            chords_str = escape("".join(cells).rstrip())
+            html_partes.append(
+                f'<div style="color:{chords_color}; font-size:{chords_size}px; '
+                f'font-weight:700; letter-spacing:0; margin-bottom:6px; '
+                f'font-family:monospace; white-space:pre; text-align:left; '
+                f'width:fit-content; margin-left:auto; margin-right:auto;">'
+                f'{chords_str}</div>'
+            )
+
         html_partes.append(
-            f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; font-weight:{peso_fonte}; '
-            f'letter-spacing:0.5px; line-height:1.6; font-family:inherit; '
-            f'white-space:pre-wrap;">{escape(clean)}</div>'
+            f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; '
+            f'font-weight:{peso_fonte}; letter-spacing:0.5px; line-height:1.6; '
+            f'font-family:inherit; white-space:pre-wrap;">{escape(clean)}</div>'
         )
 
     conteudo = (
