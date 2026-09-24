@@ -187,6 +187,14 @@ class SettingsDialog(QDialog):
         self.spin_context_lines.setSuffix(" linhas")
         form_karaoke.addRow("Versos de contexto:", self.spin_context_lines)
 
+        self.combo_editor_model = QComboBox()
+        self.combo_editor_model.addItem("StageBox — cifras separadas", "stagebox")
+        self.combo_editor_model.addItem("Winamp — cifras alinhadas à letra", "winamp")
+        self.combo_editor_model.setToolTip(
+            "Define como as cifras são posicionadas no editor e apresentadas no Karaokê."
+        )
+        form_karaoke.addRow("Modelo de edição de cifras:", self.combo_editor_model)
+
         # Cor de destaque
         self.highlight_color = "#ffffff"
         self.btn_highlight_color = QPushButton()
@@ -372,6 +380,10 @@ class SettingsDialog(QDialog):
 
         self.spin_font_size.setValue(self.config_manager.get("karaoke/font_size", 26))
         self.spin_context_lines.setValue(self.config_manager.get("karaoke/context_lines", 2))
+        modelo = self.config_manager.get("karaoke/editor_model", "stagebox")
+        idx_modelo = self.combo_editor_model.findData(modelo)
+        if idx_modelo >= 0:
+            self.combo_editor_model.setCurrentIndex(idx_modelo)
         self.highlight_color = self.config_manager.get("karaoke/highlight_color", "#ffffff")
         self.context_color = self.config_manager.get("karaoke/context_color", "#8f8f8f")
         self._atualizar_botoes_cores()
@@ -426,6 +438,7 @@ class SettingsDialog(QDialog):
             "karaoke/chords_color": self.chords_color,
             "karaoke/font_size": self.spin_font_size.value(),
             "karaoke/context_lines": self.spin_context_lines.value(),
+            "karaoke/editor_model": self.combo_editor_model.currentData(),
             "karaoke/highlight_color": self.highlight_color,
             "karaoke/context_color": self.context_color,
             "appearance/theme": self.combo_tema.currentData(),
