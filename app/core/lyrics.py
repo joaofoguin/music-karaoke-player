@@ -243,34 +243,29 @@ def render_chord_line_html(
     link_href: str | None = None,
     editor_model: str = "stagebox",
 ) -> str:
-    """Gera a representação visual em HTML da linha de letra com frases limpas e cifras sobrepostas."""
+    """Gera a representação visual da linha, centralizada de forma compatível com o Qt."""
     chords_list = line.extracted_chords
-
     letra_cor = active_color if is_active else context_color
     tamanho_verso = int(font_size * 1.25) if is_active else font_size
     peso_fonte = 800 if is_active else 500
     margem = 18 if is_active else 10
     opacidade = "1.0" if is_active else "0.75"
-
-    html_partes = []
-
-    # No modelo Winamp, cifras e letra usam o mesmo bloco monoespaçado.
-    # O bloco é centralizado e cada linha de letra é centralizada dentro dele.
     clean = line.clean_lyrics or "♪"
+
     if editor_model == "winamp":
         lyric_lines = clean.splitlines() or ["♪"]
         positioned = line.positioned_chords if show_chords and chords_list else []
         chord_end = max(
-            (position + len(chord) for chord, position in positioned),
-            default=0,
+            (position + len(chord) for chord, position in positioned), default=0
         )
         lyric_width = max((len(part) for part in lyric_lines), default=0)
         visual_width = max(lyric_width, chord_end, 1)
 
-        html_partes.append(
-            f'<div style="display:table; margin:0 auto; padding:0; text-align:left; '
-            f'font-family:monospace; font-size:{tamanho_verso}px; line-height:1.15;">'
-        )
+        partes = [
+            f'<table align="center" cellspacing="0" cellpadding="0" border="0" '
+            f'style="margin:0 auto; padding:0; font-family:monospace; '
+            f'font-size:{tamanho_verso}px; line-height:1.15;"><tr><td>'
+        ]
 
         if positioned:
             chord_cells = [" "] * visual_width
@@ -283,28 +278,34 @@ def render_chord_line_html(
             first_line = lyric_lines[0] if lyric_lines else ""
             chord_offset = max(0, (visual_width - len(first_line)) // 2)
             chord_line = " " * chord_offset + "".join(chord_cells)
-            chords_size = tamanho_verso
-            html_partes.append(
-                f'<div style="color:{chords_color}; font-size:{chords_size}px; '
+            partes.append(
+                f'<div style="color:{chords_color}; font-size:{tamanho_verso}px; '
                 f'font-weight:700; white-space:pre; margin:0 0 4px 0;">'
                 f'{escape(chord_line.rstrip())}</div>'
             )
 
         for part in lyric_lines:
             padding = max(0, (visual_width - len(part)) // 2)
-            html_partes.append(
+            partes.append(
                 f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; '
                 f'font-weight:{peso_fonte}; white-space:pre; text-align:left; '
                 f'padding-left:{padding}ch;">{escape(part)}</div>'
             )
 
-        html_partes.append("</td></tr></table>")
+        partes.append("</td></tr></table>")
+        conteudo = (
+            f'<div align="center" style="margin:{margem}px 0; '
+            f'opacity:{opacidade};">{"" .join(partes)}</div>'
+        )
     else:
+        partes = [
+            f'<div align="center" style="margin:{margem}px 0; opacity:{opacidade};">'
+        ]
+
         if show_chords and chords_list:
             positioned = line.positioned_chords
             max_position = max(
-                (position + len(chord) for chord, position in positioned),
-                default=1,
+                (position + len(chord) for chord, position in positioned), default=1
             )
             cells = [" "] * max_position
             for chord, position in positioned:
@@ -313,31 +314,20 @@ def render_chord_line_html(
                     if 0 <= index < len(cells):
                         cells[index] = char
             chords_size = max(15, int(tamanho_verso * 0.6))
-            chords_str = escape("".join(cells).rstrip())
-            html_partes.append(
-                f'<div style="color:{chords_color}; font-size:{chords_size}px; '
-                f'font-weight:700; letter-spacing:0; margin-bottom:6px; '
-                f'font-family:monospace; white-space:pre; text-align:left; '
-                f'width:fit-content; margin-left:auto; margin-right:auto;">'
-                f'{chords_str}</div>'
+            partes.append(
+                f'<div align="center" style="color:{chords_color}; '
+                f'font-size:{chords_size}px; font-weight:700; '
+                f'font-family:monospace; white-space:pre; margin-bottom:6px;">'
+                f'{escape("".join(cells).rstrip())}</div>'
             )
 
-        html_partes.append(
+        partes.append(
             f'<div align="center" style="color:{letra_cor}; font-size:{tamanho_verso}px; '
             f'font-weight:{peso_fonte}; letter-spacing:0.5px; line-height:1.6; '
-            f'font-family:inherit; white-space:pre-wrap; text-align:center;">'
-            f'{escape(clean)}</div>'
+            f'white-space:pre-wrap;">{escape(clean)}</div></div>'
         )
+        conteudo = "".join(partes)
 
-    # QLabel/QTextDocument (Qt) não interpreta "margin:auto" e algumas regras
-    # de text-align CSS da mesma forma que um navegador. Uma célula centralizada
-    # com largura total garante o alinhamento real dentro da área do Karaokê.
-    conteudo = (
-        f'<table width="100%" cellspacing="0" cellpadding="0" border="0" '
-        f'style="margin:{margem}px 0; opacity:{opacidade};">'
-        f'<tr><td align="center" style="text-align:center;">{"".join(html_partes)}</td></tr>'
-        f'</table>'
-    )
     if link_href:
         href = escape(link_href, quote=True)
         return f'<a href="{href}" style="text-decoration:none;">{conteudo}</a>'
