@@ -147,3 +147,22 @@ def test_current_line_index():
     assert current_line_index(lines, 7000) == 1
     assert current_line_index(lines, 10000) == 2
     assert current_line_index(lines, 99999) == 2
+
+
+def test_positioned_chords_preserve_columns():
+    line = LyricLine(timestamp_ms=12000, text="Quando eu te encontrar", chords="C@7 G@21")
+    assert line.positioned_chords == [("C", 7), ("G", 21)]
+    assert line.extracted_chords == ["C", "G"]
+
+
+def test_render_chord_line_html_aligns_positioned_chords():
+    line = LyricLine(timestamp_ms=12000, text="Quando eu te encontrar", chords="C@7 G@21")
+    html = render_chord_line_html(
+        line,
+        is_active=True,
+        show_chords=True,
+        editor_model="winamp",
+    )
+    assert "       C" in html
+    assert "G" in html
+    assert "Quando eu te encontrar" in html
