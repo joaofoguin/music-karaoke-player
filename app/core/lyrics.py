@@ -256,10 +256,8 @@ def render_chord_line_html(
         lyric_lines = clean.splitlines() or ["♪"]
         positioned = line.positioned_chords if show_chords and chords_list else []
 
-        # No modelo Winamp, cada espaço lógico da grade equivale a 3
-        # caracteres visuais. As posições @N continuam representando
-        # colunas lógicas, mantendo o ajuste das cifras previsível.
-        SPACE_WIDTH = 3
+        # Cada espaço lógico ocupa duas colunas visuais no modelo Winamp.
+        SPACE_WIDTH = 2
 
         def expand_grid(text: str) -> str:
             return "".join(
@@ -296,8 +294,6 @@ def render_chord_line_html(
                 f'white-space:pre; margin:0;">{escape(expand_grid(part))}</div>'
             )
 
-        # Centraliza cada verso pela própria largura visual, sem permitir
-        # que o tamanho/posição das cifras altere o centro da frase atual.
         conteudo = (
             f'<table align="center" cellspacing="0" cellpadding="0" border="0" '
             f'style="margin:{margem}px auto; opacity:{opacidade};">'
