@@ -557,18 +557,27 @@ class MainWindow(QMainWindow):
         track = self.track_loader.carregar(caminho)
         if track is not None:
             self.queue_controller.add(track)
+        return track
 
     def definir_modo_exibicao(self, modo: str):
         self.explorer_widget.definir_modo_exibicao(modo)
 
     def arquivo_selecionado(self, caminho):
-        fila_estava_vazia = not self.queue_controller.tracks
-        self._adicionar_caminho_fila(caminho)
+        """Adiciona a faixa selecionada à fila e inicia sua reprodução imediatamente."""
+        caminho = Path(caminho)
 
-        if fila_estava_vazia and self.queue_controller.tracks:
-            self.selecionar_faixa(0)
-            if self.config_manager.get("playback/auto_play_on_add", False):
-                self.audio_engine.play()
+        # Se a faixa já estiver na fila, apenas a seleciona e reproduz, evitando duplicatas.
+        for indice, faixa in enumerate(self.queue_controller.tracks):
+            if Path(faixa.path).resolve() == caminho.resolve():
+                self.selecionar_e_reproduzir_faixa(indice)
+                return
+
+        faixa = self._adicionar_caminho_fila(caminho)
+        if faixa is None:
+            return
+
+        indice = len(self.queue_controller.tracks) - 1
+        self.selecionar_e_reproduzir_faixa(indice)
 
     def atualizar_player(self, track):
         if track is None:
