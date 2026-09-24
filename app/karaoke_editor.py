@@ -470,8 +470,11 @@ class KaraokeEditorWindow(QMainWindow):
         raw = cifra.data(Qt.ItemDataRole.UserRole) if cifra else ""
         raw = raw or (cifra.text() if cifra else "")
         chord_line = self._formatar_cifras_editor(raw)
-        ts = format_timestamp_ms(int(tempo.data(Qt.ItemDataRole.UserRole) or 0))
+        ms = int(tempo.data(Qt.ItemDataRole.UserRole) or 0)
+        ts = format_timestamp_ms(ms)
         if self.editor_model == "winamp":
+            total_seconds = ms // 1000
+            ts = f"{total_seconds // 60:02d}:{total_seconds % 60:02d}"
             self.lbl_modelo_preview.setText(
                 f'<pre style="margin:0; color:#f59e0b; font-weight:700;">{chord_line}</pre>'
                 f'<pre style="margin:0; color:#d1d5db;">[{ts}]{texto.text()}</pre>'
@@ -505,7 +508,7 @@ class KaraokeEditorWindow(QMainWindow):
         self.tabela.setItem(row, 0, item_tempo)
 
         # Col 2: Cifras / Acordes separados
-        item_cifras = QTableWidgetItem(chords)
+        item_cifras = QTableWidgetItem(self._formatar_cifras_editor(chords))
         item_cifras.setForeground(QColor("#f59e0b"))
         item_cifras.setFont(QFont("Monospace", 10, QFont.Weight.Bold))
         item_cifras.setData(Qt.ItemDataRole.UserRole, chords)
