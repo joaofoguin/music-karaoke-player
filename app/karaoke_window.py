@@ -213,6 +213,9 @@ class KaraokeWindow(QMainWindow):
         self.letra.setObjectName("lyrics")
         self.letra.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.letra.setWordWrap(True)
+        self.letra.setTextFormat(Qt.TextFormat.RichText)
+        self.letra.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        self.letra.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.letra.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByMouse)
         self.letra.setOpenExternalLinks(False)
         self.letra.linkActivated.connect(self._selecionar_linha_por_link)
@@ -511,7 +514,7 @@ class KaraokeWindow(QMainWindow):
                         editor_model=self.editor_model,
                     )
                 )
-            self.letra.setText("".join(trechos))
+            self._definir_letra_centralizada("".join(trechos))
             return
 
         inicio = max(0, self.current_index - self.context_lines)
@@ -534,7 +537,15 @@ class KaraokeWindow(QMainWindow):
                 )
             )
 
-        self.letra.setText("".join(trechos))
+        self._definir_letra_centralizada("".join(trechos))
+
+    def _definir_letra_centralizada(self, html):
+        # QTextDocument do Qt não respeita de forma consistente regras CSS de
+        # centralização em blocos HTML. O próprio QLabel recebe a largura total
+        # e o alinhamento horizontal, garantindo que o documento inteiro fique
+        # centralizado na área disponível.
+        self.letra.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.letra.setText(html)
 
     def limpar(self):
         self.lines = []
