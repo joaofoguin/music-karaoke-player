@@ -650,7 +650,12 @@ class KaraokeEditorWindow(QMainWindow):
         destino = row + delta
         if 0 <= row < self.tabela.rowCount() and 0 <= destino < self.tabela.rowCount():
             tempo_ms = self.tabela.item(row, 0).data(Qt.ItemDataRole.UserRole)
-            chords = self.tabela.item(row, 1).text()
+            item_chords = self.tabela.item(row, 1)
+            chords = (
+                item_chords.data(Qt.ItemDataRole.UserRole)
+                if item_chords and item_chords.data(Qt.ItemDataRole.UserRole)
+                else (item_chords.text() if item_chords else "")
+            )
             texto = self.tabela.item(row, 2).text()
 
             self.tabela.removeRow(row)
