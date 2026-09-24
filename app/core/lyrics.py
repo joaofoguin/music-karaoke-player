@@ -217,6 +217,7 @@ def render_chord_line_html(
     chords_color: str = "#f59e0b",
     show_chords: bool = True,
     font_size: int = 32,
+    link_href: str | None = None,
 ) -> str:
     """Gera a representação visual em HTML da linha de letra com frases limpas e cifras sobrepostas."""
     chords_list = line.extracted_chords
@@ -245,10 +246,14 @@ def render_chord_line_html(
         f'letter-spacing:0.5px; line-height:1.6;">{clean}</div>'
     )
 
-    return (
+    conteudo = (
         f'<div style="margin:{margem}px 0; text-align:center; opacity:{opacidade}; '
         f'transition: all 0.2s ease-in-out;">{"".join(html_partes)}</div>'
     )
+    if link_href:
+        href = escape(link_href, quote=True)
+        return f'<a href="{href}" style="text-decoration:none;">{conteudo}</a>'
+    return conteudo
 
 
 def load_lrc(path: Path) -> list[LyricLine]:
