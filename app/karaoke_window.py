@@ -110,6 +110,7 @@ class KaraokeWindow(QMainWindow):
         self.chords_color = "#f59e0b"
         self.show_chords = True
         self.context_lines = 2
+        self.editor_model = "stagebox"
         self.bg_color = "#171717"
 
         self.lines = []
@@ -302,6 +303,7 @@ class KaraokeWindow(QMainWindow):
             self.chords_color = self.config_manager.get("karaoke/chords_color", "#f59e0b")
             self.show_chords = self.config_manager.get("karaoke/show_chords", True)
             self.context_lines = self.config_manager.get("karaoke/context_lines", 2)
+            self.editor_model = self.config_manager.get("karaoke/editor_model", "stagebox")
             theme = self.config_manager.get("appearance/theme", "dark")
             self._theme = theme
             if theme == "midnight":
@@ -518,6 +520,7 @@ class KaraokeWindow(QMainWindow):
                     show_chords=self.show_chords,
                     font_size=self.font_size,
                     link_href=f"line:{index}",
+                    editor_model=self.editor_model,
                 )
             )
 
