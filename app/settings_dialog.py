@@ -115,7 +115,7 @@ class SettingsDialog(QDialog):
         self.chk_repeat_default = QCheckBox("Ativar modo repetir por padrão")
         form_audio.addRow("", self.chk_repeat_default)
 
-        self.chk_autoplay = QCheckBox("Reproduzir automaticamente ao adicionar primeira música")
+        self.chk_autoplay = QCheckBox("Reproduzir automaticamente ao adicionar música")
         form_audio.addRow("", self.chk_autoplay)
 
         grupo_formatos = QGroupBox("Formatos de Áudio Suportados")
