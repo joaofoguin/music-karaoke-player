@@ -254,7 +254,8 @@ def render_chord_line_html(
 
     html_partes = []
 
-    # Linha dedicada superior para as cifras, preservando a coluna da letra.
+    # No modelo Winamp, cifras e letra compartilham a mesma largura monoespaciada.
+    # Assim a coluna do acorde permanece alinhada à coluna correspondente da letra.
     if show_chords and chords_list:
         positioned = line.positioned_chords
         max_position = max(
@@ -269,11 +270,19 @@ def render_chord_line_html(
                     cells[index] = char
         chords_str = escape("".join(cells).rstrip())
         chords_size = tamanho_verso if editor_model == "winamp" else max(15, int(tamanho_verso * 0.6))
-        html_partes.append(
-            f'<div style="color:{chords_color}; font-size:{chords_size}px; font-weight:700; '
-            f'letter-spacing:0; margin-bottom:6px; font-family:monospace; white-space:pre; '
-            f'text-align:left; width:fit-content; margin-left:auto; margin-right:auto;">{chords_str}</div>'
-        )
+        if editor_model == "winamp":
+            html_partes.append(
+                f'<div style="display:inline-block; text-align:left; '
+                f'font-family:monospace; font-size:{tamanho_verso}px; line-height:1.15;">'
+                f'<div style="color:{chords_color}; font-size:{chords_size}px; font-weight:700; '
+                f'white-space:pre; margin:0 0 4px 0;">{chords_str}</div>'
+            )
+        else:
+            html_partes.append(
+                f'<div style="color:{chords_color}; font-size:{chords_size}px; font-weight:700; '
+                f'letter-spacing:0; margin-bottom:6px; font-family:monospace; white-space:pre; '
+                f'text-align:left; width:fit-content; margin-left:auto; margin-right:auto;">{chords_str}</div>'
+            )
 
     # Frase do verso 100% limpa e espaçosa
     clean = escape(line.clean_lyrics) or "♪"
@@ -283,6 +292,8 @@ def render_chord_line_html(
         f'font-family:{"monospace" if editor_model == "winamp" else "inherit"}; '
         f'white-space:pre-wrap;">{clean}</div>'
     )
+    if show_chords and chords_list and editor_model == "winamp":
+        html_partes.append("</div>")
 
     conteudo = (
         f'<div style="margin:{margem}px 0; text-align:center; opacity:{opacidade}; '
