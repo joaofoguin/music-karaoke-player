@@ -256,14 +256,11 @@ def render_chord_line_html(
         lyric_lines = clean.splitlines() or ["♪"]
         positioned = line.positioned_chords if show_chords and chords_list else []
 
-        # Cada espaço lógico ocupa duas colunas visuais no modelo Winamp.
+        # Cada espaço lógico ocupa duas colunas visuais. Mantemos o espaço
+        # literal no HTML para preservar compatibilidade com o parser/testes
+        # e usamos word-spacing para ampliar sua representação visual.
         SPACE_WIDTH = 2
-
-        def expand_grid(text: str) -> str:
-            return "".join(
-                (" " * SPACE_WIDTH) if char == " " else char
-                for char in text
-            )
+        WORD_SPACING = f"{SPACE_WIDTH - 1}ch"
 
         lyric_width = max((len(part) for part in lyric_lines), default=1)
         chord_end = max(
@@ -274,16 +271,16 @@ def render_chord_line_html(
 
         linhas_grade = []
         if positioned:
-            chord_cells = [" "] * (grid_width * SPACE_WIDTH)
+            chord_cells = [" "] * grid_width
             for chord, position in positioned:
-                visual_position = position * SPACE_WIDTH
                 for offset, char in enumerate(chord):
-                    index = visual_position + offset
-                    if 0 <= index < len(chord_cells):
+                    index = position + offset
+                    if 0 <= index < grid_width:
                         chord_cells[index] = char
             linhas_grade.append(
                 f'<div style="color:{chords_color}; font-size:{tamanho_verso}px; '
-                f'font-weight:700; white-space:pre; margin:0 0 4px 0;">'
+                f'font-weight:700; font-family:monospace; white-space:pre; '
+                f'word-spacing:{WORD_SPACING}; margin:0 0 4px 0;">'
                 f'{escape("".join(chord_cells).rstrip())}</div>'
             )
 
@@ -291,7 +288,9 @@ def render_chord_line_html(
             linhas_grade.append(
                 f'<div align="center" style="color:{letra_cor}; '
                 f'font-size:{tamanho_verso}px; font-weight:{peso_fonte}; '
-                f'white-space:pre; margin:0;">{escape(expand_grid(part))}</div>'
+                f'font-family:monospace; white-space:pre; '
+                f'word-spacing:{WORD_SPACING}; margin:0;">'
+                f'{escape(part)}</div>'
             )
 
         conteudo = (
