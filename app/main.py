@@ -479,6 +479,7 @@ class MainWindow(QMainWindow):
             self.selecionar_faixa(0)
             if self.config_manager.get("playback/auto_play_on_add", False):
                 self.audio_engine.play()
+            self._abrir_karaoke_se_configurado()
 
     def abrir_pasta_dialogo(self):
         pasta = QFileDialog.getExistingDirectory(
@@ -560,6 +561,11 @@ class MainWindow(QMainWindow):
     # REPRODUÇÃO & KARAOKE
     # ==================================================
 
+    def _abrir_karaoke_se_configurado(self):
+        """Abre o Karaokê automaticamente quando a preferência estiver ativa."""
+        if self.config_manager.get("karaoke/open_automatically_on_open", False):
+            self.abrir_tela_karaoke()
+
     def abrir_tela_karaoke(self):
         if self.karaoke_window is None:
             self.karaoke_window = KaraokeWindow(self.audio_engine, self.config_manager)
@@ -616,6 +622,7 @@ class MainWindow(QMainWindow):
                 self.selecionar_faixa(indice)
                 if self.config_manager.get("playback/auto_play_on_add", False):
                     self.audio_engine.play()
+                self._abrir_karaoke_se_configurado()
                 return
 
         faixa = self._adicionar_caminho_fila(caminho)
@@ -626,6 +633,7 @@ class MainWindow(QMainWindow):
         self.selecionar_faixa(indice)
         if self.config_manager.get("playback/auto_play_on_add", False):
             self.audio_engine.play()
+        self._abrir_karaoke_se_configurado()
 
     def atualizar_player(self, track):
         if track is None:
@@ -726,10 +734,16 @@ class MainWindow(QMainWindow):
             self.selecionar_faixa(0)
             if self.config_manager.get("playback/auto_play_on_add", False):
                 self.audio_engine.play()
+            self._abrir_karaoke_se_configurado()
         elif self.config_manager.get("playback/auto_play_on_add", False):
             indice = len(self.queue_controller.tracks) - len(adicionadas)
             self.selecionar_faixa(indice)
             self.audio_engine.play()
+            self._abrir_karaoke_se_configurado()
+        elif self.config_manager.get("karaoke/open_automatically_on_open", False):
+            indice = len(self.queue_controller.tracks) - len(adicionadas)
+            self.selecionar_faixa(indice)
+            self._abrir_karaoke_se_configurado()
 
     def closeEvent(self, event):
         """Salva configurações e encerra recursos ao fechar o player."""
