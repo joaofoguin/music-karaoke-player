@@ -701,6 +701,36 @@ class MainWindow(QMainWindow):
         segundos = segundos % 60
         return f"{minutos:02d}:{segundos:02d}"
 
+    def abrir_arquivos_externos(self, caminhos):
+        """Adiciona arquivos recebidos pelo sistema operacional e respeita o autoplay."""
+        validos = []
+        for caminho in caminhos or []:
+            path = Path(caminho).expanduser()
+            if path.is_file() and path.suffix.lower() in self.audio_extensions:
+                validos.append(path)
+
+        if not validos:
+            return
+
+        primeira_adicionada = len(self.queue_controller.tracks) == 0
+        adicionadas = []
+        for caminho in validos:
+            faixa = self._adicionar_caminho_fila(caminho)
+            if faixa is not None:
+                adicionadas.append(faixa)
+
+        if not adicionadas:
+            return
+
+        if primeira_adicionada:
+            self.selecionar_faixa(0)
+            if self.config_manager.get("playback/auto_play_on_add", False):
+                self.audio_engine.play()
+        elif self.config_manager.get("playback/auto_play_on_add", False):
+            indice = len(self.queue_controller.tracks) - len(adicionadas)
+            self.selecionar_faixa(indice)
+            self.audio_engine.play()
+
     def closeEvent(self, event):
         """Salva configurações e encerra recursos ao fechar o player."""
         if self.config_manager.get("playback/remember_volume", True):
@@ -727,6 +757,16 @@ def main():
     app.processEvents()
 
     window = MainWindow()
+
+    # Arquivos abertos pelo Windows (duplo clique / "Abrir com...") entram
+    # diretamente na fila e seguem a configuração de reprodução automática.
+    arquivos_externos = [
+        argumento for argumento in sys.argv[1:]
+        if not argumento.startswith("-") and Path(argumento).is_file()
+    ]
+    if arquivos_externos:
+        window.abrir_arquivos_externos(arquivos_externos)
+
     time.sleep(1.2)
     app.processEvents()
     window.show()
