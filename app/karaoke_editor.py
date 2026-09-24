@@ -532,7 +532,7 @@ class KaraokeEditorWindow(QMainWindow):
         posicao_ms = max(0, int(self.audio_engine.position()))
         timestamp = format_timestamp_ms(posicao_ms).split(".")[0]
         texto = block.text()
-        texto_sem_tempo = re.sub(r"^[d{1,2}:d{2}(?:.d{1,3})?]", "", texto)
+        texto_sem_tempo = re.sub(r"^\[\d{1,2}:\d{2}(?:\.\d{1,3})?\]", "", texto)
         novo_texto = f"[{timestamp}]{texto_sem_tempo}"
 
         cursor = QTextCursor(block)
