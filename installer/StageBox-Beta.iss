@@ -44,5 +44,19 @@ Source: "{#ProjectRoot}\assets\logo.ico"; DestDir: "{app}"; DestName: "{#MyAppIc
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppIconName}"; IconIndex: 0
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppIconName}"; IconIndex: 0; Tasks: desktopicon
 
+[Registry]
+Root: HKCR; Subkey: "StageBox.AudioFile"; ValueType: string; ValueName: ""; ValueData: "StageBox Audio File"; Flags: uninsdeletekey
+Root: HKCR; Subkey: "StageBox.AudioFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppIconName},0"
+Root: HKCR; Subkey: "StageBox.AudioFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+
+Root: HKCR; Subkey: ".mp3"; ValueType: string; ValueName: ""; ValueData: "StageBox.AudioFile"
+Root: HKCR; Subkey: ".wav"; ValueType: string; ValueName: ""; ValueData: "StageBox.AudioFile"
+Root: HKCR; Subkey: ".flac"; ValueType: string; ValueName: ""; ValueData: "StageBox.AudioFile"
+Root: HKCR; Subkey: ".ogg"; ValueType: string; ValueName: ""; ValueData: "StageBox.AudioFile"
+Root: HKCR; Subkey: ".opus"; ValueType: string; ValueName: ""; ValueData: "StageBox.AudioFile"
+Root: HKCR; Subkey: ".m4a"; ValueType: string; ValueName: ""; ValueData: "StageBox.AudioFile"
+Root: HKCR; Subkey: ".aac"; ValueType: string; ValueName: ""; ValueData: "StageBox.AudioFile"
+Root: HKCR; Subkey: ".wma"; ValueType: string; ValueName: ""; ValueData: "StageBox.AudioFile"
+
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Executar {#MyAppName}"; Flags: nowait postinstall skipifsilent
