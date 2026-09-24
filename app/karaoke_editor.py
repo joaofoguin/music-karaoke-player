@@ -463,7 +463,7 @@ class KaraokeEditorWindow(QMainWindow):
         blocos = []
         for line in linhas:
             chord_line = self._formatar_cifras_editor(line.chords or "")
-            timestamp = format_timestamp_ms(line.timestamp_ms).split(".")[0]
+            timestamp = format_timestamp_ms(line.timestamp_ms)
             blocos.append(f"{chord_line}\n[{timestamp}]{line.clean_lyrics}")
         return "\n\n".join(blocos)
 
@@ -555,10 +555,23 @@ class KaraokeEditorWindow(QMainWindow):
                 config_manager=self.config_manager,
                 parent=self,
             )
+            # No preview, o botão "Anterior" deve reiniciar a faixa em teste
+            # sem depender da fila principal do player.
+            self._preview_karaoke.faixa_anterior_solicitada.connect(
+                self._reiniciar_preview
+            )
         self._preview_karaoke.definir_preview(self.current_track, linhas)
         self._preview_karaoke.show()
         self._preview_karaoke.raise_()
         self._preview_karaoke.activateWindow()
+
+    def _reiniciar_preview(self):
+        """Reinicia a faixa atual durante o preview do editor."""
+        if self.audio_engine is None:
+            return
+        self.audio_engine.set_position(0)
+        if not self.audio_engine.is_playing():
+            self.audio_engine.play()
 
     def _carregar_modelo_editor(self):
         self.editor_model = self.config_manager.get("karaoke/editor_model", "stagebox") if self.config_manager else "stagebox"
