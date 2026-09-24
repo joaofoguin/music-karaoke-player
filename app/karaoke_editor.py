@@ -38,6 +38,7 @@ from core.lyrics_storage import get_save_lyrics_path, resolve_lyrics_path
 from core.icons import get_stateful_icon, get_svg_icon
 from core.clickable_slider import ClickableSlider
 from core.theme_manager import ThemeManager
+from karaoke_window import KaraokeWindow
 
 
 class KaraokeEditorWindow(QMainWindow):
@@ -197,6 +198,15 @@ class KaraokeEditorWindow(QMainWindow):
 
         linha1.addStretch()
 
+        self.btn_preview = QPushButton("Preview")
+        self.btn_preview.setObjectName("btnTopAction")
+        self.btn_preview.setIcon(get_svg_icon("play", color="#ffffff"))
+        self.btn_preview.setIconSize(QSize(18, 18))
+        self.btn_preview.setFixedHeight(36)
+        self.btn_preview.setToolTip("Pré-visualizar a letra no Karaoke")
+        self.btn_preview.clicked.connect(self._abrir_preview_karaoke)
+        linha1.addWidget(self.btn_preview)
+
         self.btn_colar_musica = QPushButton("Importar")
         self.btn_colar_musica.setObjectName("btnTopAction")
         self.btn_colar_musica.setIcon(get_stateful_icon("paste", normal_color="#ffffff", hover_color="#ffffff"))
@@ -291,10 +301,19 @@ class KaraokeEditorWindow(QMainWindow):
         self.tabela.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
         self.tabela.setAlternatingRowColors(True)
 
+        self.editor_texto = QPlainTextEdit()
+        self.editor_texto.setObjectName("winampEditor")
+        self.editor_texto.setFont(QFont("Consolas", 11))
+        self.editor_texto.setPlaceholderText("      C             G\n[00:12]Quando eu te encontrar\n\n      Am            F\n[00:18]E então...")
+        self.editor_texto.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
+        self.editor_texto.setTabStopDistance(32)
+        self.editor_texto.textChanged.connect(self._on_editor_text_changed)
+
         self.tabela.cellClicked.connect(self._on_cell_clicked)
         self.tabela.itemChanged.connect(self._on_table_item_changed)
 
         layout_principal.addWidget(self.tabela, 1)
+        layout_principal.addWidget(self.editor_texto, 1)
 
         self.lbl_modelo_preview = QLabel()
         self.lbl_modelo_preview.setObjectName("lyricsModelPreview")
@@ -426,9 +445,76 @@ class KaraokeEditorWindow(QMainWindow):
             linhas = load_lrc(lrc_existente)
 
         self._popular_tabela(linhas)
+        if self.editor_model == "winamp":
+            self.editor_texto.blockSignals(True)
+            self.editor_texto.setPlainText(self._linhas_para_texto_winamp(linhas))
+            self.editor_texto.blockSignals(False)
+
+    def _linhas_para_texto_winamp(self, linhas):
+        blocos = []
+        for line in linhas:
+            chord_line = self._formatar_cifras_editor(line.chords or "")
+            timestamp = format_timestamp_ms(line.timestamp_ms).split(".")[0]
+            blocos.append(f"{chord_line}\n[{timestamp}]{line.clean_lyrics}")
+        return "\n\n".join(blocos)
+
+    def _linhas_do_texto_winamp(self):
+        linhas = []
+        pending_chords = ""
+        for raw in self.editor_texto.toPlainText().splitlines():
+            linha = raw.rstrip()
+            if not linha.strip():
+                continue
+            if not linha.lstrip().startswith("["):
+                pending_chords = self._normalizar_cifras_editor(linha)
+                continue
+            match = re.match(r"^\[(\d{1,2}:\d{2}(?:\.\d{1,3})?)\](.*)$", linha)
+            if not match:
+                continue
+            linhas.append(LyricLine(
+                timestamp_ms=parse_timestamp_ms(match.group(1)),
+                text=match.group(2),
+                chords=pending_chords,
+            ))
+            pending_chords = ""
+        return linhas
+
+    def _on_editor_text_changed(self):
+        if self.editor_model == "winamp":
+            self.lbl_modelo_preview.setText(
+                '<span style="color:#9ca3af;">Editor Winamp — texto tradicional. '
+                'As cifras ficam acima da letra e respeitam os espaços digitados.</span>'
+            )
+
+    def _abrir_preview_karaoke(self):
+        linhas = self._linhas_do_texto_winamp() if self.editor_model == "winamp" else [
+            LyricLine(
+                timestamp_ms=int(self.tabela.item(r, 0).data(Qt.ItemDataRole.UserRole) or 0),
+                text=self.tabela.item(r, 2).text(),
+                chords=self.tabela.item(r, 1).data(Qt.ItemDataRole.UserRole) or "",
+            )
+            for r in range(self.tabela.rowCount())
+        ]
+        if not linhas:
+            QMessageBox.information(self, "Preview", "Não há versos válidos para pré-visualizar.")
+            return
+        if not hasattr(self, "_preview_karaoke") or self._preview_karaoke is None:
+            self._preview_karaoke = KaraokeWindow(
+                audio_engine=self.audio_engine,
+                config_manager=self.config_manager,
+                parent=self,
+            )
+        self._preview_karaoke.definir_preview(self.current_track, linhas)
+        self._preview_karaoke.show()
+        self._preview_karaoke.raise_()
+        self._preview_karaoke.activateWindow()
 
     def _carregar_modelo_editor(self):
         self.editor_model = self.config_manager.get("karaoke/editor_model", "stagebox") if self.config_manager else "stagebox"
+        winamp = self.editor_model == "winamp"
+        self.tabela.setVisible(not winamp)
+        self.editor_texto.setVisible(winamp)
+        self.lbl_modelo_preview.setVisible(not winamp)
         self._atualizar_preview_modelo(self.tabela.currentRow())
 
     def _formatar_cifras_editor(self, chords):
@@ -762,36 +848,39 @@ class KaraokeEditorWindow(QMainWindow):
         )
         if ok and offset != 0:
             for r in range(self.tabela.rowCount()):
+                    item_tempo = self.tabela.item(r, 0)
+                    if item_tempo:
+                        ms_atual = item_tempo.data(Qt.ItemDataRole.UserRole) or 0
+                        novo_ms = max(0, ms_atual + offset)
+                        item_tempo.setText(format_timestamp_ms(novo_ms))
+                        item_tempo.setData(Qt.ItemDataRole.UserRole, novo_ms)
+    
+        def salvar_letra(self):
+            """Salva a lista de linhas na pasta centralizada de karaoke."""
+            if self.current_track is None:
+                QMessageBox.warning(self, "Aviso", "Nenhuma música carregada para salvar a letra.")
+                return
+    
+            if self.editor_model == "winamp":
+                linhas = self._linhas_do_texto_winamp()
+            else:
+                linhas: list[LyricLine] = []
+                for r in range(self.tabela.rowCount()):
                 item_tempo = self.tabela.item(r, 0)
-                if item_tempo:
-                    ms_atual = item_tempo.data(Qt.ItemDataRole.UserRole) or 0
-                    novo_ms = max(0, ms_atual + offset)
-                    item_tempo.setText(format_timestamp_ms(novo_ms))
-                    item_tempo.setData(Qt.ItemDataRole.UserRole, novo_ms)
-
-    def salvar_letra(self):
-        """Salva a lista de linhas na pasta centralizada de karaoke."""
-        if self.current_track is None:
-            QMessageBox.warning(self, "Aviso", "Nenhuma música carregada para salvar a letra.")
-            return
-
-        linhas: list[LyricLine] = []
-        for r in range(self.tabela.rowCount()):
-            item_tempo = self.tabela.item(r, 0)
-            item_chords = self.tabela.item(r, 1)
-            item_texto = self.tabela.item(r, 2)
-            ms = item_tempo.data(Qt.ItemDataRole.UserRole) if item_tempo else 0
-            if ms is None:
-                ms = 0
-            chords = (
-                item_chords.data(Qt.ItemDataRole.UserRole)
-                if item_chords and item_chords.data(Qt.ItemDataRole.UserRole)
-                else (item_chords.text().strip() if item_chords else "")
-            )
-            texto = item_texto.text() if item_texto else ""
-            linhas.append(LyricLine(timestamp_ms=int(ms), text=texto, chords=chords))
-
-        destino = self.target_lrc_path or get_save_lyrics_path(self.current_track, self.config_manager)
+                item_chords = self.tabela.item(r, 1)
+                item_texto = self.tabela.item(r, 2)
+                ms = item_tempo.data(Qt.ItemDataRole.UserRole) if item_tempo else 0
+                if ms is None:
+                    ms = 0
+                chords = (
+                    item_chords.data(Qt.ItemDataRole.UserRole)
+                    if item_chords and item_chords.data(Qt.ItemDataRole.UserRole)
+                    else (item_chords.text().strip() if item_chords else "")
+                )
+                texto = item_texto.text() if item_texto else ""
+                linhas.append(LyricLine(timestamp_ms=int(ms), text=texto, chords=chords))
+    
+            destino = self.target_lrc_path or get_save_lyrics_path(self.current_track, self.config_manager)
         sucesso = save_lrc(
             path=destino,
             lines=linhas,
