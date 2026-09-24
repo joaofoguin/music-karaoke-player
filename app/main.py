@@ -101,6 +101,7 @@ class MainWindow(QMainWindow):
         self._volume_anterior_mudo = None
         self._update_checker = None
         self._update_downloader = None
+        self._update_info_pendente = None
 
         self.config_manager.settings_changed.connect(self.aplicar_configuracoes)
 
@@ -116,6 +117,7 @@ class MainWindow(QMainWindow):
         self.aplicar_estilo()
         self.carregar_estado_inicial()
         QTimer.singleShot(2500, self.verificar_atualizacao)
+        QTimer.singleShot(500, self.verificar_atualizacao_concluida)
 
     def verificar_atualizacao(self):
         """Consulta novas versões Beta sem bloquear a interface."""
@@ -143,6 +145,7 @@ class MainWindow(QMainWindow):
             return
 
         self.statusBar().showMessage("Baixando atualização...")
+        self._update_info_pendente = update
         self._update_downloader = UpdateDownloader(update.installer_url, self)
         self._update_downloader.downloaded.connect(self._instalador_baixado)
         self._update_downloader.failed.connect(self._download_atualizacao_falhou)
@@ -152,7 +155,7 @@ class MainWindow(QMainWindow):
     def _instalador_baixado(self, path):
         self.statusBar().clearMessage()
         try:
-            open_installer(path)
+            open_installer(path, self._update_info_pendente)
         except OSError as exc:
             QMessageBox.warning(
                 self,
@@ -161,6 +164,48 @@ class MainWindow(QMainWindow):
             )
             return
         self.close()
+
+
+    def verificar_atualizacao_concluida(self):
+        """Exibe as novidades da versão após uma atualização automática."""
+        if "--update-complete" not in sys.argv:
+            return
+
+        try:
+            indice = sys.argv.index("--update-complete")
+            marker = Path(sys.argv[indice + 1])
+            import json
+            dados = json.loads(marker.read_text(encoding="utf-8"))
+            marker.unlink(missing_ok=True)
+        except (ValueError, IndexError, OSError, json.JSONDecodeError):
+            return
+
+        versao = str(dados.get("version", "")).strip()
+        notas = str(dados.get("release_notes", "")).strip()
+        if not versao:
+            return
+
+        linhas = []
+        for linha in notas.splitlines():
+            linha = linha.strip()
+            if not linha:
+                continue
+            if linha.startswith("### "):
+                linhas.append(f"<h4>{linha[4:]}</h4>")
+            elif linha.startswith("- "):
+                linhas.append(f"• {linha[2:]}")
+            else:
+                linhas.append(linha)
+
+        conteudo = "<br>".join(linhas) if linhas else "Nenhuma novidade detalhada foi publicada nesta versão."
+        QMessageBox.information(
+            self,
+            "Atualização concluída",
+            f"<h3>StageBox atualizado com sucesso!</h3>"
+            f"<p><b>Versão:</b> {versao}</p>"
+            f"<p><b>Novidades, melhorias e correções:</b></p>"
+            f"<p>{conteudo}</p>",
+        )
 
     def _download_atualizacao_falhou(self, erro: str):
         self.statusBar().clearMessage()
