@@ -256,44 +256,46 @@ def render_chord_line_html(
         lyric_lines = clean.splitlines() or ["♪"]
         positioned = line.positioned_chords if show_chords and chords_list else []
 
-        # Winamp usa uma única grade monoespaçada. A posição @N da cifra é
-        # preservada literalmente como coluna da mesma grade da letra.
+        # A posição @N é relativa ao início da letra. A cifra não pode
+        # alterar a posição visual da letra: a grade de cifras é maior
+        # apenas para acomodar cifras que estejam além do fim do verso.
         lyric_width = max((len(part) for part in lyric_lines), default=1)
         chord_end = max(
             (position + len(chord) for chord, position in positioned),
             default=0,
         )
-        visual_width = max(lyric_width, chord_end, 1)
+        grid_width = max(lyric_width, chord_end, 1)
 
+        # A linha atual é sempre centralizada pela sua própria largura.
+        # O contexto não participa do cálculo da posição horizontal.
         linhas_grade = []
         if positioned:
-            chord_cells = [" "] * visual_width
+            chord_cells = [" "] * grid_width
             for chord, position in positioned:
                 for offset, char in enumerate(chord):
                     index = position + offset
-                    if 0 <= index < visual_width:
+                    if 0 <= index < grid_width:
                         chord_cells[index] = char
             linhas_grade.append(
                 f'<div style="color:{chords_color}; font-size:{tamanho_verso}px; '
                 f'font-weight:700; white-space:pre; margin:0 0 4px 0;">'
-                f'{escape("".join(chord_cells))}</div>'
+                f'{escape("".join(chord_cells).rstrip())}</div>'
             )
 
         for part in lyric_lines:
-            # A letra ocupa a mesma grade. Não adicionamos padding calculado
-            # separadamente: @N permanece a coluna exata da cifra.
-            linha = part.ljust(visual_width)
             linhas_grade.append(
-                f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; '
-                f'font-weight:{peso_fonte}; white-space:pre; margin:0;">'
-                f'{escape(linha)}</div>'
+                f'<div align="center" style="color:{letra_cor}; '
+                f'font-size:{tamanho_verso}px; font-weight:{peso_fonte}; '
+                f'white-space:pre; margin:0;">{escape(part)}</div>'
             )
 
+        # A célula externa centraliza a grade como um bloco, mas cada verso
+        # é centralizado pela própria largura. Assim, mudar @N desloca somente
+        # a cifra e nunca empurra a frase para a esquerda.
         conteudo = (
             f'<table align="center" cellspacing="0" cellpadding="0" border="0" '
-            f'style="margin:{margem}px auto; opacity:{opacidade}; '
-            f'font-family:monospace; font-size:{tamanho_verso}px; '
-            f'line-height:1.15;"><tr><td>'
+            f'style="margin:{margem}px auto; opacity:{opacidade};">'
+            f'<tr><td>'
             f'{"".join(linhas_grade)}'
             f'</td></tr></table>'
         )
