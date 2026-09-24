@@ -508,6 +508,7 @@ class KaraokeWindow(QMainWindow):
                         show_chords=self.show_chords,
                         font_size=self.font_size,
                         link_href=f"line:{index}",
+                        editor_model=self.editor_model,
                     )
                 )
             self.letra.setText("".join(trechos))
