@@ -84,7 +84,8 @@ class PlaybackCoordinator(QObject):
         return track
 
     def next(self):
-        self._previous_restarted = True
+        # Após avançar, o primeiro clique em anterior deve reiniciar a faixa atual.
+        self._previous_restarted = False
         track = self.queue.next()
         if track is None:
             return None
