@@ -71,7 +71,8 @@ class KaraokeEditorWindow(QMainWindow):
         self.audio_engine.playback_stopped.connect(self._atualizar_botao_play)
 
     def _atualizar_tema(self):
-        """Atualiza o tema do editor enquanto ele permanece aberto."""
+        """Atualiza tema e modelo de cifras enquanto o editor permanece aberto."""
+        self._carregar_modelo_editor()
         self._aplicar_estilo()
 
     def _aplicar_estilo(self):
