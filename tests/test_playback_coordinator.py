@@ -58,6 +58,7 @@ def test_playback_coordinator_select_and_navigation():
 
     assert coordinator.select_and_play(0) == first
     assert coordinator.next() == second
+    assert coordinator.previous() == second
     assert coordinator.previous() == first
 
     assert changed == [first, second, first]
@@ -66,6 +67,7 @@ def test_playback_coordinator_select_and_navigation():
         ("play",),
         ("load", second.path),
         ("play",),
+        ("set_position", 0),
         ("load", first.path),
         ("play",),
     ]
