@@ -268,7 +268,7 @@ def render_chord_line_html(
         visual_width = max(lyric_width, chord_end, 1)
 
         html_partes.append(
-            f'<div style="display:table; margin:0 auto; text-align:left; '
+            f'<div style="display:table; margin:0 auto; padding:0; text-align:left; '
             f'font-family:monospace; font-size:{tamanho_verso}px; line-height:1.15;">'
         )
 
@@ -294,7 +294,7 @@ def render_chord_line_html(
             padding = max(0, (visual_width - len(part)) // 2)
             html_partes.append(
                 f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; '
-                f'font-weight:{peso_fonte}; white-space:pre; '
+                f'font-weight:{peso_fonte}; white-space:pre; text-align:left; '
                 f'padding-left:{padding}ch;">{escape(part)}</div>'
             )
 
@@ -325,7 +325,8 @@ def render_chord_line_html(
         html_partes.append(
             f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; '
             f'font-weight:{peso_fonte}; letter-spacing:0.5px; line-height:1.6; '
-            f'font-family:inherit; white-space:pre-wrap;">{escape(clean)}</div>'
+            f'font-family:inherit; white-space:pre-wrap; text-align:center; '
+            f'margin-left:auto; margin-right:auto;">{escape(clean)}</div>'
         )
 
     conteudo = (
