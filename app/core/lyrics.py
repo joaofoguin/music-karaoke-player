@@ -268,7 +268,7 @@ def render_chord_line_html(
                 if 0 <= index < len(cells):
                     cells[index] = char
         chords_str = escape("".join(cells).rstrip())
-        chords_size = max(15, int(tamanho_verso * 0.6))
+        chords_size = tamanho_verso if editor_model == "winamp" else max(15, int(tamanho_verso * 0.6))
         html_partes.append(
             f'<div style="color:{chords_color}; font-size:{chords_size}px; font-weight:700; '
             f'letter-spacing:0; margin-bottom:6px; font-family:monospace; white-space:pre; '
