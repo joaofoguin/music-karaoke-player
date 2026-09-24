@@ -259,6 +259,15 @@ class KaraokeWindow(QMainWindow):
         if self.isFullScreen():
             self.alternar_tela_cheia()
 
+    def definir_preview(self, track, lines):
+        """Carrega linhas fornecidas pelo editor sem exigir um arquivo LRC salvo."""
+        self.current_track = track
+        self.lines = list(lines or [])
+        self.current_index = -1
+        if track is not None:
+            self.faixa_atual.setText(track.title or "Pré-visualização")
+        self._mostrar_contexto()
+
     def definir_proxima_faixa(self, track):
         self.proxima_track = track
         if track is None:
