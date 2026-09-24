@@ -500,30 +500,15 @@ class KaraokeWindow(QMainWindow):
 
         if self.current_index < 0:
             fim = min(len(self.lines), self.context_lines + 1)
-            trechos = []
-            for index in range(0, fim):
-                trechos.append(
-                    render_chord_line_html(
-                        line=self.lines[index],
-                        is_active=False,
-                        active_color=self.highlight_color,
-                        context_color=self.context_color,
-                        chords_color=self.chords_color,
-                        show_chords=self.show_chords,
-                        font_size=self.font_size,
-                        link_href=f"line:{index}",
-                        editor_model=self.editor_model,
-                    )
-                )
-            self._definir_letra_centralizada("".join(trechos))
-            return
+            indices = list(range(0, fim))
+        else:
+            inicio = max(0, self.current_index - self.context_lines)
+            fim = min(len(self.lines), self.current_index + self.context_lines + 1)
+            indices = list(range(inicio, fim))
 
-        inicio = max(0, self.current_index - self.context_lines)
-        fim = min(len(self.lines), self.current_index + self.context_lines + 1)
         trechos = []
-
-        for index in range(inicio, fim):
-            is_active = (index == self.current_index)
+        for index in indices:
+            is_active = index == self.current_index
             trechos.append(
                 render_chord_line_html(
                     line=self.lines[index],
@@ -540,13 +525,17 @@ class KaraokeWindow(QMainWindow):
 
         self._definir_letra_centralizada("".join(trechos))
 
+
     def _definir_letra_centralizada(self, html):
-        # QTextDocument do Qt não respeita de forma consistente regras CSS de
-        # centralização em blocos HTML. O próprio QLabel recebe a largura total
-        # e o alinhamento horizontal, garantindo que o documento inteiro fique
-        # centralizado na área disponível.
-        self.letra.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        # O QLabel ocupa apenas a região destinada às letras. O header e o
+        # footer ficam fora dessa área, criando limites fixos de visibilidade
+        # para que o centro da frase ativa não dependa do tamanho deles.
+        self.letra.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
+        self.letra.setContentsMargins(0, 0, 0, 0)
         self.letra.setText(html)
+
 
     def limpar(self):
         self.lines = []
