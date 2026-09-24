@@ -44,10 +44,33 @@ class LyricLine:
 
     @property
     def extracted_chords(self) -> list[str]:
-        """Retorna a lista de cifras encontradas na linha."""
+        """Retorna os nomes das cifras, ocultando a posição opcional ACORDE@COLUNA."""
         if self.chords:
-            return self.chords.split()
+            return [token.split("@", 1)[0] for token in self.chords.split()]
         return [m.group("chord") for m in INLINE_CHORD_PATTERN.finditer(self.text)]
+
+    @property
+    def positioned_chords(self) -> list[tuple[str, int]]:
+        """Retorna (acorde, coluna), preservando cifras posicionadas e aceitando LRCs antigos."""
+        if not self.chords:
+            return [(m.group("chord"), m.start()) for m in INLINE_CHORD_PATTERN.finditer(self.text)]
+
+        result = []
+        fallback = 0
+        for token in self.chords.split():
+            chord = token
+            position = None
+            if "@" in token:
+                chord, raw_position = token.rsplit("@", 1)
+                try:
+                    position = max(0, int(raw_position))
+                except ValueError:
+                    position = None
+            if position is None:
+                position = fallback
+            result.append((chord, position))
+            fallback = max(fallback, position + len(chord) + 3)
+        return result
 
 
 def is_chord_line(line: str) -> bool:
@@ -96,14 +119,14 @@ def parse_chord_sheet(text: str) -> list[tuple[str, str]]:
             ):
                 next_line = raw_lines[i + 1].strip()
                 # Extrai os acordes da linha de cifra
-                matches = [m.group(0) for m in CHORD_TOKEN_PATTERN.finditer(line)]
-                chords_str = "   ".join(matches)
+                matches = list(CHORD_TOKEN_PATTERN.finditer(line))
+                chords_str = " ".join(f"{m.group(0)}@{m.start()}" for m in matches)
                 result.append((chords_str, next_line))
                 i += 2
             else:
                 # Linha de cifra isolada (ex: [Intro] C Am F G ou Solo)
-                matches = [m.group(0) for m in CHORD_TOKEN_PATTERN.finditer(line)]
-                chords_str = "   ".join(matches)
+                matches = list(CHORD_TOKEN_PATTERN.finditer(line))
+                chords_str = " ".join(f"{m.group(0)}@{m.start()}" for m in matches)
                 header = re.sub(CHORD_TOKEN_PATTERN, "", line).strip(" \t:,-")
                 result.append((chords_str, header))
                 i += 1
@@ -145,13 +168,13 @@ def convert_chord_sheet_to_lyric_lines(text: str) -> list[LyricLine]:
                 and not TIMESTAMP_PATTERN.search(raw_lines[i + 1])
             ):
                 next_line = raw_lines[i + 1].strip()
-                matches = [m.group(0) for m in CHORD_TOKEN_PATTERN.finditer(line)]
-                chords_str = "   ".join(matches)
+                matches = list(CHORD_TOKEN_PATTERN.finditer(line))
+                chords_str = " ".join(f"{m.group(0)}@{m.start()}" for m in matches)
                 result.append(LyricLine(timestamp_ms=0, text=next_line, chords=chords_str))
                 i += 2
             else:
-                matches = [m.group(0) for m in CHORD_TOKEN_PATTERN.finditer(line)]
-                chords_str = "   ".join(matches)
+                matches = list(CHORD_TOKEN_PATTERN.finditer(line))
+                chords_str = " ".join(f"{m.group(0)}@{m.start()}" for m in matches)
                 header = re.sub(CHORD_TOKEN_PATTERN, "", line).strip(" \t:,-")
                 result.append(LyricLine(timestamp_ms=0, text=header, chords=chords_str))
                 i += 1
@@ -218,6 +241,7 @@ def render_chord_line_html(
     show_chords: bool = True,
     font_size: int = 32,
     link_href: str | None = None,
+    editor_model: str = "stagebox",
 ) -> str:
     """Gera a representação visual em HTML da linha de letra com frases limpas e cifras sobrepostas."""
     chords_list = line.extracted_chords
@@ -230,20 +254,34 @@ def render_chord_line_html(
 
     html_partes = []
 
-    # Linha dedicada superior para as cifras
+    # Linha dedicada superior para as cifras, preservando a coluna da letra.
     if show_chords and chords_list:
-        chords_str = " &nbsp;&nbsp;&nbsp;&nbsp; ".join(escape(c) for c in chords_list)
+        positioned = line.positioned_chords
+        max_position = max(
+            (position + len(chord) for chord, position in positioned),
+            default=1,
+        )
+        cells = [" "] * max_position
+        for chord, position in positioned:
+            for offset, char in enumerate(chord):
+                index = position + offset
+                if 0 <= index < len(cells):
+                    cells[index] = char
+        chords_str = escape("".join(cells).rstrip())
         chords_size = max(15, int(tamanho_verso * 0.6))
         html_partes.append(
             f'<div style="color:{chords_color}; font-size:{chords_size}px; font-weight:700; '
-            f'letter-spacing:1.5px; margin-bottom:6px; font-family:monospace;">{chords_str}</div>'
+            f'letter-spacing:0; margin-bottom:6px; font-family:monospace; white-space:pre; '
+            f'text-align:left; width:fit-content; margin-left:auto; margin-right:auto;">{chords_str}</div>'
         )
 
     # Frase do verso 100% limpa e espaçosa
     clean = escape(line.clean_lyrics) or "♪"
     html_partes.append(
         f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; font-weight:{peso_fonte}; '
-        f'letter-spacing:0.5px; line-height:1.6;">{clean}</div>'
+        f'letter-spacing:0.5px; line-height:1.6; '
+        f'font-family:{"monospace" if editor_model == "winamp" else "inherit"}; '
+        f'white-space:pre-wrap;">{clean}</div>'
     )
 
     conteudo = (
