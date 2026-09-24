@@ -323,10 +323,10 @@ def render_chord_line_html(
             )
 
         html_partes.append(
-            f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; '
+            f'<div align="center" style="color:{letra_cor}; font-size:{tamanho_verso}px; '
             f'font-weight:{peso_fonte}; letter-spacing:0.5px; line-height:1.6; '
-            f'font-family:inherit; white-space:pre-wrap; text-align:center; '
-            f'margin-left:auto; margin-right:auto;">{escape(clean)}</div>'
+            f'font-family:inherit; white-space:pre-wrap; text-align:center;">'
+            f'{escape(clean)}</div>'
         )
 
     # QLabel/QTextDocument (Qt) não interpreta "margin:auto" e algumas regras
