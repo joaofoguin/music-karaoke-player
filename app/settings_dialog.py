@@ -195,6 +195,9 @@ class SettingsDialog(QDialog):
         )
         form_karaoke.addRow("Modelo de edição de cifras:", self.combo_editor_model)
 
+        self.chk_open_karaoke = QCheckBox("Abrir o Karaokê automaticamente ao abrir uma música")
+        form_karaoke.addRow("", self.chk_open_karaoke)
+
         # Cor de destaque
         self.highlight_color = "#ffffff"
         self.btn_highlight_color = QPushButton()
@@ -365,6 +368,7 @@ class SettingsDialog(QDialog):
         self.chk_remember_volume.setChecked(self.config_manager.get("playback/remember_volume", True))
         self.chk_repeat_default.setChecked(self.config_manager.get("playback/repeat_enabled", False))
         self.chk_autoplay.setChecked(self.config_manager.get("playback/auto_play_on_add", False))
+        self.chk_open_karaoke.setChecked(self.config_manager.get("karaoke/open_automatically_on_open", False))
 
         exts = self.config_manager.get("playback/audio_extensions", [".mp3", ".wav", ".flac", ".ogg", ".opus", ".m4a", ".aac"])
         self.edit_extensions.setText(", ".join(exts))
@@ -430,6 +434,7 @@ class SettingsDialog(QDialog):
             "playback/remember_volume": self.chk_remember_volume.isChecked(),
             "playback/repeat_enabled": self.chk_repeat_default.isChecked(),
             "playback/auto_play_on_add": self.chk_autoplay.isChecked(),
+            "karaoke/open_automatically_on_open": self.chk_open_karaoke.isChecked(),
             "playback/audio_extensions": exts,
             "audio/output_device_id": self.combo_output_device.currentData() or "",
             "karaoke/lyrics_directory": self.edit_lyrics_dir.text().strip(),
