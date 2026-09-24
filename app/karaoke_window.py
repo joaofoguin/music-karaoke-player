@@ -212,6 +212,9 @@ class KaraokeWindow(QMainWindow):
         self.letra.setObjectName("lyrics")
         self.letra.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.letra.setWordWrap(True)
+        self.letra.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByMouse)
+        self.letra.setOpenExternalLinks(False)
+        self.letra.linkActivated.connect(self._selecionar_linha_por_link)
         layout.addWidget(self.letra, 1)
 
         # Aviso flutuante da próxima faixa, exibido apenas no fim da música.
@@ -449,6 +452,21 @@ class KaraokeWindow(QMainWindow):
         if self.current_track is not None:
             self.carregar_letra(self.current_track)
 
+    def _selecionar_linha_por_link(self, link: str):
+        """Move o playback para o timestamp da linha clicada, sem alterar o estado de reprodução."""
+        if not link.startswith("line:") or self.audio_engine is None:
+            return
+
+        try:
+            index = int(link.split(":", 1)[1])
+        except (TypeError, ValueError):
+            return
+
+        if not (0 <= index < len(self.lines)):
+            return
+
+        self.audio_engine.set_position(int(self.lines[index].timestamp_ms))
+
     def atualizar_posicao(self, position_ms):
         self._atualizar_popup_proxima(position_ms)
         if not self.lines:
@@ -478,6 +496,7 @@ class KaraokeWindow(QMainWindow):
                         chords_color=self.chords_color,
                         show_chords=self.show_chords,
                         font_size=self.font_size,
+                        link_href=f"line:{index}",
                     )
                 )
             self.letra.setText("".join(trechos))
@@ -498,6 +517,7 @@ class KaraokeWindow(QMainWindow):
                     chords_color=self.chords_color,
                     show_chords=self.show_chords,
                     font_size=self.font_size,
+                    link_href=f"line:{index}",
                 )
             )
 
