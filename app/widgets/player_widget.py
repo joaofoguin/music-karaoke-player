@@ -1,5 +1,7 @@
+from pathlib import Path
+
 from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
 from core.clickable_slider import ClickableSlider
@@ -170,7 +172,8 @@ class PlayerWidget(QFrame):
         self.botao_repetir.setIconSize(QSize(18, 18))
         self.botao_repetir.setText("")
 
-        self.botao_karaoke.setIcon(get_svg_icon("karaoke", color=cor_icone, size=64))
+        karaoke_icon = QIcon(str(Path(__file__).resolve().parent.parent.parent / "assets" / "karaoke.svg"))
+        self.botao_karaoke.setIcon(karaoke_icon)
         self.botao_karaoke.setIconSize(QSize(18, 18))
         self.botao_karaoke.setText("")
 
