@@ -298,7 +298,7 @@ def render_chord_line_html(
                 f'padding-left:{padding}ch;">{escape(part)}</div>'
             )
 
-        html_partes.append("</div>")
+        html_partes.append("</td></tr></table>")
     else:
         if show_chords and chords_list:
             positioned = line.positioned_chords
@@ -330,7 +330,7 @@ def render_chord_line_html(
         )
 
     conteudo = (
-        f'<div style="margin:{margem}px 0; text-align:center; opacity:{opacidade}; '
+        f'<div align="center" style="margin:{margem}px 0; text-align:center; opacity:{opacidade}; '
         f'transition: all 0.2s ease-in-out;">{"".join(html_partes)}</div>'
     )
     if link_href:
