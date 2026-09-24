@@ -143,9 +143,10 @@ class KaraokeEditorWindow(QMainWindow):
         )
         cor_destino = "#6b7280" if tema == "light" else "#9ca3af"
         self.lbl_destino.setStyleSheet(f"color: {cor_destino}; font-size: 12px;")
-        self.chk_click_to_sync.setStyleSheet(
-            f"color: {'#2563eb' if tema == 'light' else '#60a5fa'}; font-weight: bold;"
-        )
+        if hasattr(self, "lbl_marcacao"):
+            self.lbl_marcacao.setStyleSheet(
+                f"color: {'#2563eb' if tema == 'light' else '#60a5fa'}; font-weight: 600;"
+            )
         self._atualizar_icones()
 
     def _atualizar_icones(self):
@@ -273,12 +274,14 @@ class KaraokeEditorWindow(QMainWindow):
 
         layout_topo.addLayout(linha2)
 
-        # Dica / Opção de clique na linha
+        # Dica: a linha Winamp é marcada exclusivamente pela posição do cursor.
         linha_dica = QHBoxLayout()
-        self.chk_click_to_sync = QCheckBox("Modo de Marcação Rápida: clicar em qualquer linha grava o tempo atual do áudio nela")
-        self.chk_click_to_sync.setChecked(False)
-        self.chk_click_to_sync.setStyleSheet("color: #60a5fa; font-weight: bold;")
-        linha_dica.addWidget(self.chk_click_to_sync)
+        self.lbl_marcacao = QLabel(
+            "Winamp: posicione o cursor no verso, reproduza a música e clique em Marcar ou pressione F5. "
+            "Use ↑ e ↓ para navegar entre as linhas."
+        )
+        self.lbl_marcacao.setStyleSheet("color: #60a5fa; font-weight: 600;")
+        linha_dica.addWidget(self.lbl_marcacao)
         linha_dica.addStretch()
 
         layout_topo.addLayout(linha_dica)
@@ -486,67 +489,44 @@ class KaraokeEditorWindow(QMainWindow):
         return linhas
 
     def _atualizar_linha_winamp_selecionada(self):
-        """Mantém a seleção lógica do verso sob o cursor para a marcação rápida."""
+        """Mantém o cursor exatamente na linha escolhida pelo usuário."""
         if self.editor_model != "winamp":
             return
-        block = self.editor_texto.textCursor().block()
-        if block.isValid() and is_chord_line(block.text()):
-            block = block.next()
-            while block.isValid() and not block.text().strip():
-                block = block.next()
-        if block.isValid():
-            self.editor_texto.ensureCursorVisible()
+        self.editor_texto.ensureCursorVisible()
 
     def _bloco_winamp_para_marcacao(self):
-        """Resolve o verso correspondente ao cursor, ignorando linhas de cifras."""
+        """Retorna exatamente a linha onde o cursor está, sem tentar identificar cifras ou versos."""
         if self.editor_model != "winamp":
             return None
-
         block = self.editor_texto.textCursor().block()
-        if not block.isValid():
-            return None
-
-        if is_chord_line(block.text()):
-            candidate = block.next()
-            while candidate.isValid() and not candidate.text().strip():
-                candidate = candidate.next()
-            if candidate.isValid():
-                block = candidate
-
-        if not block.text().strip():
-            candidate = block.next()
-            while candidate.isValid():
-                if candidate.text().strip() and not is_chord_line(candidate.text()):
-                    block = candidate
-                    break
-                candidate = candidate.next()
-
         return block if block.isValid() and block.text().strip() else None
 
     def _gravar_tempo_winamp(self):
-        """Marca o verso sob o cursor com a posição atual do áudio."""
+        """Marca exatamente a linha sob o cursor com a posição atual do áudio."""
         block = self._bloco_winamp_para_marcacao()
         if block is None:
             return False
 
         posicao_ms = max(0, int(self.audio_engine.position()))
-        timestamp = format_timestamp_ms(posicao_ms).split(".")[0]
+        timestamp = format_timestamp_ms(posicao_ms)
         texto = block.text()
-        texto_sem_tempo = re.sub(r"^\[\d{1,2}:\d{2}(?:\.\d{1,3})?\]", "", texto)
+        texto_sem_tempo = re.sub(r"^\[\d{1,3}:\d{2}(?:[.:]\d{1,3})?\]", "", texto)
         novo_texto = f"[{timestamp}]{texto_sem_tempo}"
 
         cursor = QTextCursor(block)
         cursor.select(QTextCursor.SelectionType.LineUnderCursor)
         cursor.insertText(novo_texto)
         self.editor_texto.setTextCursor(cursor)
+        self.editor_texto.setFocus(Qt.FocusReason.OtherFocusReason)
         self.editor_texto.ensureCursorVisible()
+        return TrueeCursorVisible()
         return True
 
     def _marcar_verso_atual(self):
-        """Marca o verso atual no modelo ativo usando o relógio ou F5."""
+        """Marca a linha atual usando o relógio ou F5."""
         if self.editor_model == "winamp":
-            if self._gravar_tempo_winamp():
-                return
+            self._gravar_tempo_winamp()
+            self.editor_texto.setFocus(Qt.FocusReason.OtherFocusReason)
             return
         self._gravar_tempo_linha_selecionada()
 
@@ -704,14 +684,9 @@ class KaraokeEditorWindow(QMainWindow):
         self.tabela.setCellWidget(row, 3, widget_acoes)
 
     def _on_cell_clicked(self, row: int, col: int):
-        """Disparado quando o usuário clica em qualquer célula da tabela."""
+        """Seleciona a linha na tabela sem marcar o tempo automaticamente."""
         if self._ignorar_clique_interno:
             return
-
-        if self.chk_click_to_sync.isChecked() and self.audio_engine.is_playing():
-            self._gravar_tempo_linha(row)
-        elif col == 1:
-            self._gravar_tempo_linha(row)
 
     def _gravar_tempo_linha(self, row: int):
         """Grava a posição atual do áudio na linha especificada."""
