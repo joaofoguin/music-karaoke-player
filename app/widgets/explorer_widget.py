@@ -29,6 +29,9 @@ class ExplorerWidget(QFrame):
         self.audio_extensions = set(audio_extensions or [])
         self._theme = "dark"
         self._open_folder_connection = None
+        self._navigation_history = []
+        self._history_index = -1
+        self._restoring_history = False
         self.setObjectName("panel")
         self.setFrameShape(QFrame.Shape.StyledPanel)
 
@@ -54,6 +57,22 @@ class ExplorerWidget(QFrame):
         self.btn_abrir_pasta.setIconSize(QSize(19, 19))
         self.btn_abrir_pasta.setToolTip("Alterar pasta do explorador")
         header.addWidget(self.btn_abrir_pasta)
+
+        self.btn_voltar = QToolButton()
+        self.btn_voltar.setObjectName("panelAction")
+        self.btn_voltar.setIconSize(QSize(19, 19))
+        self.btn_voltar.setToolTip("Voltar")
+        self.btn_voltar.clicked.connect(self.voltar_diretorio)
+        self.btn_voltar.setEnabled(False)
+        header.addWidget(self.btn_voltar)
+
+        self.btn_avancar = QToolButton()
+        self.btn_avancar.setObjectName("panelAction")
+        self.btn_avancar.setIconSize(QSize(19, 19))
+        self.btn_avancar.setToolTip("Avançar")
+        self.btn_avancar.clicked.connect(self.avancar_diretorio)
+        self.btn_avancar.setEnabled(False)
+        header.addWidget(self.btn_avancar)
 
         self.btn_modo = QToolButton()
         self.btn_modo.setObjectName("panelAction")
@@ -132,16 +151,63 @@ class ExplorerWidget(QFrame):
         self.file_tree.setFont(font)
         self.file_list.setFont(font)
 
-    def definir_diretorio(self, pasta: str):
-        caminho = Path(pasta)
+    def definir_diretorio(self, pasta: str, registrar_historico: bool = True):
+        """Define a pasta atual e mantém histórico para navegação voltar/avançar."""
+        caminho = Path(pasta).resolve()
         if not caminho.is_dir():
             return
 
-        self.file_model.setRootPath(pasta)
-        index = self.file_model.index(pasta)
+        caminho_str = str(caminho)
+
+        if registrar_historico and not self._restoring_history:
+            if not self._navigation_history or self._navigation_history[self._history_index] != caminho_str:
+                self._navigation_history = self._navigation_history[: self._history_index + 1]
+                self._navigation_history.append(caminho_str)
+                self._history_index = len(self._navigation_history) - 1
+
+        self.file_model.setRootPath(caminho_str)
+        index = self.file_model.index(caminho_str)
         self.file_tree.setRootIndex(index)
         self.file_list.setRootIndex(index)
-        self.directory_changed.emit(str(caminho))
+        self._atualizar_navegacao()
+        self.directory_changed.emit(caminho_str)
+
+    def voltar_diretorio(self):
+        if self._history_index <= 0:
+            return
+        self._history_index -= 1
+        self._restoring_history = True
+        try:
+            self.definir_diretorio(
+                self._navigation_history[self._history_index],
+                registrar_historico=False,
+            )
+        finally:
+            self._restoring_history = False
+        self._atualizar_navegacao()
+
+    def avancar_diretorio(self):
+        if self._history_index >= len(self._navigation_history) - 1:
+            return
+        self._history_index += 1
+        self._restoring_history = True
+        try:
+            self.definir_diretorio(
+                self._navigation_history[self._history_index],
+                registrar_historico=False,
+            )
+        finally:
+            self._restoring_history = False
+        self._atualizar_navegacao()
+
+    def _atualizar_navegacao(self):
+        ativo = self.file_stack.currentWidget() is self.file_list
+        self.btn_voltar.setVisible(ativo)
+        self.btn_avancar.setVisible(ativo)
+        self.btn_voltar.setEnabled(ativo and self._history_index > 0)
+        self.btn_avancar.setEnabled(
+            ativo and self._history_index < len(self._navigation_history) - 1
+        )
 
     def definir_modo_exibicao(self, modo: str):
         if modo == "details":
@@ -176,11 +242,14 @@ class ExplorerWidget(QFrame):
                 self.file_list.setIconSize(QSize(64, 64))
 
         self._atualizar_icone_modo(modo)
+        self._atualizar_navegacao()
 
     def atualizar_icones(self, tema="dark"):
         self._theme = tema
         cor = "#374151" if tema == "light" else "#e5e7eb"
         self.btn_abrir_pasta.setIcon(get_svg_icon("folder", color=cor, size=64))
+        self.btn_voltar.setIcon(get_svg_icon("history_back", color=cor, size=64))
+        self.btn_avancar.setIcon(get_svg_icon("history_forward", color=cor, size=64))
 
         icones = {
             "details": "view_details",
@@ -218,6 +287,14 @@ class ExplorerWidget(QFrame):
 
     def _arquivo_selecionado(self, index):
         caminho = Path(self.file_model.filePath(index))
+
+        if caminho.is_dir():
+            # Nos modos em lista/ícones, duplo clique entra na pasta.
+            # No modo detalhes, o QTreeView continua usando a expansão nativa.
+            if self.file_stack.currentWidget() is self.file_list:
+                self.definir_diretorio(str(caminho))
+            return
+
         if not caminho.is_file():
             return
         if caminho.suffix.lower() not in self.audio_extensions:
