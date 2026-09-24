@@ -271,9 +271,13 @@ def render_chord_line_html(
         chords_str = escape("".join(cells).rstrip())
         chords_size = tamanho_verso if editor_model == "winamp" else max(15, int(tamanho_verso * 0.6))
         if editor_model == "winamp":
+            # QRichText não interpreta de forma consistente display:inline-block.
+            # Uma tabela centralizada garante que o bloco cifra+letra fique
+            # centralizado como no editor, preservando as colunas monoespaçadas.
             html_partes.append(
-                f'<div style="display:inline-block; text-align:left; '
-                f'font-family:monospace; font-size:{tamanho_verso}px; line-height:1.15;">'
+                f'<table align="center" cellspacing="0" cellpadding="0">'
+                f'<tr><td align="left" style="font-family:monospace; '
+                f'font-size:{tamanho_verso}px; line-height:1.15;">'
                 f'<div style="color:{chords_color}; font-size:{chords_size}px; font-weight:700; '
                 f'white-space:pre; margin:0 0 4px 0;">{chords_str}</div>'
             )
@@ -293,7 +297,7 @@ def render_chord_line_html(
         f'white-space:pre-wrap;">{clean}</div>'
     )
     if show_chords and chords_list and editor_model == "winamp":
-        html_partes.append("</div>")
+        html_partes.append("</td></tr></table>")
 
     conteudo = (
         f'<div style="margin:{margem}px 0; text-align:center; opacity:{opacidade}; '
