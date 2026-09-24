@@ -255,47 +255,47 @@ def render_chord_line_html(
     if editor_model == "winamp":
         lyric_lines = clean.splitlines() or ["♪"]
         positioned = line.positioned_chords if show_chords and chords_list else []
+
+        # Winamp usa uma única grade monoespaçada. A posição @N da cifra é
+        # preservada literalmente como coluna da mesma grade da letra.
+        lyric_width = max((len(part) for part in lyric_lines), default=1)
         chord_end = max(
-            (position + len(chord) for chord, position in positioned), default=0
+            (position + len(chord) for chord, position in positioned),
+            default=0,
         )
-        lyric_width = max((len(part) for part in lyric_lines), default=0)
         visual_width = max(lyric_width, chord_end, 1)
 
-        partes = [
-            f'<table align="center" cellspacing="0" cellpadding="0" border="0" '
-            f'style="margin:0 auto; padding:0; font-family:monospace; '
-            f'font-size:{tamanho_verso}px; line-height:1.15;"><tr><td>'
-        ]
-
+        linhas_grade = []
         if positioned:
             chord_cells = [" "] * visual_width
             for chord, position in positioned:
                 for offset, char in enumerate(chord):
                     index = position + offset
-                    if 0 <= index < len(chord_cells):
+                    if 0 <= index < visual_width:
                         chord_cells[index] = char
-
-            first_line = lyric_lines[0] if lyric_lines else ""
-            chord_offset = max(0, (visual_width - len(first_line)) // 2)
-            chord_line = " " * chord_offset + "".join(chord_cells)
-            partes.append(
+            linhas_grade.append(
                 f'<div style="color:{chords_color}; font-size:{tamanho_verso}px; '
                 f'font-weight:700; white-space:pre; margin:0 0 4px 0;">'
-                f'{escape(chord_line.rstrip())}</div>'
+                f'{escape("".join(chord_cells))}</div>'
             )
 
         for part in lyric_lines:
-            padding = max(0, (visual_width - len(part)) // 2)
-            partes.append(
+            # A letra ocupa a mesma grade. Não adicionamos padding calculado
+            # separadamente: @N permanece a coluna exata da cifra.
+            linha = part.ljust(visual_width)
+            linhas_grade.append(
                 f'<div style="color:{letra_cor}; font-size:{tamanho_verso}px; '
-                f'font-weight:{peso_fonte}; white-space:pre; text-align:left; '
-                f'padding-left:{padding}ch;">{escape(part)}</div>'
+                f'font-weight:{peso_fonte}; white-space:pre; margin:0;">'
+                f'{escape(linha)}</div>'
             )
 
-        partes.append("</td></tr></table>")
         conteudo = (
-            f'<div align="center" style="margin:{margem}px 0; '
-            f'opacity:{opacidade};">{"".join(partes)}</div>'
+            f'<table align="center" cellspacing="0" cellpadding="0" border="0" '
+            f'style="margin:{margem}px auto; opacity:{opacidade}; '
+            f'font-family:monospace; font-size:{tamanho_verso}px; '
+            f'line-height:1.15;"><tr><td>'
+            f'{"".join(linhas_grade)}'
+            f'</td></tr></table>'
         )
     else:
         partes = [
